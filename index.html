@@ -7,11 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-orange-50 font-sans pb-24">
+<body class="bg-orange-50 font-sans pb-32">
 
     <header class="bg-orange-600 text-white p-6 text-center shadow-lg">
-        <h1 class="text-2xl font-bold tracking-tight">ALFA SALGATERIA</h1>
-        <p class="text-sm opacity-90">Sabor que vem do coração</p>
+        <h1 class="text-2xl font-bold tracking-tight uppercase">ALFA SALGATERIA</h1>
+        <p class="text-sm opacity-90 text-yellow-100">Clique no + para adicionar ao pedido</p>
     </header>
 
     <main class="max-w-md mx-auto p-4">
@@ -20,59 +20,109 @@
             <h2 class="text-xl font-bold text-gray-800 uppercase">Salgados Fritos</h2>
         </div>
 
-        <div class="space-y-4">
+        <div id="cardapio" class="space-y-4">
             
-            <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex items-center p-3 gap-4 border border-orange-100">
-                <div class="w-24 h-24 bg-gray-200 rounded-xl flex-shrink-0 overflow-hidden">
-                    <img src="https://via.placeholder.com/150" alt="Coxinha" class="w-full h-full object-cover">
+            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100" 
+                 data-nome="Coxinha de Frango" data-preco="40.00">
+                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden">
+                    <img src="https://via.placeholder.com/150" class="w-full h-full object-cover">
                 </div>
-                
                 <div class="flex-grow">
-                    <h3 class="font-bold text-gray-800 text-lg leading-tight">Coxinha de Frango</h3>
-                    <p class="text-xs text-gray-500 mb-2">Massa de batata, crocante e sequinha.</p>
-                    <span class="text-orange-600 font-bold text-lg">R$ 40,00 <small class="text-[10px] text-gray-400">/cento</small></span>
+                    <h3 class="font-bold text-gray-800">Coxinha de Frango</h3>
+                    <span class="text-orange-600 font-bold text-sm">R$ 40,00 <small class="text-gray-400 text-[10px]">/cento</small></span>
                 </div>
-
-                <div class="flex flex-col items-center gap-2 bg-orange-50 rounded-lg p-1">
-                    <button class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold hover:bg-orange-100 border border-orange-200">+</button>
-                    <span class="font-bold text-gray-700">0</span>
-                    <button class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold hover:bg-gray-100 border border-gray-200">-</button>
+                <div class="flex flex-col items-center gap-1 bg-gray-50 rounded-lg p-1">
+                    <button onclick="mudarQtd(this, 1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200">+</button>
+                    <span class="qtd font-bold text-gray-700">0</span>
+                    <button onclick="mudarQtd(this, -1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200">-</button>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex items-center p-3 gap-4 border border-orange-100">
-                <div class="w-24 h-24 bg-gray-200 rounded-xl flex-shrink-0 overflow-hidden">
-                    <img src="https://via.placeholder.com/150" alt="Bolinha de Queijo" class="w-full h-full object-cover">
+            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100" 
+                 data-nome="Bolinha de Queijo" data-preco="40.00">
+                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden">
+                    <img src="https://via.placeholder.com/150" class="w-full h-full object-cover">
                 </div>
-                
                 <div class="flex-grow">
-                    <h3 class="font-bold text-gray-800 text-lg leading-tight">Bolinha de Queijo</h3>
-                    <p class="text-xs text-gray-500 mb-2">Muito queijo e orégano.</p>
-                    <span class="text-orange-600 font-bold text-lg">R$ 40,00 <small class="text-[10px] text-gray-400">/cento</small></span>
+                    <h3 class="font-bold text-gray-800">Bolinha de Queijo</h3>
+                    <span class="text-orange-600 font-bold text-sm">R$ 40,00 <small class="text-gray-400 text-[10px]">/cento</small></span>
                 </div>
-
-                <div class="flex flex-col items-center gap-2 bg-orange-50 rounded-lg p-1">
-                    <button class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200">+</button>
-                    <span class="font-bold text-gray-700">0</span>
-                    <button class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200">-</button>
+                <div class="flex flex-col items-center gap-1 bg-gray-50 rounded-lg p-1">
+                    <button onclick="mudarQtd(this, 1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200">+</button>
+                    <span class="qtd font-bold text-gray-700">0</span>
+                    <button onclick="mudarQtd(this, -1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200">-</button>
                 </div>
             </div>
 
         </div>
     </main>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-2xl">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <div>
-                <p class="text-xs text-gray-500 uppercase font-bold">Total do Pedido</p>
-                <p class="text-xl font-black text-gray-800">R$ 0,00</p>
+                <p class="text-[10px] text-gray-400 uppercase font-black">Total a pagar</p>
+                <p id="total-geral" class="text-2xl font-black text-orange-600">R$ 0,00</p>
             </div>
-            <button class="bg-green-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-colors">
-                Finalizar no WhatsApp
+            <button onclick="enviarWhats()" class="bg-green-600 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
+                Pedir no Whats
                 <i class="fab fa-whatsapp text-xl"></i>
             </button>
         </div>
     </div>
 
+    <script>
+        function mudarQtd(btn, mudanca) {
+            const container = btn.closest('.produto-item');
+            const qtdElemento = container.querySelector('.qtd');
+            let qtd = parseInt(qtdElemento.innerText);
+            
+            qtd = Math.max(0, qtd + mudanca); // Não deixa ser menor que zero
+            qtdElemento.innerText = qtd;
+            
+            atualizarTotal();
+        }
+
+        function atualizarTotal() {
+            let total = 0;
+            document.querySelectorAll('.produto-item').forEach(item => {
+                const preco = parseFloat(item.getAttribute('data-preco'));
+                const qtd = parseInt(item.querySelector('.qtd').innerText);
+                total += preco * qtd;
+            });
+            document.getElementById('total-geral').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        function enviarWhats() {
+            let mensagem = "*NOVO PEDIDO - ALFA SALGATERIA*\n\n";
+            let temItens = false;
+            let total = 0;
+
+            document.querySelectorAll('.produto-item').forEach(item => {
+                const nome = item.getAttribute('data-nome');
+                const preco = parseFloat(item.getAttribute('data-preco'));
+                const qtd = parseInt(item.querySelector('.qtd').innerText);
+
+                if (qtd > 0) {
+                    mensagem += `✅ *${qtd}x* ${nome}\n`;
+                    total += preco * qtd;
+                    temItens = true;
+                }
+            });
+
+            if (!temItens) {
+                alert("Adicione pelo menos um salgado ao pedido!");
+                return;
+            }
+
+            mensagem += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
+            mensagem += `\n\n_Por favor, confirme o horário para retirada._`;
+
+            // Formata para o link do WhatsApp (Substitua pelo número da sua irmã se necessário)
+            const fone = "5584987371966"; 
+            const link = `https://wa.me/${fone}?text=${encodeURIComponent(mensagem)}`;
+            
+            window.open(link, '_blank');
+        }
+    </script>
 </body>
 </html>
