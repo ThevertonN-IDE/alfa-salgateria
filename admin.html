@@ -32,7 +32,7 @@
     <nav class="max-w-xl mx-auto mt-4 px-4">
         <div class="flex bg-white rounded-2xl shadow-sm p-1">
             <button onclick="mudarAba('produtos')" id="tab-produtos" class="flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all bg-orange-100 text-orange-700">Cardápio</button>
-            <button onclick="mudarAba('clientes')" id="tab-clientes" class="flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all text-gray-400 hover:text-gray-600">Clientes</button>
+            <button onclick="mudarAba('clientes')" id="tab-clientes" class="flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all text-gray-400 hover:text-gray-600">Usuários</button>
         </div>
     </nav>
 
@@ -70,17 +70,14 @@
             <div id="lista-produtos" class="space-y-2 pb-10"></div>
         </div>
 
-        <div id="view-clientes" class="hidden space-y-6">
-            <section class="bg-white p-6 rounded-3xl shadow-sm border border-blue-50">
-                <h2 class="text-lg font-black mb-4 text-gray-800 uppercase italic">Cadastrar Cliente</h2>
-                <div class="space-y-3">
-                    <input type="text" id="cli-nome" placeholder="Nome Completo" class="w-full p-3 rounded-xl bg-gray-50 border text-sm outline-none focus:border-blue-500">
-                    <input type="text" id="cli-phone" placeholder="WhatsApp (Somente números)" class="w-full p-3 rounded-xl bg-gray-50 border text-sm outline-none focus:border-blue-500">
-                    <input type="text" id="cli-address" placeholder="Endereço Completo" class="w-full p-3 rounded-xl bg-gray-50 border text-sm outline-none focus:border-blue-500">
-                    <button onclick="salvarCliente()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl shadow-lg shadow-blue-100 active:scale-95 transition-all hover:bg-blue-700">SALVAR CLIENTE</button>
+        <div id="view-clientes" class="hidden space-y-4">
+            <div class="flex justify-between items-center px-2">
+                <h2 class="text-lg font-black text-gray-800 uppercase italic">Base de Clientes</h2>
+                <button onclick="carregarClientes()" class="text-xs text-blue-500 font-bold hover:underline"><i class="fas fa-sync-alt"></i> Atualizar</button>
+            </div>
+
+            <div id="lista-clientes" class="space-y-3 pb-10">
                 </div>
-            </section>
-            <div id="lista-clientes" class="space-y-2 pb-10"></div>
         </div>
 
     </main>
@@ -96,9 +93,16 @@
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) window.location.href = 'login.html';
-            await Promise.all([carregarConfigLoja(), carregarCategorias(), carregarProdutos(), carregarClientes()]);
+            
+            await Promise.all([
+                carregarConfigLoja(), 
+                carregarCategorias(), 
+                carregarProdutos(), 
+                carregarClientes()
+            ]);
         }
 
+        // --- SISTEMA DE AVISOS ---
         function mostrarAviso(msg, tipo = 'sucesso') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -110,7 +114,7 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // --- LOJA ---
+        // --- STATUS DA LOJA ---
         async function carregarConfigLoja() {
             const { data } = await _supabase.from('store_config').select('*').limit(1);
             if (data && data.length > 0) {
@@ -142,46 +146,77 @@
             }
         }
 
-        // --- CLIENTES ---
-        async function salvarCliente() {
-            const nome = document.getElementById('cli-nome').value;
-            const fone = document.getElementById('cli-phone').value;
-            const end = document.getElementById('cli-address').value;
-            if (!nome || !fone) return mostrarAviso("Preencha Nome e Telefone!", "erro");
-
-            const { error } = await _supabase.from('clients').insert([{ name: nome, phone: fone, address: end }]);
-            if (error) mostrarAviso("Erro ao salvar: " + error.message, "erro");
-            else {
-                mostrarAviso("Cliente cadastrado!");
-                document.getElementById('cli-nome').value = '';
-                document.getElementById('cli-phone').value = '';
-                document.getElementById('cli-address').value = '';
-                carregarClientes();
-            }
-        }
-
+        // --- GERENCIAMENTO DE CLIENTES ---
         async function carregarClientes() {
-            const { data } = await _supabase.from('clients').select('*').order('created_at', { ascending: false });
             const lista = document.getElementById('lista-clientes');
+            lista.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-gray-400"></i></div>';
+
+            const { data, error } = await _supabase.from('clients').select('*').order('created_at', { ascending: false });
+            
+            if (error) {
+                mostrarAviso("Erro ao carregar clientes", "erro");
+                lista.innerHTML = '<p class="text-center text-red-400 text-xs">Erro ao carregar.</p>';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                lista.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">Nenhum cliente cadastrado ainda.</p>';
+                return;
+            }
+
             lista.innerHTML = '';
+            
             data.forEach(c => {
+                // Prepara link do WhatsApp (remove caracteres não numéricos)
+                const phoneNumeros = c.phone ? c.phone.replace(/\D/g, '') : '';
+                const whatsLink = phoneNumeros ? `https://wa.me/55${phoneNumeros}` : '#';
+                const whatsClass = phoneNumeros ? 'text-green-600 bg-green-50' : 'text-gray-300 bg-gray-100 cursor-not-allowed';
+
                 lista.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl border border-blue-50 flex justify-between items-center hover:shadow-md transition-shadow">
-                        <div>
-                            <p class="font-bold text-gray-800 text-sm">${c.name}</p>
-                            <p class="text-xs text-gray-400">${c.phone}</p>
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+                                    ${c.name}
+                                </h3>
+                                <p class="text-xs text-gray-400 font-medium">${c.email || 'Sem e-mail'}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="${whatsLink}" target="_blank" class="${whatsClass} w-8 h-8 rounded-lg flex items-center justify-center transition-colors" title="Entrar em contato">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                                <button onclick="removerCliente('${c.id}', '${c.name}')" class="text-red-500 bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-100 transition-colors" title="Remover Usuário">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </div>
                         </div>
-                        <button onclick="copiarTexto('${c.address}')" class="text-blue-500 text-[10px] font-bold uppercase bg-blue-50 px-2 py-1 rounded-lg"><i class="fas fa-copy"></i> Endereço</button>
+                        
+                        <div class="bg-gray-50 p-2 rounded-xl text-xs text-gray-600 flex items-start gap-2">
+                            <i class="fas fa-map-marker-alt text-orange-400 mt-0.5"></i>
+                            <span class="leading-tight">${c.address || 'Endereço não cadastrado'}</span>
+                        </div>
+                        
+                        <div class="mt-2 flex items-center gap-1 text-[10px] text-gray-400">
+                            <i class="fas fa-phone"></i> <span>${c.phone || 'Sem telefone'}</span>
+                        </div>
                     </div>`;
             });
         }
 
-        function copiarTexto(txt) {
-            navigator.clipboard.writeText(txt);
-            mostrarAviso("Endereço copiado!");
+        async function removerCliente(id, nome) {
+            if (confirm(`ATENÇÃO: Deseja remover o usuário "${nome}"?\n\nEle perderá o acesso aos dados salvos, mas a conta de login pode permanecer ativa até a próxima limpeza do sistema.`)) {
+                const { error } = await _supabase.from('clients').delete().eq('id', id);
+                
+                if (error) {
+                    mostrarAviso("Erro ao remover: " + error.message, "erro");
+                } else {
+                    mostrarAviso("Usuário removido da base!");
+                    carregarClientes(); // Recarrega a lista
+                }
+            }
         }
 
-        // --- PRODUTOS ---
+        // --- GERENCIAMENTO DE PRODUTOS ---
         async function carregarCategorias() {
             const { data } = await _supabase.from('categories').select('*').order('name');
             const select = document.getElementById('prod-categoria');
@@ -195,7 +230,7 @@
 
             try {
                 const nome = document.getElementById('prod-nome').value;
-                const desc = document.getElementById('prod-desc').value; // Captura descrição
+                const desc = document.getElementById('prod-desc').value;
                 const cat = document.getElementById('prod-categoria').value;
                 const preco = parseFloat(document.getElementById('prod-preco').value.replace(',', '.'));
                 const promo = document.getElementById('prod-preco-promo').value ? parseFloat(document.getElementById('prod-preco-promo').value.replace(',', '.')) : null;
@@ -215,7 +250,7 @@
 
                 const payload = { 
                     name: nome, 
-                    description: desc, // Salva descrição
+                    description: desc,
                     price: preco, 
                     sale_price: promo, 
                     on_sale: document.getElementById('prod-em-promo').checked, 
@@ -272,7 +307,7 @@
             if (!p) return;
             document.getElementById('prod-id').value = p.id;
             document.getElementById('prod-nome').value = p.name;
-            document.getElementById('prod-desc').value = p.description || ''; // Carrega descrição
+            document.getElementById('prod-desc').value = p.description || '';
             document.getElementById('prod-categoria').value = p.category_id;
             document.getElementById('prod-preco').value = p.price;
             document.getElementById('prod-preco-promo').value = p.sale_price || '';
@@ -316,6 +351,8 @@
             
             document.getElementById('view-' + aba).classList.remove('hidden');
             document.getElementById('tab-' + aba).className = "flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all bg-orange-100 text-orange-700 shadow-sm";
+            
+            if(aba === 'clientes') carregarClientes();
         }
 
         async function sair() {
