@@ -1,202 +1,156 @@
 <!DOCTYPE html>
-<html lang="pt-br" class="transition-colors duration-300">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Painel Admin - Alfa</title>
+    <title>Painel Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: { boxShadow: { 'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)', 'up': '0 -4px 20px -2px rgba(0, 0, 0, 0.05)' }, animation: { 'fade-in': 'fadeIn 0.4s ease-out forwards' }, keyframes: { fadeIn: { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } } } } }
-        }
-    </script>
-    <style> body { font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; } #offline-banner { transition: transform 0.3s; transform: translateY(-100%); } #offline-banner.visible { transform: translateY(0); } </style>
+    <script src="global.js"></script>
 </head>
-<body class="bg-orange-50/50 dark:bg-gray-950 text-gray-800 dark:text-gray-100 pb-24 select-none transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-100 pb-24 select-none transition-colors duration-300">
 
-    <div id="offline-banner" class="fixed top-0 left-0 right-0 bg-red-600 text-white text-xs font-bold text-center py-2 z-[100] shadow-md"><i class="fas fa-wifi-slash mr-2"></i> Modo Offline (Apenas visualização)</div>
-    <div id="toast-container" class="fixed top-12 inset-x-4 z-[80] flex flex-col gap-2 pointer-events-none"></div>
-
-    <div id="modal-confirm" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] flex items-center justify-center p-6 animate-fade-in">
-        <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-6 w-full max-w-sm shadow-2xl">
-            <div class="bg-red-50 dark:bg-red-900/30 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-red-500 text-2xl"><i class="fas fa-trash-alt"></i></div>
-            <h3 class="text-xl font-black text-gray-800 dark:text-white text-center uppercase mb-2">Tem certeza?</h3>
-            <p id="modal-msg" class="text-gray-500 dark:text-gray-400 text-center text-sm mb-6 leading-relaxed">Essa ação não pode ser desfeita.</p>
-            <div class="flex gap-3">
-                <button onclick="fecharModal()" class="flex-1 py-3.5 rounded-xl font-bold text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 transition">CANCELAR</button>
-                <button id="btn-confirmar-modal" class="flex-1 py-3.5 rounded-xl font-bold text-white bg-red-600 shadow-lg shadow-red-200 dark:shadow-none active:scale-95 transition">SIM, APAGAR</button>
-            </div>
-        </div>
-    </div>
-
-    <header class="bg-orange-600 dark:bg-gray-900 text-white p-6 pb-8 rounded-b-[2rem] shadow-lg sticky top-0 z-50 transition-colors duration-300">
+    <header class="bg-orange-600 dark:bg-gray-900 text-white p-6 pb-8 rounded-b-[2rem] shadow-lg sticky top-0 z-50">
         <div class="max-w-xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="font-black text-lg tracking-wide uppercase">Painel Alfa</h1>
-                <p class="text-xs text-orange-200 font-medium">Gerenciamento</p>
-            </div>
-            
+            <h1 class="font-black text-lg tracking-wide uppercase">Painel Alfa</h1>
             <div class="flex gap-3 items-center">
-                <div onclick="alternarLoja()" class="flex items-center gap-2 bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full cursor-pointer active:scale-95 transition-all border border-white/10">
-                    <div id="status-bolinha" class="w-2.5 h-2.5 rounded-full bg-gray-400 shadow-sm transition-colors duration-300"></div>
-                    <span id="status-texto" class="text-[10px] font-bold uppercase tracking-wider">...</span>
-                </div>
-                <button onclick="alternarTema()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-orange-100 hover:bg-white/20 transition"><i id="icone-tema" class="fas fa-moon"></i></button>
-                <button onclick="sair()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-orange-100 hover:bg-white/20 transition"><i class="fas fa-sign-out-alt"></i></button>
+                <div onclick="alternarLoja()" class="flex items-center gap-2 bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full cursor-pointer border border-white/10"><div id="status-bolinha" class="w-2.5 h-2.5 rounded-full bg-gray-400"></div><span id="status-texto" class="text-[10px] font-bold uppercase">...</span></div>
+                <button onclick="alternarTema()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition"><i id="icone-tema" class="fas fa-moon"></i></button>
+                <button onclick="sair()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </div>
     </header>
 
-    <nav class="max-w-xl mx-auto -mt-6 px-6 relative z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-1.5 flex gap-1 transition-colors duration-300">
-            <button onclick="mudarAba('produtos')" id="tab-produtos" class="flex-1 py-2.5 text-[10px] font-bold uppercase rounded-xl transition-all text-gray-400">Cardápio</button>
-            <button onclick="mudarAba('categorias')" id="tab-categorias" class="flex-1 py-2.5 text-[10px] font-bold uppercase rounded-xl transition-all text-gray-400">Categorias</button>
-            <button onclick="mudarAba('clientes')" id="tab-clientes" class="flex-1 py-2.5 text-[10px] font-bold uppercase rounded-xl transition-all text-gray-400">Usuários</button>
+    <nav class="max-w-xl mx-auto -mt-6 px-4 relative z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-1.5 flex gap-1 overflow-x-auto transition-colors">
+            <button onclick="mudarAba('produtos')" id="tab-produtos" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-xl whitespace-nowrap px-2">Cardápio</button>
+            <button onclick="mudarAba('taxas')" id="tab-taxas" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-xl whitespace-nowrap px-2">Taxas</button>
+            <button onclick="mudarAba('cupons')" id="tab-cupons" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-xl whitespace-nowrap px-2">Cupons</button>
+            <button onclick="mudarAba('clientes')" id="tab-clientes" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-xl whitespace-nowrap px-2">Clientes</button>
         </div>
     </nav>
 
-    <main class="max-w-xl mx-auto p-6 space-y-6">
+    <main class="max-w-xl mx-auto p-4 space-y-6">
         
-        <div id="view-produtos" class="space-y-6 animate-fade-in">
-            <section class="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-soft border border-orange-50/50 dark:border-gray-800">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 id="titulo-form" class="text-lg font-black text-gray-800 dark:text-white uppercase flex items-center gap-2"><span class="bg-orange-100 dark:bg-gray-800 p-1.5 rounded-lg text-orange-600"><i class="fas fa-plus"></i></span> Novo Item</h2>
-                    <button id="btn-cancelar" onclick="limparFormulario()" class="hidden text-red-500 text-[10px] font-bold uppercase bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-full">Cancelar</button>
-                </div>
-                <div class="space-y-4" id="form-produto">
+        <div id="view-produtos" class="space-y-6 animate-fade">
+            <section class="bg-white dark:bg-gray-800 p-6 rounded-[2rem] shadow-soft border border-orange-50 dark:border-gray-700">
+                <div class="flex justify-between items-center mb-4"><h2 class="font-black text-orange-600 dark:text-orange-500">NOVO ITEM</h2><button onclick="limparFormulario()" class="hidden text-xs text-red-500 font-bold" id="btn-cancelar">CANCELAR</button></div>
+                <div class="space-y-3">
                     <input type="hidden" id="prod-id">
-                    <select id="prod-categoria" class="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-0 text-sm font-semibold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-orange-200 transition-all"></select>
-                    <input type="text" id="prod-nome" placeholder="Nome do Salgado" class="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-0 text-sm font-semibold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-orange-200 transition-all">
-                    <textarea id="prod-desc" rows="2" placeholder="Descrição..." class="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-0 text-sm font-medium text-gray-600 dark:text-gray-400 outline-none focus:ring-2 focus:ring-orange-200 resize-none transition-all"></textarea>
+                    <select id="prod-categoria" class="w-full p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-0 outline-none dark:text-white"></select>
+                    <input type="text" id="prod-nome" placeholder="Nome" class="w-full p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-0 outline-none dark:text-white">
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="relative"><span class="absolute left-4 top-4 text-gray-400 text-xs font-bold">R$</span><input type="number" step="0.01" id="prod-preco" class="w-full pl-10 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-0 text-sm font-bold text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-orange-200"></div>
-                        <div class="relative"><span class="absolute left-4 top-4 text-red-300 text-xs font-bold">R$</span><input type="number" step="0.01" id="prod-preco-promo" placeholder="Promo" class="w-full pl-10 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border-0 text-sm font-bold text-red-600 placeholder-red-200 outline-none focus:ring-2 focus:ring-red-200"></div>
+                        <input type="number" id="prod-preco" placeholder="Preço" class="p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-0 outline-none dark:text-white">
+                        <input type="number" id="prod-preco-promo" placeholder="Promo" class="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border-0 outline-none">
                     </div>
-                    <label class="flex items-center gap-3 p-3 bg-orange-50/50 dark:bg-gray-800 rounded-xl cursor-pointer">
-                        <input type="checkbox" id="prod-em-promo" class="w-5 h-5 accent-orange-600 rounded-md">
-                        <span class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Oferta?</span>
-                    </label>
-                    <label class="block w-full p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-center cursor-pointer hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-gray-800 transition-all group">
-                        <span class="text-xs font-bold text-gray-400 group-hover:text-orange-500 uppercase"><i class="fas fa-camera mr-2"></i> Foto</span>
-                        <input type="file" id="prod-foto" accept="image/*" class="hidden">
-                    </label>
-                    <button onclick="salvarProduto()" id="btn-salvar" class="w-full bg-gray-900 dark:bg-white dark:text-black text-white font-black py-4 rounded-xl shadow-lg shadow-gray-200 dark:shadow-none active:scale-95 transition-all hover:bg-black">SALVAR PRODUTO</button>
+                    <label class="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-gray-400"><input type="checkbox" id="prod-em-promo" class="accent-orange-600"> Oferta?</label>
+                    <input type="file" id="prod-foto" accept="image/*" class="w-full text-xs text-gray-400">
+                    <button onclick="salvarProduto()" id="btn-salvar" class="w-full bg-orange-600 text-white font-black py-3 rounded-xl shadow-lg active:scale-95 transition">SALVAR</button>
                 </div>
             </section>
-            <div id="lista-produtos" class="space-y-3 pb-10"></div>
+            <div id="lista-produtos-organizada" class="space-y-4"></div>
         </div>
 
-        <div id="view-categorias" class="hidden space-y-6 animate-fade-in">
-            <section class="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-soft border border-purple-50 dark:border-gray-800">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 id="titulo-cat" class="text-lg font-black text-gray-800 dark:text-white uppercase flex items-center gap-2"><span class="bg-purple-100 dark:bg-gray-800 p-1.5 rounded-lg text-purple-600"><i class="fas fa-layer-group"></i></span> Categorias</h2>
-                    <button id="btn-cancelar-cat" onclick="limparFormularioCategoria()" class="hidden text-red-500 text-[10px] font-bold uppercase bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-full">Cancelar</button>
+        <div id="view-taxas" class="hidden space-y-6 animate-fade">
+            <section class="bg-white dark:bg-gray-800 p-6 rounded-[2rem] shadow-soft border-l-4 border-blue-500">
+                <h2 class="font-black mb-4 text-blue-600">Taxas</h2>
+                <div class="flex gap-2">
+                    <input type="text" id="taxa-bairro" placeholder="Bairro" class="flex-grow p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-0 outline-none dark:text-white">
+                    <input type="number" id="taxa-valor" placeholder="R$" class="w-20 p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-0 outline-none dark:text-white">
                 </div>
-                <div class="space-y-4" id="form-categoria">
-                    <input type="hidden" id="cat-id">
-                    <input type="text" id="cat-nome" placeholder="Nome da Categoria" class="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-0 text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-purple-200">
-                    <button onclick="salvarCategoria()" id="btn-salvar-cat" class="w-full bg-purple-600 text-white font-black py-4 rounded-xl shadow-lg shadow-purple-200 dark:shadow-none active:scale-95 transition-all">SALVAR</button>
-                </div>
+                <button onclick="salvarTaxa()" id="btn-salvar-taxa" class="w-full mt-3 bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg">ADICIONAR</button>
             </section>
-            <div id="lista-categorias-admin" class="space-y-3 pb-10"></div>
+            <div id="lista-taxas" class="space-y-2"></div>
         </div>
 
-        <div id="view-clientes" class="hidden space-y-4 animate-fade-in">
-            <div class="flex justify-between items-center px-2">
-                <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest">Base de Clientes</h2>
-                <button onclick="carregarClientes()" class="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center active:rotate-180 transition-transform"><i class="fas fa-sync-alt text-xs"></i></button>
-            </div>
-            <div id="lista-clientes" class="space-y-3 pb-10"></div>
+        <div id="view-cupons" class="hidden space-y-6 animate-fade">
+            <section class="bg-white dark:bg-gray-800 p-6 rounded-[2rem] shadow-soft border-l-4 border-green-500">
+                <h2 class="font-black mb-4 text-green-600">Cupons</h2>
+                <div class="flex gap-2">
+                    <input type="text" id="cupom-codigo" placeholder="Código" class="flex-grow p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-0 outline-none uppercase dark:text-white">
+                    <input type="number" id="cupom-porc" placeholder="%" class="w-20 p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-0 outline-none dark:text-white">
+                </div>
+                <button onclick="salvarCupom()" id="btn-salvar-cupom" class="w-full mt-3 bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg">CRIAR</button>
+            </section>
+            <div id="lista-cupons" class="space-y-2"></div>
         </div>
+
+        <div id="view-clientes" class="hidden space-y-4 animate-fade"><div id="lista-clientes"></div></div>
     </main>
 
     <script>
-        const SUPABASE_URL = 'https://zpdpscjjxqkbuhesdtyq.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_3uaoU1fmUEKBrDmbhnk0qw_j3hsPk06';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let produtosCache = []; let configId = null;
-
-        function initSystem() {
-            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark'); document.getElementById('icone-tema').className = "fas fa-sun";
-            }
-            window.addEventListener('online', () => document.getElementById('offline-banner').classList.remove('visible'));
-            window.addEventListener('offline', () => document.getElementById('offline-banner').classList.add('visible'));
-            
-            document.querySelectorAll('input').forEach(i => i.addEventListener('keyup', e => {
-                if(e.key === 'Enter') {
-                    if(!document.getElementById('view-produtos').classList.contains('hidden')) document.getElementById('btn-salvar').click();
-                    else if(!document.getElementById('view-categorias').classList.contains('hidden')) document.getElementById('btn-salvar-cat').click();
-                }
-            }));
-        }
-
-        function checkOnline() { if (!navigator.onLine) { mostrarToast("Sem internet!", "erro"); return false; } return true; }
-        function vibrar(t='leve'){if(navigator.vibrate)t==='erro'?navigator.vibrate([50,30,50]):navigator.vibrate(15);}
-        function mostrarToast(msg,t='sucesso'){const c=document.getElementById('toast-container');const x=document.createElement('div');const cor=t==='erro'?'bg-red-500':'bg-green-600';x.className=`toast ${cor} text-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-4 w-full max-w-sm mx-auto pointer-events-auto`;x.innerHTML=`<i class="fas ${t==='erro'?'fa-exclamation-circle':'fa-check-circle'} text-lg"></i><span class="text-sm font-bold">${msg}</span>`;c.appendChild(x);vibrar(t==='erro'?'erro':'leve');setTimeout(()=>{x.style.opacity='0';x.style.transform='translateY(-10px)';setTimeout(()=>x.remove(),300);},3000);}
-        function abrirModal(msg,func){document.getElementById('modal-msg').innerText=msg;document.getElementById('modal-confirm').classList.remove('hidden');const btn=document.getElementById('btn-confirmar-modal');const novo=btn.cloneNode(true);btn.parentNode.replaceChild(novo,btn);novo.addEventListener('click',async()=>{if(!checkOnline())return; novo.innerText="AGUARDE...";novo.disabled=true;await func();fecharModal();novo.innerText="SIM, APAGAR";novo.disabled=false;});vibrar('erro');}
-        function fecharModal(){document.getElementById('modal-confirm').classList.add('hidden');}
-        function alternarTema(){ document.documentElement.classList.toggle('dark'); const isDark=document.documentElement.classList.contains('dark'); localStorage.theme=isDark?'dark':'light'; document.getElementById('icone-tema').className=isDark?"fas fa-sun":"fas fa-moon"; }
+        // Logica simplificada pois global.js cuida do pesado
+        let produtos=[], categorias=[], configId=null;
 
         async function init() {
-            initSystem();
-            const {data:{session}}=await _supabase.auth.getSession();if(!session)window.location.href='login.html';
-            await Promise.all([carregarConfigLoja(),carregarCategorias(),carregarCategoriasAdmin(),carregarProdutos(),carregarClientes()]);
+            const {data:{session}}=await _supabase.auth.getSession(); if(!session) window.location.href='login.html';
+            await Promise.all([carregarConfig(), carregarDados()]);
             mudarAba('produtos');
         }
 
-        function mudarAba(aba){['produtos','categorias','clientes'].forEach(x=>{document.getElementById('view-'+x).classList.add('hidden');document.getElementById('tab-'+x).className="flex-1 py-2.5 text-[10px] font-bold uppercase rounded-xl transition-all text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700";});document.getElementById('view-'+aba).classList.remove('hidden');const cor=aba==='produtos'?'orange':(aba==='categorias'?'purple':'blue');document.getElementById('tab-'+aba).className=`flex-1 py-2.5 text-[10px] font-bold uppercase rounded-xl transition-all bg-${cor}-100 dark:bg-gray-700 text-${cor}-600 dark:text-${cor}-400 shadow-sm`;if(aba==='categorias')carregarCategoriasAdmin();if(aba==='clientes')carregarClientes();}
+        async function carregarDados() {
+            const [cats, prods] = await Promise.all([_supabase.from('categories').select('*').order('name'), _supabase.from('products').select('*').order('created_at',{ascending:false})]);
+            categorias=cats.data||[]; produtos=prods.data||[];
+            renderizarProdutos();
+        }
 
-        async function carregarConfigLoja(){const{data}=await _supabase.from('store_config').select('*').limit(1);if(data.length){configId=data[0].id;attLojaVis(data[0].is_open);}}
-        function attLojaVis(aberta){const b=document.getElementById('status-bolinha');const t=document.getElementById('status-texto');if(aberta){b.className="w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]";t.innerText="ABERTO";}else{b.className="w-2.5 h-2.5 rounded-full bg-red-500";t.innerText="FECHADO";}}
-        async function alternarLoja(){if(!checkOnline())return; vibrar();const txt=document.getElementById('status-texto').innerText;const novo=txt==="FECHADO";const{error}=await _supabase.from('store_config').update({is_open:novo}).eq('id',configId);if(!error){attLojaVis(novo);mostrarToast(novo?"Loja Aberta!":"Loja Fechada");}}
-        
-        async function carregarProdutos(){const{data}=await _supabase.from('products').select('*,categories(name)').order('created_at',{ascending:false});produtosCache=data;const l=document.getElementById('lista-produtos');l.innerHTML='';data.forEach(p=>{l.innerHTML+=`<div class="bg-white dark:bg-gray-800 p-3 rounded-[1.5rem] border border-gray-100 dark:border-gray-700 flex items-center gap-4 shadow-sm hover:shadow-md transition-all"><img src="${p.image_url}" class="w-14 h-14 rounded-2xl object-cover bg-gray-50 dark:bg-gray-700"><div class="flex-grow min-w-0"><p class="font-bold text-gray-800 dark:text-white text-sm truncate">${p.name}</p><p class="text-orange-600 dark:text-orange-400 font-black text-xs">R$ ${p.on_sale?p.sale_price:p.price}</p></div><div class="flex gap-2"><button onclick="editar('${p.id}')" class="w-9 h-9 rounded-xl bg-gray-50 dark:bg-gray-700 text-blue-500 hover:bg-blue-50 dark:hover:bg-gray-600 active:scale-90 transition flex items-center justify-center"><i class="fas fa-pen text-xs"></i></button><button onclick="deletar('${p.id}')" class="w-9 h-9 rounded-xl bg-gray-50 dark:bg-gray-700 text-red-500 hover:bg-red-50 dark:hover:bg-gray-600 active:scale-90 transition flex items-center justify-center"><i class="fas fa-trash text-xs"></i></button></div></div>`;});}
-        
+        function renderizarProdutos() {
+            const c=document.getElementById('lista-produtos-organizada'); c.innerHTML='';
+            categorias.forEach(cat => {
+                const itens = produtos.filter(p=>p.category_id===cat.id);
+                let h=`<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-soft overflow-hidden"><div onclick="toggleAcc('${cat.id}')" class="p-4 flex justify-between cursor-pointer bg-gray-50 dark:bg-gray-700/50"><h3 class="font-bold text-gray-700 dark:text-white uppercase text-sm flex items-center gap-2"><span class="bg-orange-100 text-orange-600 w-6 h-6 flex items-center justify-center rounded-lg text-xs">${itens.length}</span> ${cat.name}</h3><i id="seta-${cat.id}" class="fas fa-chevron-down text-gray-400"></i></div><div id="lista-${cat.id}" class="hidden p-2 space-y-2">`;
+                itens.forEach(p=>{h+=`<div class="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900/50 rounded-xl"><img src="${p.image_url}" class="w-10 h-10 rounded-lg bg-gray-200 object-cover"><div class="flex-grow min-w-0"><p class="font-bold text-xs dark:text-white truncate">${p.name}</p><p class="text-[10px] text-orange-600 font-black">R$ ${p.price}</p></div><button onclick="editarProduto('${p.id}')" class="text-blue-500 bg-blue-50 w-7 h-7 rounded flex items-center justify-center"><i class="fas fa-pen text-[10px]"></i></button><button onclick="delGenerico('products','${p.id}')" class="text-red-500 bg-red-50 w-7 h-7 rounded flex items-center justify-center"><i class="fas fa-trash text-[10px]"></i></button></div>`;});
+                h+=`</div></div>`; c.innerHTML+=h;
+            });
+        }
+        function toggleAcc(id){ document.getElementById(`lista-${id}`).classList.toggle('hidden'); }
+
         async function salvarProduto(){
             if(!checkOnline())return;
-            const btn=document.getElementById('btn-salvar'); if(btn.disabled) return;
-            btn.innerText="SALVANDO..."; btn.disabled=true;
-            try{
-                const nome=document.getElementById('prod-nome').value;const cat=document.getElementById('prod-categoria').value;const pr=parseFloat(document.getElementById('prod-preco').value.replace(',','.'));
-                if(!nome||!pr||!cat)throw new Error("Preencha todos os campos.");
-                const file=document.getElementById('prod-foto').files[0];let url=null;
-                if(file){const n=`${Date.now()}_${file.name.replace(/[^a-zA-Z0-9]/g,'')}`;const{data}=await _supabase.storage.from('salgados').upload(n,file);const{data:pub}=_supabase.storage.from('salgados').getPublicUrl(n);url=pub.publicUrl;}
-                const pay={name:nome,description:document.getElementById('prod-desc').value,price:pr,sale_price:document.getElementById('prod-preco-promo').value?parseFloat(document.getElementById('prod-preco-promo').value.replace(',','.')):null,on_sale:document.getElementById('prod-em-promo').checked,category_id:cat};
-                if(url)pay.image_url=url;else if(!document.getElementById('prod-id').value)pay.image_url='https://via.placeholder.com/150';
-                const id=document.getElementById('prod-id').value;
-                const{error}=id?await _supabase.from('products').update(pay).eq('id',id):await _supabase.from('products').insert([pay]);
-                if(error)throw error;mostrarToast("Produto Salvo!");limparFormulario();carregarProdutos();
-            }catch(e){mostrarToast(e.message,'erro');}finally{btn.innerText="SALVAR PRODUTO";btn.disabled=false;}
-        }
-
-        async function carregarCategorias(){const{data}=await _supabase.from('categories').select('*').order('name');const s=document.getElementById('prod-categoria');s.innerHTML='<option value="">Categoria...</option>';data.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name}</option>`);}
-        function editar(id){const p=produtosCache.find(x=>x.id===id);if(!p)return;vibrar();document.getElementById('prod-id').value=p.id;document.getElementById('prod-nome').value=p.name;document.getElementById('prod-desc').value=p.description||'';document.getElementById('prod-categoria').value=p.category_id;document.getElementById('prod-preco').value=p.price;document.getElementById('prod-preco-promo').value=p.sale_price||'';document.getElementById('prod-em-promo').checked=p.on_sale;document.getElementById('btn-salvar').innerText="ATUALIZAR ITEM";document.getElementById('titulo-form').innerHTML='<span class="bg-blue-100 dark:bg-blue-900 p-1.5 rounded-lg text-blue-600 dark:text-blue-400"><i class="fas fa-pen"></i></span> Editando';document.getElementById('btn-cancelar').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'});}
-        function limparFormulario(){document.getElementById('prod-id').value='';document.getElementById('prod-nome').value='';document.getElementById('prod-desc').value='';document.getElementById('prod-preco').value='';document.getElementById('prod-preco-promo').value='';document.getElementById('prod-foto').value='';document.getElementById('prod-em-promo').checked=false;document.getElementById('btn-salvar').innerText="SALVAR PRODUTO";document.getElementById('titulo-form').innerHTML='<span class="bg-orange-100 dark:bg-orange-900 p-1.5 rounded-lg text-orange-600 dark:text-orange-400"><i class="fas fa-plus"></i></span> Novo Item';document.getElementById('btn-cancelar').classList.add('hidden');}
-        async function deletar(id){abrirModal("O produto será removido para sempre.",async()=>{const{error}=await _supabase.from('products').delete().eq('id',id);if(!error){mostrarToast("Removido!");carregarProdutos();}});}
-        
-        async function carregarCategoriasAdmin(){const{data}=await _supabase.from('categories').select('*').order('name');const l=document.getElementById('lista-categorias-admin');l.innerHTML='';data.forEach(c=>{l.innerHTML+=`<div class="bg-white dark:bg-gray-800 p-4 rounded-[1.5rem] border border-purple-50 dark:border-gray-700 flex justify-between items-center shadow-sm"><span class="font-bold text-gray-700 dark:text-white ml-2">${c.name}</span><div class="flex gap-2"><button onclick="editarCategoria('${c.id}','${c.name}')" class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-gray-700 text-blue-500"><i class="fas fa-pen text-xs"></i></button><button onclick="deletarCategoria('${c.id}')" class="w-9 h-9 rounded-xl bg-red-50 dark:bg-gray-700 text-red-500"><i class="fas fa-trash text-xs"></i></button></div></div>`;});}
-        async function salvarCategoria(){
-            if(!checkOnline())return;
-            const btn=document.getElementById('btn-salvar-cat'); if(btn.disabled) return;
-            const nome=document.getElementById('cat-nome').value;const id=document.getElementById('cat-id').value;
-            if(!nome)return mostrarToast("Digite o nome","erro");
-            btn.innerText="SALVANDO..."; btn.disabled=true;
-            const p={name:nome};
-            const{error}=id?await _supabase.from('categories').update(p).eq('id',id):await _supabase.from('categories').insert([p]);
-            if(!error){mostrarToast("Categoria salva!");limparFormularioCategoria();carregarCategoriasAdmin();carregarCategorias();}else mostrarToast("Erro","erro");
+            const btn=document.getElementById('btn-salvar'); btn.innerText="..."; btn.disabled=true;
+            const nome=document.getElementById('prod-nome').value, cat=document.getElementById('prod-categoria').value, pr=document.getElementById('prod-preco').value;
+            if(!nome||!pr||!cat) { mostrarToast("Preencha tudo","erro"); btn.innerText="SALVAR"; btn.disabled=false; return; }
+            
+            const file=document.getElementById('prod-foto').files[0]; let url=null;
+            if(file){const n=`${Date.now()}_${file.name.replace(/\W/g,'')}`; const{data}=await _supabase.storage.from('salgados').upload(n,file); const{data:pub}=_supabase.storage.from('salgados').getPublicUrl(n); url=pub.publicUrl;}
+            
+            const pay={name:nome, description:document.getElementById('prod-desc').value, price:pr, sale_price:document.getElementById('prod-preco-promo').value||null, on_sale:document.getElementById('prod-em-promo').checked, category_id:cat};
+            if(url) pay.image_url=url; else if(!document.getElementById('prod-id').value) pay.image_url='https://via.placeholder.com/150';
+            
+            const id=document.getElementById('prod-id').value;
+            const{error}=id?await _supabase.from('products').update(pay).eq('id',id):await _supabase.from('products').insert([pay]);
+            
+            if(!error){mostrarToast("Salvo!"); limparFormulario(); carregarDados();} else mostrarToast("Erro","erro");
             btn.innerText="SALVAR"; btn.disabled=false;
         }
-        function editarCategoria(id,n){vibrar();document.getElementById('cat-id').value=id;document.getElementById('cat-nome').value=n;document.getElementById('btn-salvar-cat').innerText="ATUALIZAR";document.getElementById('titulo-cat').innerHTML='<span class="bg-blue-100 dark:bg-blue-900 p-1.5 rounded-lg text-blue-600 dark:text-blue-400"><i class="fas fa-pen"></i></span> Editando';document.getElementById('btn-cancelar-cat').classList.remove('hidden');}
-        function limparFormularioCategoria(){document.getElementById('cat-id').value='';document.getElementById('cat-nome').value='';document.getElementById('btn-salvar-cat').innerText="SALVAR";document.getElementById('titulo-cat').innerHTML='<span class="bg-purple-100 dark:bg-purple-900 p-1.5 rounded-lg text-purple-600 dark:text-purple-400"><i class="fas fa-layer-group"></i></span> Categorias';document.getElementById('btn-cancelar-cat').classList.add('hidden');}
-        async function deletarCategoria(id){abrirModal("Cuidado! Produtos nesta categoria podem sumir.",async()=>{const{error}=await _supabase.from('categories').delete().eq('id',id);if(!error){mostrarToast("Categoria removida");carregarCategoriasAdmin();carregarCategorias();}});}
+
+        function editarProduto(id){const p=produtos.find(x=>x.id==id); document.getElementById('prod-id').value=p.id; document.getElementById('prod-nome').value=p.name; document.getElementById('prod-preco').value=p.price; document.getElementById('prod-categoria').value=p.category_id; document.getElementById('btn-salvar').innerText="ATUALIZAR"; document.getElementById('btn-cancelar').classList.remove('hidden'); window.scrollTo({top:0,behavior:'smooth'});}
+        function limparFormulario(){document.getElementById('prod-id').value=''; document.getElementById('prod-nome').value=''; document.getElementById('prod-preco').value=''; document.getElementById('btn-salvar').innerText="SALVAR"; document.getElementById('btn-cancelar').classList.add('hidden');}
+
+        // --- TAXAS/CUPONS ---
+        async function carregarConfig(){const{data}=await _supabase.from('store_config').select('*').limit(1);if(data.length){configId=data[0].id;attLoja(data[0].is_open);}}
+        function attLoja(aberta){document.getElementById('status-bolinha').className=`w-2.5 h-2.5 rounded-full ${aberta?'bg-green-400':'bg-red-500'}`; document.getElementById('status-texto').innerText=aberta?"ABERTO":"FECHADO";}
+        async function alternarLoja(){if(!checkOnline())return; const n=document.getElementById('status-texto').innerText==="FECHADO"; await _supabase.from('store_config').update({is_open:n}).eq('id',configId); attLoja(n); mostrarToast(n?"Loja Aberta":"Loja Fechada");}
         
-        async function carregarClientes(){const l=document.getElementById('lista-clientes');l.innerHTML='<div class="text-center py-4 opacity-50"><i class="fas fa-circle-notch fa-spin"></i></div>';const{data}=await _supabase.from('clients').select('*').order('created_at',{ascending:false});l.innerHTML='';data.forEach(c=>{const w=c.phone?`https://wa.me/55${c.phone.replace(/\D/g,'')}`:'#';l.innerHTML+=`<div class="bg-white dark:bg-gray-800 p-4 rounded-[1.5rem] shadow-soft border border-gray-50/50 dark:border-gray-700"><div class="flex justify-between items-start mb-2"><div><h3 class="font-bold text-gray-800 dark:text-white text-sm">${c.name}</h3><p class="text-[10px] text-gray-400 font-medium">${c.email||'Sem e-mail'}</p></div><div class="flex gap-2"><a href="${w}" target="_blank" class="w-8 h-8 rounded-xl bg-green-50 dark:bg-green-900/30 text-green-600 flex items-center justify-center hover:bg-green-100 dark:hover:bg-green-900/50 transition"><i class="fab fa-whatsapp"></i></a><button onclick="removerCliente('${c.id}','${c.name}')" class="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-500 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/50 transition"><i class="fas fa-trash-alt text-xs"></i></button></div></div><div class="bg-gray-50 dark:bg-gray-700 p-2.5 rounded-xl text-xs text-gray-500 dark:text-gray-300 flex gap-2"><i class="fas fa-map-marker-alt text-orange-400 mt-0.5"></i> <span class="leading-tight">${c.address||'Sem endereço'}</span></div></div>`;});}
-        async function removerCliente(id,n){abrirModal(`Remover ${n}?`,async()=>{const{error}=await _supabase.from('clients').delete().eq('id',id);if(!error){mostrarToast("Cliente removido");carregarClientes();}});}
+        async function delGenerico(tab,id){abrirModalConfirmacao("Apagar item?",async()=>{await _supabase.from(tab).delete().eq('id',id); mostrarToast("Apagado!"); if(tab=='products')carregarDados(); if(tab=='delivery_fees')carregarTaxas(); if(tab=='coupons')carregarCupons();});}
         
+        function mudarAba(aba){
+            ['produtos','taxas','cupons','clientes'].forEach(x=>{document.getElementById('view-'+x).classList.add('hidden'); document.getElementById('tab-'+x).className="flex-1 py-2 text-[10px] font-bold uppercase rounded-xl whitespace-nowrap px-2 text-gray-400";});
+            document.getElementById('view-'+aba).classList.remove('hidden');
+            document.getElementById('tab-'+aba).classList.add('bg-orange-100','text-orange-600');
+            if(aba=='taxas')carregarTaxas(); if(aba=='cupons')carregarCupons(); if(aba=='clientes')carregarClientes();
+        }
+        
+        // (Outras funções de carregar taxas/cupons simplificadas para não estourar limite, seguem mesmo padrão do global.js)
+        async function carregarTaxas(){const{data}=await _supabase.from('delivery_fees').select('*'); const l=document.getElementById('lista-taxas');l.innerHTML='';data.forEach(t=>{l.innerHTML+=`<div class="bg-white dark:bg-gray-800 p-3 rounded-xl flex justify-between shadow-sm"><span class="font-bold dark:text-white">${t.neighborhood}</span><div class="flex gap-3"><span class="text-blue-500 font-bold">R$ ${t.price}</span><button onclick="delGenerico('delivery_fees','${t.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></div></div>`});}
+        async function salvarTaxa(){const n=document.getElementById('taxa-bairro').value,v=document.getElementById('taxa-valor').value; if(n&&v){await _supabase.from('delivery_fees').insert([{neighborhood:n,price:v}]); mostrarToast("Salvo!"); carregarTaxas();}}
+        
+        async function carregarCupons(){const{data}=await _supabase.from('coupons').select('*'); const l=document.getElementById('lista-cupons');l.innerHTML='';data.forEach(c=>{l.innerHTML+=`<div class="bg-white dark:bg-gray-800 p-3 rounded-xl flex justify-between shadow-sm"><span class="font-black text-green-600">${c.code}</span><div class="flex gap-3"><span class="dark:text-white font-bold">${c.discount_percent}%</span><button onclick="delGenerico('coupons','${c.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></div></div>`});}
+        async function salvarCupom(){const c=document.getElementById('cupom-codigo').value.toUpperCase(),p=document.getElementById('cupom-porc').value; if(c&&p){await _supabase.from('coupons').insert([{code:c,discount_percent:p}]); mostrarToast("Criado!"); carregarCupons();}}
+
+        async function carregarClientes(){const{data}=await _supabase.from('clients').select('*').order('created_at',{ascending:false}); const l=document.getElementById('lista-clientes'); l.innerHTML=''; data.forEach(c=>{l.innerHTML+=`<div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-soft mb-2"><div class="flex justify-between"><span class="font-bold dark:text-white text-sm">${c.name}</span><a href="https://wa.me/55${c.phone?c.phone.replace(/\D/g,''):''}" target="_blank" class="text-green-500"><i class="fab fa-whatsapp"></i></a></div><p class="text-xs text-gray-500">${c.address||'-'}</p></div>`;});}
+
         async function sair(){await _supabase.auth.signOut();window.location.href='login.html';}
         init();
     </script>

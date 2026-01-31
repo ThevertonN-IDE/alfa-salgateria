@@ -3,119 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Acesso Cliente - Alfa Salgateria</title>
+    <title>Acesso Cliente - Alfa</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { boxShadow: { 'soft': '0 10px 40px -10px rgba(0,0,0,0.1)' }, animation: { 'pop': 'pop 0.3s ease-out', 'fade': 'fade 0.5s ease-out' }, keyframes: { pop: { '0%': { transform: 'scale(0.95)' }, '100%': { transform: 'scale(1)' } }, fade: { '0%': { opacity: 0 }, '100%': { opacity: 1 } } } } } }
-    </script>
+    
+    <script src="global.js"></script>
+
     <style> 
-        .input-error { border-color: #f87171 !important; background-color: #fef2f2 !important; } .input-success { border-color: #4ade80 !important; } 
-        #offline-banner { transition: transform 0.3s; transform: translateY(-100%); } #offline-banner.visible { transform: translateY(0); }
+        .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; } 
+        .input-success { border-color: #22c55e !important; }
+        /* No Dark Mode o fundo do erro muda */
+        .dark .input-error { background-color: #450a0a !important; border-color: #ef4444 !important; }
     </style>
 </head>
 <body class="bg-orange-50 dark:bg-gray-900 min-h-screen flex items-center justify-center p-6 transition-colors duration-300">
-
-    <div id="offline-banner" class="fixed top-0 left-0 right-0 bg-red-600 text-white text-xs font-bold text-center py-2 z-[100] shadow-md"><i class="fas fa-wifi-slash mr-2"></i> Sem conexão com a internet</div>
-    <div id="toast-container" class="fixed top-4 inset-x-4 z-[99] flex flex-col gap-2 pointer-events-none"></div>
 
     <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-[2.5rem] shadow-soft overflow-hidden animate-pop relative transition-colors duration-300">
         
         <a href="index.html" class="absolute top-6 left-6 text-gray-400 dark:text-gray-500 hover:text-orange-500 transition"><i class="fas fa-arrow-left text-lg"></i></a>
 
         <div class="p-8 pt-12">
+            
             <div id="header-texto" class="text-center mb-8">
                 <h1 class="text-3xl font-black text-gray-800 dark:text-white uppercase tracking-tight mb-2">Bem-vindo!</h1>
                 <p class="text-gray-400 dark:text-gray-500 text-sm font-medium">Faça login para pedir suas delícias.</p>
             </div>
 
-            <div id="abas-nav" class="flex bg-gray-50 dark:bg-gray-700 p-1.5 rounded-2xl mb-8">
+            <div id="abas-nav" class="flex bg-gray-50 dark:bg-gray-700 p-1.5 rounded-2xl mb-8 transition-colors">
                 <button onclick="mudarAba('login')" id="tab-login" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white dark:bg-gray-600 text-orange-600 dark:text-orange-400 shadow-sm transition-all">Entrar</button>
                 <button onclick="mudarAba('cadastro')" id="tab-cadastro" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-all">Criar Conta</button>
             </div>
 
-            <div id="view-login" class="space-y-4 animate-fade" onkeypress="verificarEnter(event, 'btn-login')">
+            <div id="view-login" class="space-y-4 animate-fade">
                 <div class="space-y-4">
-                    <div class="relative"><i class="fas fa-envelope absolute left-5 top-5 text-gray-300 dark:text-gray-600"></i><input type="email" id="log-email" placeholder="E-mail" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 focus:bg-white dark:focus:bg-gray-800 dark:text-white outline-none font-semibold text-gray-700 transition-all"></div>
-                    <div class="relative"><i class="fas fa-lock absolute left-5 top-5 text-gray-300 dark:text-gray-600"></i><input type="password" id="log-pass" placeholder="Senha" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 focus:bg-white dark:focus:bg-gray-800 dark:text-white outline-none font-semibold text-gray-700 transition-all"></div>
+                    <div class="relative group">
+                        <i class="fas fa-envelope absolute left-5 top-5 text-gray-300 dark:text-gray-500 transition-colors group-focus-within:text-orange-500"></i>
+                        <input type="email" id="log-email" placeholder="E-mail" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 focus:bg-white dark:focus:bg-gray-800 dark:text-white outline-none font-bold text-gray-700 transition-all">
+                    </div>
+                    <div class="relative group">
+                        <i class="fas fa-lock absolute left-5 top-5 text-gray-300 dark:text-gray-500 transition-colors group-focus-within:text-orange-500"></i>
+                        <input type="password" id="log-pass" placeholder="Senha" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 focus:bg-white dark:focus:bg-gray-800 dark:text-white outline-none font-bold text-gray-700 transition-all">
+                    </div>
                 </div>
-                <div class="text-right"><button onclick="alternarEsqueciSenha(true)" class="text-xs font-bold text-orange-500 hover:text-orange-700">Esqueci a senha</button></div>
+                
+                <div class="text-right">
+                    <button onclick="alternarEsqueciSenha(true)" class="text-xs font-bold text-orange-500 hover:text-orange-700 dark:hover:text-orange-400 transition-colors">Esqueci a senha</button>
+                </div>
+
                 <button onclick="fazerLogin()" id="btn-login" class="w-full bg-orange-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-orange-200 dark:shadow-none active:scale-95 transition-all hover:bg-orange-700 mt-4 text-sm tracking-wide">ENTRAR AGORA</button>
             </div>
 
-            <div id="view-cadastro" class="hidden space-y-4 animate-fade" onkeypress="verificarEnter(event, 'btn-cadastro')">
-                <div class="relative"><i class="fas fa-user absolute left-5 top-5 text-gray-300 dark:text-gray-600"></i><input type="text" id="cad-nome" placeholder="Nome Completo" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 outline-none font-semibold text-gray-700 dark:text-white text-sm"></div>
-                <div class="relative"><i class="fas fa-envelope absolute left-5 top-5 text-gray-300 dark:text-gray-600"></i><input type="email" id="cad-email" placeholder="E-mail" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 outline-none font-semibold text-gray-700 dark:text-white text-sm"></div>
-                <div class="relative"><i class="fas fa-phone absolute left-5 top-5 text-gray-300 dark:text-gray-600"></i><input type="text" id="cad-tel" placeholder="Celular" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 outline-none font-semibold text-gray-700 dark:text-white text-sm phone_with_ddd"></div>
-                <div class="relative">
-                    <i class="fas fa-lock absolute left-5 top-5 text-gray-300 dark:text-gray-600"></i>
-                    <input type="password" id="cad-pass" onkeyup="validarSenha()" placeholder="Senha Forte" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 outline-none font-semibold text-gray-700 dark:text-white text-sm">
-                    <div id="req-senha" class="flex gap-3 mt-2 px-2 opacity-50 transition-opacity">
-                        <span id="req-len" class="text-[10px] font-bold text-gray-400 dark:text-gray-500 flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> 6+ dígitos</span>
-                        <span id="req-num" class="text-[10px] font-bold text-gray-400 dark:text-gray-500 flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> 1 número</span>
+            <div id="view-cadastro" class="hidden space-y-4 animate-fade">
+                <div class="space-y-3">
+                    <div class="relative"><i class="fas fa-user absolute left-5 top-5 text-gray-300 dark:text-gray-500"></i><input type="text" id="cad-nome" placeholder="Nome Completo" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 outline-none font-bold text-gray-700 dark:text-white text-sm"></div>
+                    <div class="relative"><i class="fas fa-envelope absolute left-5 top-5 text-gray-300 dark:text-gray-500"></i><input type="email" id="cad-email" placeholder="E-mail" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 outline-none font-bold text-gray-700 dark:text-white text-sm"></div>
+                    <div class="relative"><i class="fas fa-phone absolute left-5 top-5 text-gray-300 dark:text-gray-500"></i><input type="text" id="cad-tel" placeholder="Celular" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 outline-none font-bold text-gray-700 dark:text-white text-sm phone_with_ddd"></div>
+                    
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-5 top-5 text-gray-300 dark:text-gray-500"></i>
+                        <input type="password" id="cad-pass" onkeyup="validarSenha()" placeholder="Crie uma Senha" class="w-full pl-12 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-orange-200 outline-none font-bold text-gray-700 dark:text-white text-sm">
+                        <div id="req-senha" class="flex gap-3 mt-2 px-2 opacity-50 transition-opacity">
+                            <span id="req-len" class="text-[10px] font-bold text-gray-400 dark:text-gray-500 flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> 6+ dígitos</span>
+                            <span id="req-num" class="text-[10px] font-bold text-gray-400 dark:text-gray-500 flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> 1 número</span>
+                        </div>
                     </div>
                 </div>
+
                 <div class="pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
-                    <p class="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 text-center">Entrega</p>
+                    <p class="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 text-center">Endereço de Entrega</p>
                     <div class="grid grid-cols-3 gap-2">
-                        <div class="col-span-3"><input type="text" id="end-logradouro" placeholder="Rua / Avenida" class="w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus:border-orange-200 outline-none text-sm font-semibold dark:text-white"></div>
-                        <div class="col-span-1"><input type="text" id="end-numero" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="Nº" class="w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus:border-orange-200 outline-none text-sm font-semibold text-center dark:text-white"></div>
-                        <div class="col-span-2"><input type="text" id="end-bairro" placeholder="Bairro" class="w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus:border-orange-200 outline-none text-sm font-semibold dark:text-white"></div>
-                        <div class="col-span-3"><input type="text" id="end-comp" placeholder="Complemento" class="w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus:border-orange-200 outline-none text-sm font-semibold dark:text-white"></div>
+                        <div class="col-span-3"><input type="text" id="end-logradouro" placeholder="Logradouro (Rua, Av...)" class="w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus:border-orange-200 outline-none text-sm font-bold dark:text-white"></div>
+                        <div class="col-span-1"><input type="text" id="end-numero" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="Nº" class="w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus:border-orange-200 outline-none text-sm font-bold text-center dark:text-white"></div>
+                        <div class="col-span-2"><input type="text" id="end-bairro" placeholder="Bairro" class="w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus:border-orange-200 outline-none text-sm font-bold dark:text-white"></div>
+                        <div class="col-span-3"><input type="text" id="end-comp" placeholder="Complemento (Opcional)" class="w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus:border-orange-200 outline-none text-sm font-bold dark:text-white"></div>
                     </div>
                 </div>
+
                 <button onclick="criarConta()" id="btn-cadastro" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-green-200 dark:shadow-none active:scale-95 transition-all hover:bg-green-700 mt-2 text-sm tracking-wide">CRIAR CONTA</button>
             </div>
 
             <div id="view-reset" class="hidden text-center space-y-6 animate-fade">
                 <div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto text-blue-500 text-2xl"><i class="fas fa-key"></i></div>
                 <div><h2 class="text-xl font-black text-gray-800 dark:text-white">Recuperar Acesso</h2><p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Enviaremos um link para seu e-mail.</p></div>
-                <input type="email" id="reset-email" placeholder="E-mail" class="w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-blue-200 outline-none font-semibold text-center dark:text-white">
+                
+                <input type="email" id="reset-email" placeholder="E-mail cadastrado" class="w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-blue-200 outline-none font-bold text-center dark:text-white">
+                
                 <button onclick="enviarResetSenha()" id="btn-reset" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-200 dark:shadow-none active:scale-95 transition-all">ENVIAR LINK</button>
-                <button onclick="alternarEsqueciSenha(false)" class="text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-300">Cancelar</button>
+                <button onclick="alternarEsqueciSenha(false)" class="text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-200 transition">Cancelar</button>
             </div>
+
             <div id="view-nova-senha" class="hidden text-center space-y-6 animate-fade">
                 <div class="w-16 h-16 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto text-green-500 text-2xl animate-bounce"><i class="fas fa-check"></i></div>
-                <div><h2 class="text-xl font-black text-gray-800 dark:text-white">Criar Nova Senha</h2><p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Digite sua nova senha.</p></div>
-                <input type="password" id="new-pass" placeholder="Nova Senha" class="w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-green-200 outline-none font-semibold text-center dark:text-white">
-                <button onclick="salvarNovaSenha()" id="btn-new-pass" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-green-200 dark:shadow-none active:scale-95 transition-all">SALVAR SENHA</button>
+                <div><h2 class="text-xl font-black text-gray-800 dark:text-white">Criar Nova Senha</h2><p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Digite sua nova senha abaixo.</p></div>
+                
+                <input type="password" id="new-pass" placeholder="Nova Senha" class="w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border-2 border-transparent focus:border-green-200 outline-none font-bold text-center dark:text-white">
+                
+                <button onclick="salvarNovaSenha()" id="btn-new-pass" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-green-200 dark:shadow-none active:scale-95 transition-all">SALVAR NOVA SENHA</button>
             </div>
+
         </div>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://zpdpscjjxqkbuhesdtyq.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_3uaoU1fmUEKBrDmbhnk0qw_j3hsPk06';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // --- INICIALIZAÇÃO DE TEMA E REDE ---
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
-        window.addEventListener('online', () => document.getElementById('offline-banner').classList.remove('visible'));
-        window.addEventListener('offline', () => document.getElementById('offline-banner').classList.add('visible'));
-
-        function verificarEnter(e, btnId) { if(e.key === 'Enter') document.getElementById(btnId).click(); }
-        function checkOnline() { if (!navigator.onLine) { mostrarToast("Sem internet!", "erro"); return false; } return true; }
-
+        // Máscara jQuery
         $(document).ready(function(){ $('.phone_with_ddd').mask('(00) 00000-0000'); });
-        
-        function mostrarToast(msg, tipo='sucesso') {
-            const c = document.getElementById('toast-container'); const t = document.createElement('div');
-            const cor = tipo==='erro'?'bg-red-500':'bg-green-600';
-            t.className = `toast ${cor} text-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3 w-full max-w-sm mx-auto pointer-events-auto transition-all`;
-            t.innerHTML = `<i class="fas ${tipo==='erro'?'fa-times-circle':'fa-check-circle'} text-lg"></i> <span class="text-sm font-bold">${msg}</span>`;
-            c.appendChild(t); setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(-20px)'; setTimeout(()=>t.remove(),300); }, 3000);
-        }
 
-        _supabase.auth.onAuthStateChange((event)=>{ if(event==='PASSWORD_RECOVERY') mostrarTelaNovaSenha(); });
+        // --- SISTEMA ---
+        // Se o Supabase detectar que é uma recuperação de senha, mostra a tela certa
+        window._supabase.auth.onAuthStateChange((event) => {
+            if (event === 'PASSWORD_RECOVERY') mostrarTelaNovaSenha();
+        });
 
+        // --- NAVEGAÇÃO ENTRE TELAS ---
         function mudarAba(aba) {
-            const l = aba==='login';
-            document.getElementById('view-login').classList.toggle('hidden', !l); document.getElementById('view-cadastro').classList.toggle('hidden', l); document.getElementById('view-reset').classList.add('hidden');
-            document.getElementById('tab-login').className = l ? "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white dark:bg-gray-600 text-orange-600 dark:text-orange-400 shadow-sm transition-all" : "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all";
-            document.getElementById('tab-cadastro').className = l ? "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all" : "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white dark:bg-gray-600 text-green-600 dark:text-green-400 shadow-sm transition-all";
+            const l = aba === 'login';
+            document.getElementById('view-login').classList.toggle('hidden', !l);
+            document.getElementById('view-cadastro').classList.toggle('hidden', l);
+            document.getElementById('view-reset').classList.add('hidden');
+            
+            // Estilo das abas
+            document.getElementById('tab-login').className = l 
+                ? "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white dark:bg-gray-600 text-orange-600 dark:text-orange-400 shadow-sm transition-all" 
+                : "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all";
+            document.getElementById('tab-cadastro').className = l 
+                ? "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all" 
+                : "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white dark:bg-gray-600 text-green-600 dark:text-green-400 shadow-sm transition-all";
         }
 
         function alternarEsqueciSenha(show) {
@@ -126,81 +142,143 @@
         }
 
         function mostrarTelaNovaSenha() {
-            ['view-login','view-cadastro','view-reset','abas-nav','header-texto'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+            // Esconde tudo e mostra só o form de nova senha
+            ['view-login','view-cadastro','view-reset','abas-nav','header-texto'].forEach(id => {
+                const el = document.getElementById(id); if(el) el.classList.add('hidden');
+            });
             document.getElementById('view-nova-senha').classList.remove('hidden');
         }
 
+        // --- VALIDAÇÃO VISUAL DA SENHA ---
         function validarSenha() {
-            const s=document.getElementById('cad-pass').value; const i=document.getElementById('cad-pass');
-            const t6=s.length>=6; const tN=/\d/.test(s);
-            document.getElementById('req-len').className = t6?"text-[10px] font-bold text-green-500 flex items-center gap-1":"text-[10px] font-bold text-red-400 flex items-center gap-1";
-            document.getElementById('req-num').className = tN?"text-[10px] font-bold text-green-500 flex items-center gap-1":"text-[10px] font-bold text-red-400 flex items-center gap-1";
+            const s = document.getElementById('cad-pass').value;
+            const input = document.getElementById('cad-pass');
+            const t6 = s.length >= 6;
+            const tN = /\d/.test(s);
+
+            const styleOk = "text-[10px] font-bold text-green-500 flex items-center gap-1";
+            const styleErr = "text-[10px] font-bold text-red-400 flex items-center gap-1";
+
+            document.getElementById('req-len').className = t6 ? styleOk : styleErr;
+            document.getElementById('req-num').className = tN ? styleOk : styleErr;
             document.getElementById('req-senha').classList.remove('opacity-50');
-            if(t6&&tN){ i.classList.add('input-success'); i.classList.remove('input-error'); return true; } else{ i.classList.add('input-error'); i.classList.remove('input-success'); return false; }
+
+            if (t6 && tN) { 
+                input.classList.add('input-success'); input.classList.remove('input-error'); 
+                return true; 
+            } else { 
+                input.classList.add('input-error'); input.classList.remove('input-success'); 
+                return false; 
+            }
         }
 
-        // --- FUNÇÕES BLINDADAS ---
-        async function criarConta() {
-            if (!checkOnline()) return;
-            const btn=document.getElementById('btn-cadastro'); if(btn.disabled) return;
-            
-            const nome=document.getElementById('cad-nome').value; const email=document.getElementById('cad-email').value; const tel=document.getElementById('cad-tel').value; const pass=document.getElementById('cad-pass').value;
-            const rua=document.getElementById('end-logradouro').value; const num=document.getElementById('end-numero').value; const bai=document.getElementById('end-bairro').value; const comp=document.getElementById('end-comp').value;
-            
-            if(!nome||!email||!tel||!rua||!num||!bai) return mostrarToast("Preencha campos obrigatórios", "erro");
-            if(!validarSenha()) return mostrarToast("Senha fraca", "erro");
-            
-            btn.innerText="CRIANDO..."; btn.disabled=true;
-            try {
-                const {data,error} = await _supabase.auth.signUp({email,password:pass,options:{data:{full_name:nome,phone:tel,address:`${rua}, Nº ${num} - ${bai} ${comp?'('+comp+')':''}`}}});
-                if(error) throw error;
-                if(data.user&&!data.session){mostrarToast("Confirme seu e-mail!"); mudarAba('login');} else window.location.href='index.html';
-            } catch(e) { mostrarToast(e.message,"erro"); } finally { btn.innerText="CRIAR CONTA"; btn.disabled=false; }
-        }
-
+        // --- AÇÕES DO USUÁRIO (Blindadas) ---
         async function fazerLogin() {
-            if (!checkOnline()) return;
-            const btn=document.getElementById('btn-login'); if(btn.disabled) return;
-            
-            const email=document.getElementById('log-email').value; const pass=document.getElementById('log-pass').value;
-            if(!email||!pass) return mostrarToast("Preencha e-mail e senha","erro");
-            
-            btn.innerText="ENTRANDO..."; btn.disabled=true;
-            try {
-                const {error}=await _supabase.auth.signInWithPassword({email,password:pass});
-                if(error) throw error;
-                window.location.href='index.html';
-            } catch(e) { 
-                mostrarToast(e.message.includes("not confirmed")?"E-mail não confirmado":"Dados incorretos","erro"); 
-            } finally { btn.innerText="ENTRAR AGORA"; btn.disabled=false; }
+            if(!checkOnline()) return;
+            const btn = document.getElementById('btn-login'); 
+            if(btn.disabled) return;
+
+            const email = document.getElementById('log-email').value;
+            const pass = document.getElementById('log-pass').value;
+
+            if(!email || !pass) return mostrarToast("Preencha e-mail e senha", "erro");
+
+            btn.innerText = "ENTRANDO..."; btn.disabled = true;
+
+            const { error } = await window._supabase.auth.signInWithPassword({ email, password: pass });
+
+            if (error) {
+                mostrarToast(error.message.includes("confirmed") ? "Confirme seu e-mail antes!" : "Dados incorretos", "erro");
+                btn.innerText = "ENTRAR AGORA"; btn.disabled = false;
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function criarConta() {
+            if(!checkOnline()) return;
+            const btn = document.getElementById('btn-cadastro');
+            if(btn.disabled) return;
+
+            // Coleta dados
+            const nome = document.getElementById('cad-nome').value;
+            const email = document.getElementById('cad-email').value;
+            const tel = document.getElementById('cad-tel').value;
+            const pass = document.getElementById('cad-pass').value;
+            const rua = document.getElementById('end-logradouro').value;
+            const num = document.getElementById('end-numero').value;
+            const bai = document.getElementById('end-bairro').value;
+            const comp = document.getElementById('end-comp').value;
+
+            // Valida
+            if(!nome || !email || !tel || !rua || !num || !bai) return mostrarToast("Preencha os campos obrigatórios", "erro");
+            if(!validarSenha()) return mostrarToast("Senha muito fraca", "erro");
+
+            btn.innerText = "CRIANDO..."; btn.disabled = true;
+
+            // Envia
+            const { data, error } = await window._supabase.auth.signUp({
+                email: email,
+                password: pass,
+                options: {
+                    data: {
+                        full_name: nome,
+                        phone: tel,
+                        address: `${rua}, Nº ${num} - ${bai} ${comp ? '('+comp+')' : ''}`
+                    }
+                }
+            });
+
+            if (error) {
+                mostrarToast(error.message, "erro");
+                btn.innerText = "CRIAR CONTA"; btn.disabled = false;
+            } else if (data.user && !data.session) {
+                mostrarToast("Sucesso! Confirme seu e-mail.");
+                mudarAba('login');
+                btn.innerText = "CRIAR CONTA"; btn.disabled = false;
+            } else {
+                window.location.href = 'index.html';
+            }
         }
 
         async function enviarResetSenha() {
-            if (!checkOnline()) return;
-            const btn=document.getElementById('btn-reset'); if(btn.disabled) return;
-            const email=document.getElementById('reset-email').value;
-            if(!email) return mostrarToast("Digite seu e-mail","erro");
-            
-            btn.innerText="ENVIANDO..."; btn.disabled=true;
-            try {
-                const{error}=await _supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
-                if(error) throw error;
-                mostrarToast("Link enviado! Cheque o e-mail."); alternarEsqueciSenha(false);
-            } catch(e) { mostrarToast(e.message,"erro"); } finally { btn.innerText="ENVIAR LINK"; btn.disabled=false; }
+            if(!checkOnline()) return;
+            const email = document.getElementById('reset-email').value;
+            if(!email) return mostrarToast("Digite seu e-mail", "erro");
+
+            const btn = document.getElementById('btn-reset');
+            btn.innerText = "ENVIANDO..."; btn.disabled = true;
+
+            // Redireciona para esta mesma página para trocar a senha
+            const { error } = await window._supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.href 
+            });
+
+            if (error) mostrarToast(error.message, "erro");
+            else {
+                mostrarToast("Link enviado! Verifique o e-mail.");
+                alternarEsqueciSenha(false);
+            }
+            btn.innerText = "ENVIAR LINK"; btn.disabled = false;
         }
 
         async function salvarNovaSenha() {
-            if (!checkOnline()) return;
-            const btn=document.getElementById('btn-new-pass'); if(btn.disabled) return;
-            const p=document.getElementById('new-pass').value;
-            if(!p||p.length<6) return mostrarToast("Senha curta","erro");
-            
-            btn.innerText="SALVANDO..."; btn.disabled=true;
-            try {
-                const{error}=await _supabase.auth.updateUser({password:p});
-                if(error) throw error;
-                mostrarToast("Senha atualizada!"); setTimeout(()=>window.location.href='index.html',1500);
-            } catch(e) { mostrarToast(e.message,"erro"); btn.innerText="SALVAR SENHA"; btn.disabled=false; }
+            if(!checkOnline()) return;
+            const p = document.getElementById('new-pass').value;
+            if(!p || p.length < 6) return mostrarToast("Senha curta (min 6)", "erro");
+
+            const btn = document.getElementById('btn-new-pass');
+            btn.innerText = "SALVANDO..."; btn.disabled = true;
+
+            const { error } = await window._supabase.auth.updateUser({ password: p });
+
+            if (error) {
+                mostrarToast(error.message, "erro");
+                btn.innerText = "SALVAR SENHA"; btn.disabled = false;
+            } else {
+                mostrarToast("Senha atualizada! Redirecionando...");
+                setTimeout(() => window.location.href = 'index.html', 1500);
+            }
         }
     </script>
 </body>
