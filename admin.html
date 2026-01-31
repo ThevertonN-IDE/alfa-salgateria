@@ -30,9 +30,10 @@
     </header>
 
     <nav class="max-w-xl mx-auto mt-4 px-4">
-        <div class="flex bg-white rounded-2xl shadow-sm p-1">
-            <button onclick="mudarAba('produtos')" id="tab-produtos" class="flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all bg-orange-100 text-orange-700">Cardápio</button>
-            <button onclick="mudarAba('clientes')" id="tab-clientes" class="flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all text-gray-400 hover:text-gray-600">Usuários</button>
+        <div class="flex bg-white rounded-2xl shadow-sm p-1 gap-1">
+            <button onclick="mudarAba('produtos')" id="tab-produtos" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-xl transition-all bg-orange-100 text-orange-700">Cardápio</button>
+            <button onclick="mudarAba('categorias')" id="tab-categorias" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-xl transition-all text-gray-400 hover:text-gray-600">Categorias</button>
+            <button onclick="mudarAba('clientes')" id="tab-clientes" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-xl transition-all text-gray-400 hover:text-gray-600">Usuários</button>
         </div>
     </nav>
 
@@ -49,7 +50,7 @@
                     
                     <input type="text" id="prod-nome" placeholder="Nome do Salgado" class="w-full p-3 rounded-xl bg-gray-50 border text-sm outline-none focus:border-orange-500">
                     
-                    <textarea id="prod-desc" rows="2" placeholder="Descrição/Ingredientes (Ex: Massa de batata, sem lactose...)" class="w-full p-3 rounded-xl bg-gray-50 border text-sm outline-none focus:border-orange-500 resize-none"></textarea>
+                    <textarea id="prod-desc" rows="2" placeholder="Descrição/Ingredientes..." class="w-full p-3 rounded-xl bg-gray-50 border text-sm outline-none focus:border-orange-500 resize-none"></textarea>
 
                     <div class="grid grid-cols-2 gap-3">
                         <input type="number" step="0.01" id="prod-preco" placeholder="Preço (R$)" class="p-3 rounded-xl bg-gray-50 border text-sm outline-none focus:border-orange-500">
@@ -70,14 +71,29 @@
             <div id="lista-produtos" class="space-y-2 pb-10"></div>
         </div>
 
+        <div id="view-categorias" class="hidden space-y-6">
+            <section class="bg-white p-6 rounded-3xl shadow-sm border border-purple-50 relative">
+                <h2 id="titulo-cat" class="text-lg font-black mb-4 text-gray-800 uppercase italic">Gerenciar Categorias</h2>
+                <button id="btn-cancelar-cat" onclick="limparFormularioCategoria()" class="hidden absolute top-6 right-6 text-red-500 text-[10px] font-bold uppercase hover:underline">Cancelar</button>
+
+                <div class="space-y-3">
+                    <input type="hidden" id="cat-id">
+                    <input type="text" id="cat-nome" placeholder="Nome da Categoria (Ex: Bebidas)" class="w-full p-3 rounded-xl bg-gray-50 border text-sm outline-none focus:border-purple-500">
+                    
+                    <button onclick="salvarCategoria()" id="btn-salvar-cat" class="w-full bg-purple-600 text-white font-black py-3 rounded-xl shadow-lg shadow-purple-100 active:scale-95 transition-all hover:bg-purple-700">SALVAR CATEGORIA</button>
+                </div>
+            </section>
+
+            <div id="lista-categorias-admin" class="space-y-3 pb-10">
+                </div>
+        </div>
+
         <div id="view-clientes" class="hidden space-y-4">
             <div class="flex justify-between items-center px-2">
                 <h2 class="text-lg font-black text-gray-800 uppercase italic">Base de Clientes</h2>
                 <button onclick="carregarClientes()" class="text-xs text-blue-500 font-bold hover:underline"><i class="fas fa-sync-alt"></i> Atualizar</button>
             </div>
-
-            <div id="lista-clientes" class="space-y-3 pb-10">
-                </div>
+            <div id="lista-clientes" class="space-y-3 pb-10"></div>
         </div>
 
     </main>
@@ -96,13 +112,13 @@
             
             await Promise.all([
                 carregarConfigLoja(), 
-                carregarCategorias(), 
+                carregarCategorias(), // Carrega no select de produtos
+                carregarCategoriasAdmin(), // Carrega na aba de categorias
                 carregarProdutos(), 
                 carregarClientes()
             ]);
         }
 
-        // --- SISTEMA DE AVISOS ---
         function mostrarAviso(msg, tipo = 'sucesso') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -114,7 +130,7 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // --- STATUS DA LOJA ---
+        // --- LOJA ---
         async function carregarConfigLoja() {
             const { data } = await _supabase.from('store_config').select('*').limit(1);
             if (data && data.length > 0) {
@@ -122,7 +138,6 @@
                 atualizarVisualLoja(data[0].is_open);
             }
         }
-
         function atualizarVisualLoja(estaAberta) {
             const bolinha = document.getElementById('status-bolinha');
             const texto = document.getElementById('status-texto');
@@ -134,100 +149,124 @@
                 texto.innerText = "FECHADO";
             }
         }
-
         async function alternarLoja() {
             const textoAtual = document.getElementById('status-texto').innerText;
             const novoEstado = textoAtual === "FECHADO" ? true : false;
             const { error } = await _supabase.from('store_config').update({ is_open: novoEstado }).eq('id', configId);
             if (error) mostrarAviso("Erro ao mudar status", "erro");
-            else {
-                atualizarVisualLoja(novoEstado);
-                mostrarAviso(novoEstado ? "Loja Aberta!" : "Loja Fechada!");
-            }
+            else { atualizarVisualLoja(novoEstado); mostrarAviso(novoEstado ? "Loja Aberta!" : "Loja Fechada!"); }
         }
 
-        // --- GERENCIAMENTO DE CLIENTES ---
-        async function carregarClientes() {
-            const lista = document.getElementById('lista-clientes');
-            lista.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-gray-400"></i></div>';
-
-            const { data, error } = await _supabase.from('clients').select('*').order('created_at', { ascending: false });
-            
-            if (error) {
-                mostrarAviso("Erro ao carregar clientes", "erro");
-                lista.innerHTML = '<p class="text-center text-red-400 text-xs">Erro ao carregar.</p>';
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                lista.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">Nenhum cliente cadastrado ainda.</p>';
-                return;
-            }
-
+        // --- CATEGORIAS (CRUD) ---
+        async function carregarCategoriasAdmin() {
+            const { data } = await _supabase.from('categories').select('*').order('name');
+            const lista = document.getElementById('lista-categorias-admin');
             lista.innerHTML = '';
             
             data.forEach(c => {
-                // Prepara link do WhatsApp (remove caracteres não numéricos)
-                const phoneNumeros = c.phone ? c.phone.replace(/\D/g, '') : '';
-                const whatsLink = phoneNumeros ? `https://wa.me/55${phoneNumeros}` : '#';
-                const whatsClass = phoneNumeros ? 'text-green-600 bg-green-50' : 'text-gray-300 bg-gray-100 cursor-not-allowed';
-
                 lista.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
-                                    ${c.name}
-                                </h3>
-                                <p class="text-xs text-gray-400 font-medium">${c.email || 'Sem e-mail'}</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <a href="${whatsLink}" target="_blank" class="${whatsClass} w-8 h-8 rounded-lg flex items-center justify-center transition-colors" title="Entrar em contato">
-                                    <i class="fab fa-whatsapp"></i>
-                                </a>
-                                <button onclick="removerCliente('${c.id}', '${c.name}')" class="text-red-500 bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-100 transition-colors" title="Remover Usuário">
-                                    <i class="fas fa-trash-alt text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gray-50 p-2 rounded-xl text-xs text-gray-600 flex items-start gap-2">
-                            <i class="fas fa-map-marker-alt text-orange-400 mt-0.5"></i>
-                            <span class="leading-tight">${c.address || 'Endereço não cadastrado'}</span>
-                        </div>
-                        
-                        <div class="mt-2 flex items-center gap-1 text-[10px] text-gray-400">
-                            <i class="fas fa-phone"></i> <span>${c.phone || 'Sem telefone'}</span>
+                    <div class="bg-white p-4 rounded-2xl border border-purple-50 flex justify-between items-center shadow-sm">
+                        <span class="font-bold text-gray-700">${c.name}</span>
+                        <div class="flex gap-2">
+                            <button onclick="editarCategoria('${c.id}', '${c.name}')" class="text-blue-500 bg-blue-50 w-8 h-8 rounded-lg hover:bg-blue-100 transition-colors"><i class="fas fa-pen text-xs"></i></button>
+                            <button onclick="deletarCategoria('${c.id}')" class="text-red-500 bg-red-50 w-8 h-8 rounded-lg hover:bg-red-100 transition-colors"><i class="fas fa-trash text-xs"></i></button>
                         </div>
                     </div>`;
             });
         }
 
-        async function removerCliente(id, nome) {
-            if (confirm(`ATENÇÃO: Deseja remover o usuário "${nome}"?\n\nEle perderá o acesso aos dados salvos, mas a conta de login pode permanecer ativa até a próxima limpeza do sistema.`)) {
-                const { error } = await _supabase.from('clients').delete().eq('id', id);
-                
-                if (error) {
-                    mostrarAviso("Erro ao remover: " + error.message, "erro");
-                } else {
-                    mostrarAviso("Usuário removido da base!");
-                    carregarClientes(); // Recarrega a lista
+        async function salvarCategoria() {
+            const nome = document.getElementById('cat-nome').value;
+            const id = document.getElementById('cat-id').value;
+            const btn = document.getElementById('btn-salvar-cat');
+
+            if(!nome) return mostrarAviso("Digite um nome!", "erro");
+
+            btn.innerText = "SALVANDO..."; btn.disabled = true;
+
+            const payload = { name: nome };
+            const { error } = id 
+                ? await _supabase.from('categories').update(payload).eq('id', id)
+                : await _supabase.from('categories').insert([payload]);
+
+            if (error) mostrarAviso("Erro: " + error.message, "erro");
+            else {
+                mostrarAviso("Categoria Salva!");
+                limparFormularioCategoria();
+                carregarCategoriasAdmin();
+                carregarCategorias(); // Atualiza o select da aba produtos também
+            }
+            btn.innerText = "SALVAR CATEGORIA"; btn.disabled = false;
+        }
+
+        function editarCategoria(id, nome) {
+            document.getElementById('cat-id').value = id;
+            document.getElementById('cat-nome').value = nome;
+            document.getElementById('btn-salvar-cat').innerText = "ATUALIZAR";
+            document.getElementById('titulo-cat').innerText = "Editando Categoria";
+            document.getElementById('btn-cancelar-cat').classList.remove('hidden');
+        }
+
+        function limparFormularioCategoria() {
+            document.getElementById('cat-id').value = '';
+            document.getElementById('cat-nome').value = '';
+            document.getElementById('btn-salvar-cat').innerText = "SALVAR CATEGORIA";
+            document.getElementById('titulo-cat').innerText = "Nova Categoria";
+            document.getElementById('btn-cancelar-cat').classList.add('hidden');
+        }
+
+        async function deletarCategoria(id) {
+            if (confirm("ATENÇÃO: Se houver produtos nesta categoria, eles podem sumir ou causar erro. Deseja apagar mesmo assim?")) {
+                const { error } = await _supabase.from('categories').delete().eq('id', id);
+                if (error) mostrarAviso("Não foi possível apagar (verifique se há produtos nela).", "erro");
+                else {
+                    mostrarAviso("Categoria removida!");
+                    carregarCategoriasAdmin();
+                    carregarCategorias();
                 }
             }
         }
 
-        // --- GERENCIAMENTO DE PRODUTOS ---
+        // --- CLIENTES ---
+        async function carregarClientes() {
+            const lista = document.getElementById('lista-clientes');
+            lista.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-gray-400"></i></div>';
+            const { data, error } = await _supabase.from('clients').select('*').order('created_at', { ascending: false });
+            if (error || !data) { lista.innerHTML = '<p class="text-center text-gray-400 text-xs">Nenhum cliente.</p>'; return; }
+            lista.innerHTML = '';
+            data.forEach(c => {
+                const phoneNumeros = c.phone ? c.phone.replace(/\D/g, '') : '';
+                const whatsLink = phoneNumeros ? `https://wa.me/55${phoneNumeros}` : '#';
+                lista.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <div><h3 class="font-bold text-gray-800 text-sm">${c.name}</h3><p class="text-xs text-gray-400">${c.email || 'Sem e-mail'}</p></div>
+                            <div class="flex gap-2">
+                                <a href="${whatsLink}" target="_blank" class="text-green-600 bg-green-50 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fab fa-whatsapp"></i></a>
+                                <button onclick="removerCliente('${c.id}', '${c.name}')" class="text-red-500 bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-trash-alt text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-2 rounded-xl text-xs text-gray-600 flex items-start gap-2"><i class="fas fa-map-marker-alt text-orange-400 mt-0.5"></i><span class="leading-tight">${c.address || 'Sem endereço'}</span></div>
+                    </div>`;
+            });
+        }
+        async function removerCliente(id, nome) {
+            if (confirm(`Remover "${nome}" da base?`)) {
+                await _supabase.from('clients').delete().eq('id', id);
+                carregarClientes();
+            }
+        }
+
+        // --- PRODUTOS ---
         async function carregarCategorias() {
             const { data } = await _supabase.from('categories').select('*').order('name');
             const select = document.getElementById('prod-categoria');
             select.innerHTML = '<option value="">Selecione...</option>';
             data.forEach(c => select.innerHTML += `<option value="${c.id}">${c.name}</option>`);
         }
-
         async function salvarProduto() {
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "GRAVANDO..."; btn.disabled = true;
-
             try {
                 const nome = document.getElementById('prod-nome').value;
                 const desc = document.getElementById('prod-desc').value;
@@ -237,7 +276,6 @@
 
                 if (!nome || !preco || !cat) throw new Error("Preencha Nome, Preço e Categoria.");
 
-                // Upload
                 const file = document.getElementById('prod-foto').files[0];
                 let imgUrl = null;
                 if (file) {
@@ -248,50 +286,27 @@
                     imgUrl = publicUrl.publicUrl;
                 }
 
-                const payload = { 
-                    name: nome, 
-                    description: desc,
-                    price: preco, 
-                    sale_price: promo, 
-                    on_sale: document.getElementById('prod-em-promo').checked, 
-                    category_id: cat 
-                };
-
-                if (imgUrl) payload.image_url = imgUrl;
-                else if (!document.getElementById('prod-id').value) payload.image_url = 'https://via.placeholder.com/150';
+                const payload = { name: nome, description: desc, price: preco, sale_price: promo, on_sale: document.getElementById('prod-em-promo').checked, category_id: cat };
+                if (imgUrl) payload.image_url = imgUrl; else if (!document.getElementById('prod-id').value) payload.image_url = 'https://via.placeholder.com/150';
 
                 const id = document.getElementById('prod-id').value;
-                const { error } = id 
-                    ? await _supabase.from('products').update(payload).eq('id', id)
-                    : await _supabase.from('products').insert([payload]);
-
+                const { error } = id ? await _supabase.from('products').update(payload).eq('id', id) : await _supabase.from('products').insert([payload]);
                 if (error) throw error;
-
-                mostrarAviso("Produto salvo com sucesso!");
-                limparFormulario();
-                carregarProdutos();
-
-            } catch (erro) {
-                mostrarAviso(erro.message, "erro");
-                console.error(erro);
-            } finally {
-                btn.innerText = "SALVAR"; btn.disabled = false;
-            }
+                mostrarAviso("Produto salvo!"); limparFormulario(); carregarProdutos();
+            } catch (erro) { mostrarAviso(erro.message, "erro"); console.error(erro); } 
+            finally { btn.innerText = "SALVAR"; btn.disabled = false; }
         }
-
         async function carregarProdutos() {
             const { data } = await _supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false });
             produtosCache = data;
             const lista = document.getElementById('lista-produtos');
             lista.innerHTML = '';
-            
             data.forEach(p => {
                 lista.innerHTML += `
                     <div class="bg-white p-3 rounded-2xl border border-gray-100 flex items-center gap-3 hover:shadow-md transition-all">
                         <img src="${p.image_url}" class="w-12 h-12 rounded-lg object-cover bg-gray-50 border border-gray-100">
                         <div class="flex-grow min-w-0">
-                            <p class="font-bold text-gray-800 text-sm truncate">${p.name} ${p.on_sale ? '🔥' : ''}</p>
-                            <p class="text-xs text-gray-400 truncate">${p.description || 'Sem descrição'}</p>
+                            <p class="font-bold text-gray-800 text-sm truncate">${p.name}</p>
                             <p class="text-orange-600 font-bold text-xs">R$ ${p.on_sale ? p.sale_price : p.price}</p>
                         </div>
                         <div class="flex gap-1">
@@ -301,64 +316,30 @@
                     </div>`;
             });
         }
-
         function editar(id) {
-            const p = produtosCache.find(x => x.id === id);
-            if (!p) return;
-            document.getElementById('prod-id').value = p.id;
-            document.getElementById('prod-nome').value = p.name;
-            document.getElementById('prod-desc').value = p.description || '';
-            document.getElementById('prod-categoria').value = p.category_id;
-            document.getElementById('prod-preco').value = p.price;
-            document.getElementById('prod-preco-promo').value = p.sale_price || '';
-            document.getElementById('prod-em-promo').checked = p.on_sale;
-            
-            document.getElementById('btn-salvar').innerText = "ATUALIZAR";
-            document.getElementById('btn-salvar').classList.replace('bg-orange-600', 'bg-blue-600');
-            document.getElementById('titulo-form').innerText = "Editando Item";
-            document.getElementById('btn-cancelar').classList.remove('hidden');
-            window.scrollTo({top:0, behavior:'smooth'});
+            const p = produtosCache.find(x => x.id === id); if (!p) return;
+            document.getElementById('prod-id').value = p.id; document.getElementById('prod-nome').value = p.name; document.getElementById('prod-desc').value = p.description || ''; document.getElementById('prod-categoria').value = p.category_id; document.getElementById('prod-preco').value = p.price; document.getElementById('prod-preco-promo').value = p.sale_price || ''; document.getElementById('prod-em-promo').checked = p.on_sale;
+            document.getElementById('btn-salvar').innerText = "ATUALIZAR"; document.getElementById('btn-salvar').classList.replace('bg-orange-600', 'bg-blue-600'); document.getElementById('titulo-form').innerText = "Editando Item"; document.getElementById('btn-cancelar').classList.remove('hidden'); window.scrollTo({top:0, behavior:'smooth'});
         }
-
         function limparFormulario() {
-            document.getElementById('prod-id').value = '';
-            document.getElementById('prod-nome').value = '';
-            document.getElementById('prod-desc').value = '';
-            document.getElementById('prod-preco').value = '';
-            document.getElementById('prod-preco-promo').value = '';
-            document.getElementById('prod-foto').value = '';
-            document.getElementById('prod-em-promo').checked = false;
-            
-            document.getElementById('btn-salvar').innerText = "SALVAR";
-            document.getElementById('btn-salvar').classList.replace('bg-blue-600', 'bg-orange-600');
-            document.getElementById('titulo-form').innerText = "Novo Item";
-            document.getElementById('btn-cancelar').classList.add('hidden');
+            document.getElementById('prod-id').value = ''; document.getElementById('prod-nome').value = ''; document.getElementById('prod-desc').value = ''; document.getElementById('prod-preco').value = ''; document.getElementById('prod-preco-promo').value = ''; document.getElementById('prod-foto').value = ''; document.getElementById('prod-em-promo').checked = false;
+            document.getElementById('btn-salvar').innerText = "SALVAR"; document.getElementById('btn-salvar').classList.replace('bg-blue-600', 'bg-orange-600'); document.getElementById('titulo-form').innerText = "Novo Item"; document.getElementById('btn-cancelar').classList.add('hidden');
         }
+        async function deletar(id) { if (confirm("Apagar produto?")) { await _supabase.from('products').delete().eq('id', id); carregarProdutos(); mostrarAviso("Produto removido."); } }
 
-        async function deletar(id) {
-            if (confirm("Tem certeza?")) {
-                await _supabase.from('products').delete().eq('id', id);
-                carregarProdutos();
-                mostrarAviso("Item removido.");
-            }
-        }
-
+        // --- NAVEGAÇÃO ---
         function mudarAba(aba) {
-            document.getElementById('view-produtos').classList.add('hidden');
-            document.getElementById('view-clientes').classList.add('hidden');
-            document.getElementById('tab-produtos').className = "flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all text-gray-400";
-            document.getElementById('tab-clientes').className = "flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all text-gray-400";
-            
+            ['produtos', 'categorias', 'clientes'].forEach(x => {
+                document.getElementById('view-' + x).classList.add('hidden');
+                document.getElementById('tab-' + x).className = "flex-1 py-2 text-[10px] font-bold uppercase rounded-xl transition-all text-gray-400 hover:text-gray-600";
+            });
             document.getElementById('view-' + aba).classList.remove('hidden');
-            document.getElementById('tab-' + aba).className = "flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all bg-orange-100 text-orange-700 shadow-sm";
-            
+            document.getElementById('tab-' + aba).className = "flex-1 py-2 text-[10px] font-bold uppercase rounded-xl transition-all bg-orange-100 text-orange-700 shadow-sm";
+            if(aba === 'categorias') carregarCategoriasAdmin();
             if(aba === 'clientes') carregarClientes();
         }
 
-        async function sair() {
-            await _supabase.auth.signOut();
-            window.location.href = 'login.html';
-        }
+        async function sair() { await _supabase.auth.signOut(); window.location.href = 'login.html'; }
 
         init();
     </script>
