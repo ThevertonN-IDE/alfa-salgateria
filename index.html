@@ -10,82 +10,82 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast { animation: slideIn 0.3s ease-out forwards; }
+        
+        /* Transição suave para a setinha */
+        .seta-girar { transform: rotate(180deg); }
+        .transition-transform { transition: transform 0.3s ease; }
     </style>
 </head>
 <body class="bg-orange-50 pb-32">
 
-    <header class="bg-orange-600 text-white p-6 shadow-lg relative rounded-b-3xl z-40">
-        <div class="flex justify-between items-start mb-2">
-            <div id="area-usuario" class="flex items-center gap-2 bg-orange-700/50 px-3 py-1 rounded-full text-xs cursor-pointer hover:bg-orange-700 transition" onclick="irParaLogin()">
-                <i class="fas fa-user-circle"></i>
-                <span id="nome-cliente" class="font-bold">Entrar / Cadastrar</span>
+    <div id="toast-container" class="fixed top-4 right-4 z-[60] flex flex-col gap-2"></div>
+
+    <header class="bg-orange-600 text-white shadow-lg relative rounded-b-[2rem] z-40 pb-8">
+        <div class="p-6 pb-2">
+            <div class="flex justify-between items-start mb-2">
+                <div id="area-usuario" class="flex items-center gap-2 bg-orange-700/50 px-3 py-1 rounded-full text-xs cursor-pointer hover:bg-orange-700 transition" onclick="irParaLogin()">
+                    <i class="fas fa-user-circle"></i><span id="nome-cliente" class="font-bold">Entrar / Cadastrar</span>
+                </div>
+                <a href="login.html" class="text-orange-300 hover:text-white"><i class="fas fa-cog"></i></a>
             </div>
-            <a href="login.html" class="text-orange-300 hover:text-white"><i class="fas fa-cog"></i></a>
+            <div class="text-center mt-2">
+                <h1 class="text-2xl font-black tracking-tight uppercase drop-shadow-md">Alfa Salgateria</h1>
+                <p class="text-xs font-medium text-orange-100 mt-1 uppercase tracking-widest">Sabor que vem do coração</p>
+            </div>
         </div>
-        
-        <div class="text-center mt-2">
-            <h1 class="text-2xl font-black tracking-tight uppercase drop-shadow-md">Alfa Salgateria</h1>
-            <p class="text-xs font-medium text-orange-100 mt-1 uppercase tracking-widest">Sabor que vem do coração</p>
+
+        <div class="absolute -bottom-6 left-0 right-0 px-6">
+            <div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg flex items-center p-3 border border-orange-100">
+                <i class="fas fa-search text-orange-300 ml-2"></i>
+                <input type="text" id="input-busca" onkeyup="filtrarBusca()" placeholder="O que você procura hoje?" class="w-full pl-3 outline-none text-gray-700 font-semibold placeholder-gray-300 bg-transparent">
+            </div>
         </div>
     </header>
 
-    <main id="conteudo-cardapio" class="max-w-md mx-auto p-4 space-y-8 min-h-[60vh]">
+    <main id="conteudo-cardapio" class="max-w-md mx-auto p-4 pt-12 space-y-6 min-h-[60vh]">
         <div class="flex flex-col items-center justify-center py-20 text-orange-300 animate-pulse">
-            <i class="fas fa-circle-notch fa-spin text-3xl mb-4"></i>
-            <p class="text-sm font-bold uppercase">Carregando delícias...</p>
+            <i class="fas fa-circle-notch fa-spin text-3xl mb-4"></i><p class="text-sm font-bold uppercase">Carregando...</p>
         </div>
     </main>
 
     <div id="barra-pedido" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-50 rounded-t-3xl hidden">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <div>
-                <p class="text-[10px] text-gray-400 uppercase font-black tracking-wide">Total a Pagar</p>
-                <p id="total-geral" class="text-2xl font-black text-orange-600">R$ 0,00</p>
-            </div>
-            <button onclick="enviarPedido()" id="btn-finalizar" class="bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-200 active:scale-95 transition-transform hover:bg-green-700">
-                Pedir Agora <i class="fab fa-whatsapp text-lg"></i>
-            </button>
+            <div><p class="text-[10px] text-gray-400 uppercase font-black tracking-wide">Total a Pagar</p><p id="total-geral" class="text-2xl font-black text-orange-600">R$ 0,00</p></div>
+            <button onclick="enviarPedido()" id="btn-finalizar" class="bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-200 active:scale-95 transition-transform hover:bg-green-700">Pedir Agora <i class="fab fa-whatsapp text-lg"></i></button>
         </div>
     </div>
 
     <div id="aviso-fechado" class="hidden fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-6 z-[60] text-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-3xl">
         <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-4"></div>
         <h3 class="font-black text-xl uppercase text-red-400 mb-1"><i class="fas fa-store-slash mr-2"></i> Estamos Fechados</h3>
-        <p class="text-sm text-gray-400">Voltamos amanhã com tudo fresquinho!</p>
+        <p class="text-sm text-gray-400">Voltamos amanhã!</p>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://zpdpscjjxqkbuhesdtyq.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_3uaoU1fmUEKBrDmbhnk0qw_j3hsPk06';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let dadosCliente = null;
 
-        let dadosCliente = null; // Guardará o endereço se estiver logado
+        function mostrarToast(msg, tipo = 'sucesso') {
+            const c = document.getElementById('toast-container'); const t = document.createElement('div');
+            const cor = tipo === 'erro' ? 'bg-red-500' : 'bg-green-500';
+            t.className = `toast ${cor} text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 min-w-[250px] z-50`;
+            t.innerHTML = `<i class="fas fa-info-circle"></i> <span class="text-sm font-bold">${msg}</span>`;
+            c.appendChild(t); setTimeout(() => t.remove(), 3000);
+        }
 
         async function init() {
-            // 1. Verifica Loja Aberta
             const { data: config } = await _supabase.from('store_config').select('*').limit(1);
             const lojaAberta = config && config.length > 0 ? config[0].is_open : true;
-            
-            if (!lojaAberta) {
-                document.getElementById('barra-pedido').remove();
-                document.getElementById('aviso-fechado').classList.remove('hidden');
-            } else {
-                document.getElementById('barra-pedido').classList.remove('hidden');
-            }
-
-            // 2. Verifica Usuário Logado (Auto-Preenchimento)
+            if (!lojaAberta) { document.getElementById('barra-pedido').remove(); document.getElementById('aviso-fechado').classList.remove('hidden'); } else { document.getElementById('barra-pedido').classList.remove('hidden'); }
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
-                // Busca os dados extras na tabela clients
                 const { data: cliente } = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
-                if (cliente) {
-                    dadosCliente = cliente;
-                    document.getElementById('nome-cliente').innerText = `Olá, ${cliente.name.split(' ')[0]}`; // Só o primeiro nome
-                    // Troca o clique para Sair em vez de Login
-                    document.getElementById('area-usuario').onclick = fazerLogout;
-                }
+                if (cliente) { dadosCliente = cliente; document.getElementById('nome-cliente').innerText = `Olá, ${cliente.name.split(' ')[0]}`; document.getElementById('area-usuario').onclick = fazerLogout; }
             }
-
             carregarProdutos();
         }
 
@@ -93,40 +93,47 @@
             const container = document.getElementById('conteudo-cardapio');
             const { data: categorias } = await _supabase.from('categories').select('*').order('name');
             const { data: produtos } = await _supabase.from('products').select('*').eq('is_active', true);
-
-            if (!categorias) return;
-            container.innerHTML = '';
-
+            if (!categorias) return; container.innerHTML = '';
+            
             categorias.forEach(cat => {
                 const itens = produtos.filter(p => p.category_id === cat.id);
                 if (itens.length > 0) {
+                    // CRIA A SEÇÃO COM O CABEÇALHO CLICÁVEL (ACCORDION)
                     let section = `
-                        <section class="animate-[fadeIn_0.5s_ease-out]">
-                            <h2 class="text-orange-600 font-black uppercase tracking-widest text-xs mb-4 flex items-center gap-2 pl-1">
-                                <span class="bg-orange-100 p-1 rounded text-orange-600"><i class="fas fa-utensils"></i></span> ${cat.name}
-                            </h2>
-                            <div class="space-y-4">`;
+                        <section class="grupo-categoria animate-[fadeIn_0.5s_ease-out]">
+                            <div onclick="toggleCategoria('${cat.id}')" class="flex justify-between items-center cursor-pointer mb-3 select-none active:scale-[0.98] transition-transform">
+                                <h2 class="text-orange-600 font-black uppercase tracking-widest text-xs flex items-center gap-2 pl-1">
+                                    <span class="bg-orange-100 p-1 rounded text-orange-600"><i class="fas fa-utensils"></i></span> ${cat.name}
+                                </h2>
+                                <i id="seta-${cat.id}" class="fas fa-chevron-down text-orange-300 text-xs transition-transform"></i>
+                            </div>
+
+                            <div id="lista-${cat.id}" class="space-y-4 transition-all duration-300 origin-top">`;
                     
                     itens.forEach(p => {
                         const preco = p.on_sale ? p.sale_price : p.price;
+                        // Adicionei data-nome-lower para facilitar a busca
                         section += `
-                            <div class="produto-item bg-white rounded-3xl p-3 flex items-start gap-4 shadow-sm border border-transparent hover:border-orange-100 transition-all" data-nome="${p.name}" data-preco="${preco}">
+                            <div class="produto-item bg-white rounded-3xl p-3 flex items-start gap-4 shadow-sm border border-transparent hover:border-orange-100 transition-all" 
+                                 data-nome="${p.name}" 
+                                 data-nome-lower="${p.name.toLowerCase()}"
+                                 data-preco="${preco}">
                                 <div class="w-24 h-24 bg-gray-50 rounded-2xl overflow-hidden relative flex-shrink-0">
                                     <img src="${p.image_url}" class="w-full h-full object-cover">
                                     ${p.on_sale ? '<span class="absolute top-0 left-0 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-br-lg shadow-sm">OFERTA</span>' : ''}
                                 </div>
                                 <div class="flex-grow min-w-0 pt-1">
                                     <h3 class="font-bold text-gray-800 text-sm leading-tight">${p.name}</h3>
-                                    <p class="text-[11px] text-gray-400 leading-tight mt-1 line-clamp-2">${p.description || ''}</p>
+                                    <p class="text-[11px] text-gray-400 leading-tight mt-1 line-clamp-2">${p.description||''}</p>
                                     <div class="flex items-center gap-2 mt-2">
                                         <span class="text-orange-600 font-black text-base">R$ ${preco.toFixed(2).replace('.', ',')}</span>
                                         ${p.on_sale ? `<span class="text-gray-300 line-through text-[10px]">R$ ${p.price.toFixed(2)}</span>` : ''}
                                     </div>
                                 </div>
                                 <div class="flex flex-col items-center justify-center bg-gray-50 rounded-2xl p-1 h-24 w-10">
-                                    <button onclick="mudarQtd(this, 1)" class="w-8 h-8 bg-white rounded-full text-orange-600 shadow-sm font-bold text-sm">+</button>
+                                    <button onclick="mudarQtd(this, 1)" class="w-8 h-8 bg-white rounded-full text-orange-600 shadow-sm font-bold text-sm hover:bg-orange-100">+</button>
                                     <span class="qtd font-black text-gray-700 text-sm my-auto">0</span>
-                                    <button onclick="mudarQtd(this, -1)" class="w-8 h-8 bg-white rounded-full text-gray-400 shadow-sm font-bold text-sm">-</button>
+                                    <button onclick="mudarQtd(this, -1)" class="w-8 h-8 bg-white rounded-full text-gray-400 shadow-sm font-bold text-sm hover:bg-gray-200">-</button>
                                 </div>
                             </div>`;
                     });
@@ -135,72 +142,114 @@
             });
         }
 
-        // --- LÓGICA DE PEDIDO ---
-        function mudarQtd(btn, val) {
-            const qtdBox = btn.closest('.produto-item').querySelector('.qtd');
-            let novaQtd = Math.max(0, parseInt(qtdBox.innerText) + val);
-            qtdBox.innerText = novaQtd;
-            atualizarTotal();
-        }
-
-        function atualizarTotal() {
-            let total = 0;
-            document.querySelectorAll('.produto-item').forEach(p => {
-                total += parseFloat(p.getAttribute('data-preco')) * parseInt(p.querySelector('.qtd').innerText);
-            });
-            document.getElementById('total-geral').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        // --- FUNÇÃO DE EXPANDIR/MINIMIZAR (ACCORDION) ---
+        function toggleCategoria(id) {
+            const lista = document.getElementById(`lista-${id}`);
+            const seta = document.getElementById(`seta-${id}`);
             
-            // Animação no botão
-            const btn = document.getElementById('btn-finalizar');
-            if(total > 0) btn.classList.add('animate-bounce');
-            else btn.classList.remove('animate-bounce');
+            if (lista.classList.contains('hidden')) {
+                lista.classList.remove('hidden');
+                seta.classList.remove('seta-girar'); // Volta a seta pra baixo
+            } else {
+                lista.classList.add('hidden');
+                seta.classList.add('seta-girar'); // Gira a seta pra cima (opcional, ajustei CSS)
+                // Na verdade, seta-girar roda 180. Se tava down, vira up.
+                // Ajuste visual: Se quiser que feche, adicione 'hidden'.
+            }
+            // OBS: Tailwind não anima height:auto nativamente fácil. 
+            // Para simplificar, vou usar apenas o toggle da classe 'hidden'.
         }
+        
+        // Ajuste no CSS para rotação correta:
+        // Se a lista tá visível (padrão), a seta tá normal.
+        // Se eu clico e escondo, a seta deve indicar que tá fechado (talvez apontar pro lado ou girar).
+        // Vamos refazer a lógica visual simples:
+        
+        const toggleCategoriaRefined = (id) => {
+            const lista = document.getElementById(`lista-${id}`);
+            const seta = document.getElementById(`seta-${id}`);
+            
+            if (lista.style.display === 'none') {
+                lista.style.display = 'block';
+                seta.style.transform = 'rotate(0deg)';
+            } else {
+                lista.style.display = 'none';
+                seta.style.transform = 'rotate(-90deg)';
+            }
+        };
+        // Sobrescrevendo a anterior para usar essa lógica mais robusta
+        window.toggleCategoria = toggleCategoriaRefined;
 
-        function enviarPedido() {
-            let msg = `*PEDIDO VIA SITE* 🛵\n--------------------------\n`;
-            let total = 0;
-            let itensAdd = 0;
 
-            document.querySelectorAll('.produto-item').forEach(p => {
-                const qtd = parseInt(p.querySelector('.qtd').innerText);
-                if (qtd > 0) {
-                    const nome = p.getAttribute('data-nome');
-                    const sub = parseFloat(p.getAttribute('data-preco')) * qtd;
-                    msg += `✅ ${qtd}x *${nome}*\n`;
-                    total += sub;
-                    itensAdd++;
+        // --- FUNÇÃO DE BUSCA ---
+        function filtrarBusca() {
+            const termo = document.getElementById('input-busca').value.toLowerCase();
+            const produtos = document.querySelectorAll('.produto-item');
+            const grupos = document.querySelectorAll('.grupo-categoria');
+
+            produtos.forEach(prod => {
+                const nome = prod.getAttribute('data-nome-lower');
+                if (nome.includes(termo)) {
+                    prod.style.display = 'flex'; // Mostra o produto
+                } else {
+                    prod.style.display = 'none'; // Esconde o produto
                 }
             });
 
-            if (itensAdd === 0) return alert("Selecione algum item!");
+            // Gerencia as categorias (Se buscar, abre tudo)
+            grupos.forEach(grupo => {
+                const lista = grupo.querySelector('[id^="lista-"]');
+                const seta = grupo.querySelector('[id^="seta-"]');
+                const produtosVisiveis = lista.querySelectorAll('.produto-item[style="display: flex;"]'); // Conta quantos sobraram visíveis
+                
+                // Se o campo de busca tiver texto, expande tudo para mostrar resultados
+                if (termo.length > 0) {
+                    lista.style.display = 'block';
+                    seta.style.transform = 'rotate(0deg)';
+                    
+                    // Se não tiver nenhum produto visível nesta categoria, esconde a categoria inteira
+                    // O querySelectorAll pode não pegar o style inline se não foi setado ainda, 
+                    // então verificamos se tem algum item SEM display:none
+                    const temItem = Array.from(lista.children).some(child => child.style.display !== 'none');
+                    grupo.style.display = temItem ? 'block' : 'none';
+                } else {
+                    // Se limpou a busca, mostra todas as categorias de novo
+                    grupo.style.display = 'block';
+                    // Mantém o estado aberto/fechado que estava ou reseta? Vamos deixar aberto.
+                    lista.querySelectorAll('.produto-item').forEach(p => p.style.display = 'flex');
+                }
+            });
+        }
 
+        // --- Resto das Funções (Pedido, Login, etc - IGUAIS) ---
+        function mudarQtd(btn, val) {
+            const qtdBox = btn.closest('.produto-item').querySelector('.qtd');
+            let novaQtd = Math.max(0, parseInt(qtdBox.innerText) + val);
+            qtdBox.innerText = novaQtd; atualizarTotal();
+        }
+        function atualizarTotal() {
+            let total = 0; document.querySelectorAll('.produto-item').forEach(p => { 
+                // Verifica se o item está visível ou conta mesmo escondido? 
+                // Geralmente conta tudo, mas se o usuário filtrou e não tá vendo, cuidado.
+                // Aqui conta tudo que tem quantidade > 0, independente da busca.
+                total += parseFloat(p.getAttribute('data-preco')) * parseInt(p.querySelector('.qtd').innerText); 
+            });
+            document.getElementById('total-geral').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+            const btn = document.getElementById('btn-finalizar'); if(total > 0) btn.classList.add('animate-bounce'); else btn.classList.remove('animate-bounce');
+        }
+
+        function enviarPedido() {
+            let msg = `*PEDIDO VIA SITE* 🛵\n--------------------------\n`; let total = 0; let itensAdd = 0;
+            document.querySelectorAll('.produto-item').forEach(p => { const qtd = parseInt(p.querySelector('.qtd').innerText); if (qtd > 0) { const nome = p.getAttribute('data-nome'); const sub = parseFloat(p.getAttribute('data-preco')) * qtd; msg += `✅ ${qtd}x *${nome}*\n`; total += sub; itensAdd++; } });
+            if (itensAdd === 0) return mostrarToast("Selecione pelo menos um item!", "erro");
             msg += `--------------------------\n💰 *TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n`;
-
-            // SE O CLIENTE ESTIVER LOGADO, JÁ PREENCHE O ENDEREÇO
-            if (dadosCliente) {
-                msg += `\n👤 *Cliente:* ${dadosCliente.name}`;
-                msg += `\n📍 *Endereço:* ${dadosCliente.address}`;
-                msg += `\n📞 *Contato:* ${dadosCliente.phone}`;
-            } else {
-                msg += `\n📍 *Endereço de Entrega:* (Digite aqui)`;
-                msg += `\n👤 *Seu Nome:* (Digite aqui)`;
-            }
-
-            const link = `https://wa.me/5584987371966?text=${encodeURIComponent(msg)}`;
-            window.open(link, '_blank');
+            if (dadosCliente) { msg += `\n👤 *Cliente:* ${dadosCliente.name}\n📍 *Endereço:* ${dadosCliente.address}\n📞 *Contato:* ${dadosCliente.phone}`; }
+            else { msg += `\n📍 *Endereço de Entrega:* (Digite aqui)\n👤 *Seu Nome:* (Digite aqui)`; }
+            window.open(`https://wa.me/5584987371966?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        function irParaLogin() {
-            window.location.href = 'cliente-login.html';
-        }
-
-        async function fazerLogout() {
-            if(confirm("Deseja sair da sua conta?")) {
-                await _supabase.auth.signOut();
-                window.location.reload();
-            }
-        }
-
+        function irParaLogin() { window.location.href = 'cliente-login.html'; }
+        async function fazerLogout() { if(confirm("Deseja sair da conta?")) { await _supabase.auth.signOut(); window.location.reload(); } }
         init();
     </script>
 </body>

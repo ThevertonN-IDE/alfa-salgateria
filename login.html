@@ -7,42 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style> .toast { animation: slideIn 0.3s ease-out forwards; } @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } } </style>
 </head>
 <body class="bg-orange-600 flex items-center justify-center min-h-screen p-4">
+    <div id="toast-container" class="fixed top-4 right-4 z-[60] flex flex-col gap-2"></div>
 
     <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">
-        
-        <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fas fa-lock text-orange-600 text-2xl"></i>
-        </div>
-
+        <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fas fa-lock text-orange-600 text-2xl"></i></div>
         <h1 class="text-2xl font-black text-gray-800 uppercase mb-1">Acesso Restrito</h1>
         <p class="text-sm text-gray-400 mb-6">Gerenciamento Alfa Salgateria</p>
-
         <div class="space-y-4 text-left">
-            <div>
-                <label class="block text-xs font-bold text-gray-400 mb-1 uppercase pl-1">E-mail</label>
-                <div class="flex items-center bg-gray-50 rounded-xl px-4 border border-gray-100 focus-within:border-orange-500 transition-colors">
-                    <i class="fas fa-envelope text-gray-300"></i>
-                    <input type="email" id="email" class="w-full bg-transparent p-3 outline-none text-sm text-gray-700 font-semibold" placeholder="seu@email.com">
-                </div>
-            </div>
+            <div><label class="block text-xs font-bold text-gray-400 mb-1 uppercase pl-1">E-mail</label><div class="flex items-center bg-gray-50 rounded-xl px-4 border border-gray-100 focus-within:border-orange-500 transition-colors"><i class="fas fa-envelope text-gray-300"></i><input type="email" id="email" class="w-full bg-transparent p-3 outline-none text-sm text-gray-700 font-semibold" placeholder="seu@email.com"></div></div>
+            <div><label class="block text-xs font-bold text-gray-400 mb-1 uppercase pl-1">Senha</label><div class="flex items-center bg-gray-50 rounded-xl px-4 border border-gray-100 focus-within:border-orange-500 transition-colors"><i class="fas fa-key text-gray-300"></i><input type="password" id="password" class="w-full bg-transparent p-3 outline-none text-sm text-gray-700 font-semibold" placeholder="******"></div></div>
+            
+            <p id="msg-erro" class="text-red-500 text-xs font-bold text-center hidden"></p>
 
-            <div>
-                <label class="block text-xs font-bold text-gray-400 mb-1 uppercase pl-1">Senha</label>
-                <div class="flex items-center bg-gray-50 rounded-xl px-4 border border-gray-100 focus-within:border-orange-500 transition-colors">
-                    <i class="fas fa-key text-gray-300"></i>
-                    <input type="password" id="password" class="w-full bg-transparent p-3 outline-none text-sm text-gray-700 font-semibold" placeholder="******">
-                </div>
-            </div>
-
-            <button onclick="login()" id="btn-login" class="w-full bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-200 active:scale-95 transition-all hover:bg-orange-700 mt-4">
-                ENTRAR NO SISTEMA
-            </button>
-
-            <div class="text-center pt-2">
-                <a href="#" onclick="resetarSenha()" class="text-xs text-orange-600 font-bold hover:underline">Esqueci minha senha</a>
-            </div>
+            <button onclick="login()" id="btn-login" class="w-full bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-200 active:scale-95 transition-all hover:bg-orange-700 mt-4">ENTRAR NO SISTEMA</button>
+            <div class="text-center pt-2"><a href="#" onclick="resetarSenha()" class="text-xs text-orange-600 font-bold hover:underline">Esqueci minha senha</a></div>
         </div>
     </div>
 
@@ -51,35 +32,30 @@
         const SUPABASE_KEY = 'sb_publishable_3uaoU1fmUEKBrDmbhnk0qw_j3hsPk06';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        function mostrarToast(msg) {
+            const c = document.getElementById('toast-container'); const t = document.createElement('div');
+            t.className = `toast bg-green-500 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 min-w-[250px] z-50`;
+            t.innerHTML = `<i class="fas fa-check"></i> <span class="text-sm font-bold">${msg}</span>`;
+            c.appendChild(t); setTimeout(() => t.remove(), 3000);
+        }
+
         async function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('btn-login');
-
-            if (!email || !password) return alert("Preencha todos os campos!");
-
+            const email = document.getElementById('email').value; const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login'); const erro = document.getElementById('msg-erro');
+            if (!email || !password) { erro.innerText = "Preencha todos os campos."; erro.classList.remove('hidden'); return; }
             btn.innerText = "VERIFICANDO..."; btn.disabled = true;
-
-            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                alert("Erro: E-mail ou senha incorretos.");
-                btn.innerText = "ENTRAR NO SISTEMA"; btn.disabled = false;
-            } else {
-                window.location.href = 'admin.html';
-            }
+            const { error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) { erro.innerText = "E-mail ou senha incorretos."; erro.classList.remove('hidden'); btn.innerText = "ENTRAR NO SISTEMA"; btn.disabled = false; }
+            else window.location.href = 'admin.html';
         }
 
         async function resetarSenha() {
             const email = document.getElementById('email').value;
-            if (!email) return alert("Por favor, digite seu e-mail no campo acima primeiro para recuperarmos sua senha.");
-
-            const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.href,
-            });
-
-            if (error) alert("Erro: " + error.message);
-            else alert("Verifique sua caixa de entrada (e spam) para redefinir a senha!");
+            const erro = document.getElementById('msg-erro');
+            if (!email) { erro.innerText = "Digite seu e-mail acima primeiro."; erro.classList.remove('hidden'); return; }
+            const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+            if (error) { erro.innerText = error.message; erro.classList.remove('hidden'); }
+            else mostrarToast("Link enviado para o e-mail!");
         }
     </script>
 </body>
