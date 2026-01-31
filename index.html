@@ -1,17 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alfa Salgateria - Cardápio</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-orange-50 font-sans pb-32">
 
     <header class="bg-orange-600 text-white p-6 text-center shadow-lg">
-        <h1 class="text-2xl font-bold tracking-tight uppercase">ALFA SALGATERIA</h1>
-        <p class="text-sm opacity-90 text-yellow-100">Clique no + para adicionar ao pedido</p>
+        <header class="bg-orange-600 text-white p-6 shadow-lg flex justify-between items-center relative">
+            <div class="text-center w-full">
+                <h1 class="text-2xl font-bold tracking-tight uppercase">ALFA SALGATERIA</h1>
+                <p class="text-sm opacity-90 text-yellow-100">Sabor que vem do coração</p>
+            </div>
+            <a href="login.html" class="absolute right-4 top-4 text-orange-200 hover:text-white transition-colors">
+                <i class="fas fa-cog text-xl"></i>
+            </a>
+        </header>
     </header>
 
     <main class="max-w-md mx-auto p-4">
@@ -21,49 +31,58 @@
         </div>
 
         <div id="cardapio" class="space-y-4">
-            
-            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100" 
-                 data-nome="Coxinha de Frango" data-preco="40.00">
-                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden">
-                    <img src="https://via.placeholder.com/150" class="w-full h-full object-cover">
+
+            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100"
+                data-nome="Coxinha de Frango" data-preco="40.00">
+                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden shadow-sm">
+                    <img src="https://www.yoki.com.br/_next/image?url=https%3A%2F%2Fprodcontent.yoki.com.br%2Fwp-content%2Fuploads%2F2024%2F09%2FCoxinhas-com-pure-de-batatas-6016x4016-1.jpg&w=1024&q=75"
+                        class="w-full h-full object-cover">
                 </div>
                 <div class="flex-grow">
                     <h3 class="font-bold text-gray-800">Coxinha de Frango</h3>
-                    <span class="text-orange-600 font-bold text-sm">R$ 40,00 <small class="text-gray-400 text-[10px]">/cento</small></span>
+                    <span class="text-orange-600 font-bold text-sm">R$ 40,00 <small
+                            class="text-gray-400 text-[10px]">/cento</small></span>
                 </div>
                 <div class="flex flex-col items-center gap-1 bg-gray-50 rounded-lg p-1">
-                    <button onclick="mudarQtd(this, 1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200">+</button>
+                    <button onclick="mudarQtd(this, 1)"
+                        class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200 active:bg-orange-100">+</button>
                     <span class="qtd font-bold text-gray-700">0</span>
-                    <button onclick="mudarQtd(this, -1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200">-</button>
+                    <button onclick="mudarQtd(this, -1)"
+                        class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200 active:bg-gray-100">-</button>
                 </div>
             </div>
 
-            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100" 
-                 data-nome="Bolinha de Queijo" data-preco="40.00">
-                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden">
-                    <img src="https://via.placeholder.com/150" class="w-full h-full object-cover">
+            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100"
+                data-nome="Bolinha de Queijo" data-preco="40.00">
+                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden shadow-sm">
+                    <img src="https://www.thebakers.com.br/wp-content/uploads/2022/12/bolinha-de-queijo-the-bakers.jpeg"
+                        class="w-full h-full object-cover">
                 </div>
                 <div class="flex-grow">
                     <h3 class="font-bold text-gray-800">Bolinha de Queijo</h3>
-                    <span class="text-orange-600 font-bold text-sm">R$ 40,00 <small class="text-gray-400 text-[10px]">/cento</small></span>
+                    <span class="text-orange-600 font-bold text-sm">R$ 40,00 <small
+                            class="text-gray-400 text-[10px]">/cento</small></span>
                 </div>
                 <div class="flex flex-col items-center gap-1 bg-gray-50 rounded-lg p-1">
-                    <button onclick="mudarQtd(this, 1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200">+</button>
+                    <button onclick="mudarQtd(this, 1)"
+                        class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200 active:bg-orange-100">+</button>
                     <span class="qtd font-bold text-gray-700">0</span>
-                    <button onclick="mudarQtd(this, -1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200">-</button>
+                    <button onclick="mudarQtd(this, -1)"
+                        class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200 active:bg-gray-100">-</button>
                 </div>
             </div>
 
         </div>
     </main>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-2xl">
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <div>
                 <p class="text-[10px] text-gray-400 uppercase font-black">Total a pagar</p>
                 <p id="total-geral" class="text-2xl font-black text-orange-600">R$ 0,00</p>
             </div>
-            <button onclick="enviarWhats()" class="bg-green-600 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
+            <button onclick="enviarWhats()"
+                class="bg-green-600 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 active:scale-95 transition-all shadow-lg shadow-green-200">
                 Pedir no Whats
                 <i class="fab fa-whatsapp text-xl"></i>
             </button>
@@ -71,14 +90,61 @@
     </div>
 
     <script>
+        // 1. Configurações de Conexão (Use os dados que você pegou no painel)
+        const SUPABASE_URL = 'https://zpdpscjjxqkbuhesdtyq.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_3uaoU1fmUEKBrDmbhnk0qw_j3hsPk06';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 2. Função para carregar os produtos do Banco de Dados
+        async function carregarCardapio() {
+            const cardapioContainer = document.getElementById('cardapio');
+
+            // Busca os dados no Supabase
+            const { data: produtos, error } = await supabaseClient
+                .from('products')
+                .select('*')
+                .eq('is_active', true); // Só traz o que estiver ativo
+
+            if (error) {
+                console.error('Erro ao buscar produtos:', error);
+                cardapioContainer.innerHTML = '<p class="text-center text-red-500">Erro ao carregar o cardápio.</p>';
+                return;
+            }
+
+            // Limpa o conteúdo fixo atual
+            cardapioContainer.innerHTML = '';
+
+            // Cria os cartões dinamicamente
+            produtos.forEach(produto => {
+                const card = `
+            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100" 
+                 data-nome="${produto.name}" data-preco="${produto.price}">
+                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden shadow-sm">
+                    <img src="${produto.image_url}" class="w-full h-full object-cover" alt="${produto.name}">
+                </div>
+                <div class="flex-grow">
+                    <h3 class="font-bold text-gray-800">${produto.name}</h3>
+                    <p class="text-[10px] text-gray-500 leading-tight mb-1">${produto.description || ''}</p>
+                    <span class="text-orange-600 font-bold text-sm">R$ ${produto.price.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 bg-gray-50 rounded-lg p-1">
+                    <button onclick="mudarQtd(this, 1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200 active:bg-orange-100">+</button>
+                    <span class="qtd font-bold text-gray-700">0</span>
+                    <button onclick="mudarQtd(this, -1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200 active:bg-gray-100">-</button>
+                </div>
+            </div>
+        `;
+                cardapioContainer.innerHTML += card;
+            });
+        }
+
+        // Funções de lógica do carrinho (mantidas do passo anterior)
         function mudarQtd(btn, mudanca) {
             const container = btn.closest('.produto-item');
             const qtdElemento = container.querySelector('.qtd');
             let qtd = parseInt(qtdElemento.innerText);
-            
-            qtd = Math.max(0, qtd + mudanca); // Não deixa ser menor que zero
+            qtd = Math.max(0, qtd + mudanca);
             qtdElemento.innerText = qtd;
-            
             atualizarTotal();
         }
 
@@ -110,19 +176,18 @@
             });
 
             if (!temItens) {
-                alert("Adicione pelo menos um salgado ao pedido!");
+                alert("Ops! Selecione algo antes de enviar.");
                 return;
             }
 
             mensagem += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
-            mensagem += `\n\n_Por favor, confirme o horário para retirada._`;
-
-            // Formata para o link do WhatsApp (Substitua pelo número da sua irmã se necessário)
-            const fone = "5584987371966"; 
-            const link = `https://wa.me/${fone}?text=${encodeURIComponent(mensagem)}`;
-            
-            window.open(link, '_blank');
+            const fone = "5584987371966";
+            window.open(`https://wa.me/${fone}?text=${encodeURIComponent(mensagem)}`, '_blank');
         }
+
+        // Inicializa o cardápio ao carregar a página
+        carregarCardapio();
     </script>
 </body>
+
 </html>

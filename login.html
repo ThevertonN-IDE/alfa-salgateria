@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Administrativo - Alfa Salgateria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-orange-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-xl overflow-hidden border border-orange-100">
+        <div class="bg-orange-600 p-8 text-center text-white">
+            <h1 class="text-2xl font-bold uppercase tracking-widest">Acesso Restrito</h1>
+            <p class="text-orange-100 text-sm mt-2">Painel de Controle TG Tech</p>
+        </div>
+
+        <form id="login-form" class="p-8 space-y-6">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">E-mail</label>
+                <input type="email" id="email" required 
+                       class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all">
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Senha</label>
+                <input type="password" id="password" required 
+                       class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all">
+            </div>
+
+            <button type="submit" 
+                    class="w-full bg-orange-600 text-white font-bold py-4 rounded-xl hover:bg-orange-700 shadow-lg shadow-orange-200 active:scale-95 transition-all">
+                Entrar no Painel
+            </button>
+            
+            <p id="error-msg" class="text-red-500 text-center text-sm hidden">E-mail ou senha incorretos.</p>
+        </form>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://zpdpscjjxqkbuhesdtyq.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_3uaoU1fmUEKBrDmbhnk0qw_j3hsPk06';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const loginForm = document.getElementById('login-form');
+        const errorMsg = document.getElementById('error-msg');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.classList.add('hidden');
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Tentativa de Login no Supabase
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                errorMsg.innerText = "Erro: " + error.message;
+                errorMsg.classList.remove('hidden');
+            } else {
+                // Login bem-sucedido: Redireciona para a página de administração
+                window.location.href = 'admin.html';
+            }
+        });
+    </script>
+</body>
+</html>
