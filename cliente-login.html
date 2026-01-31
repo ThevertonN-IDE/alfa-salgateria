@@ -87,7 +87,7 @@
         </div>
     </div>
 
-    <script>
+        <script>
         $(document).ready(function(){ $('.phone_with_ddd').mask('(00) 00000-0000'); });
         
         // --- SISTEMA ---
@@ -142,10 +142,37 @@
             const rua=document.getElementById('end-logradouro').value, num=document.getElementById('end-numero').value, bai=document.getElementById('end-bairro').value, comp=document.getElementById('end-comp').value;
             if(!nome || !email || !tel || !rua || !num || !bai) return mostrarToast("Preencha os campos obrigatórios", "erro");
             if(!validarSenha()) return mostrarToast("Senha muito fraca", "erro");
+            
             btn.innerText = "CRIANDO..."; btn.disabled = true;
-            const { data, error } = await window._supabase.auth.signUp({ email, password: pass, options: { data: { full_name: nome, phone: tel, address: `${rua}, Nº ${num} - ${bai} ${comp ? '('+comp+')' : ''}` } } });
-            if (error) { mostrarToast(error.message, "erro"); btn.innerText = "CRIAR CONTA"; btn.disabled = false; }
-            else if (data.user && !data.session) { mostrarToast("Sucesso! Confirme seu e-mail."); mudarAba('login'); btn.innerText = "CRIAR CONTA"; btn.disabled = false; }
+            
+            // PEGA O ENDEREÇO ATUAL DA PÁGINA PARA REDIRECIONAR DE VOLTA PARA ELA MESMA (OU INDEX)
+            // Isso garante que o link do email tenha a pasta /alfa-salgateria/
+            const currentURL = window.location.href.replace('cliente-login.html', 'index.html');
+
+            const { data, error } = await window._supabase.auth.signUp({ 
+                email, 
+                password: pass, 
+                options: { 
+                    emailRedirectTo: currentURL, // <--- AQUI ESTÁ A CORREÇÃO
+                    data: { 
+                        full_name: nome, 
+                        phone: tel, 
+                        address: `${rua}, Nº ${num} - ${bai} ${comp ? '('+comp+')' : ''}` 
+                    } 
+                } 
+            });
+
+            if (error) { 
+                mostrarToast(error.message, "erro"); 
+                btn.innerText = "CRIAR CONTA"; 
+                btn.disabled = false; 
+            }
+            else if (data.user && !data.session) { 
+                mostrarToast("Sucesso! Confirme seu e-mail."); 
+                mudarAba('login'); 
+                btn.innerText = "CRIAR CONTA"; 
+                btn.disabled = false; 
+            }
             else { window.location.href = 'index.html'; }
         }
 
@@ -153,7 +180,11 @@
             if(!checkOnline()) return;
             const email = document.getElementById('reset-email').value; if(!email) return mostrarToast("Digite seu e-mail", "erro");
             const btn = document.getElementById('btn-reset'); btn.innerText = "ENVIANDO..."; btn.disabled = true;
-            const { error } = await window._supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+            
+            // Força o redirecionamento correto também no reset de senha
+            const currentURL = window.location.href;
+
+            const { error } = await window._supabase.auth.resetPasswordForEmail(email, { redirectTo: currentURL });
             if (error) mostrarToast(error.message, "erro"); else { mostrarToast("Link enviado! Verifique o e-mail."); alternarEsqueciSenha(false); }
             btn.innerText = "ENVIAR LINK"; btn.disabled = false;
         }
@@ -168,4 +199,5 @@
         }
     </script>
 </body>
+
 </html>
