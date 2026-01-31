@@ -3,69 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Administrativo - Alfa Salgateria</title>
+    <title>Login - Alfa Salgateria</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-orange-50 flex items-center justify-center min-h-screen p-4">
+<body class="bg-orange-600 flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-xl overflow-hidden border border-orange-100">
-        <div class="bg-orange-600 p-8 text-center text-white">
-            <h1 class="text-2xl font-bold uppercase tracking-widest">Acesso Restrito</h1>
-            <p class="text-orange-100 text-sm mt-2">Painel de Controle TG Tech</p>
+    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">
+        
+        <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-lock text-orange-600 text-2xl"></i>
         </div>
 
-        <form id="login-form" class="p-8 space-y-6">
+        <h1 class="text-2xl font-black text-gray-800 uppercase mb-1">Acesso Restrito</h1>
+        <p class="text-sm text-gray-400 mb-6">Gerenciamento Alfa Salgateria</p>
+
+        <div class="space-y-4 text-left">
             <div>
-                <label class="block text-gray-700 text-sm font-bold mb-2">E-mail</label>
-                <input type="email" id="email" required 
-                       class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all">
+                <label class="block text-xs font-bold text-gray-400 mb-1 uppercase pl-1">E-mail</label>
+                <div class="flex items-center bg-gray-50 rounded-xl px-4 border border-gray-100 focus-within:border-orange-500 transition-colors">
+                    <i class="fas fa-envelope text-gray-300"></i>
+                    <input type="email" id="email" class="w-full bg-transparent p-3 outline-none text-sm text-gray-700 font-semibold" placeholder="seu@email.com">
+                </div>
             </div>
 
             <div>
-                <label class="block text-gray-700 text-sm font-bold mb-2">Senha</label>
-                <input type="password" id="password" required 
-                       class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all">
+                <label class="block text-xs font-bold text-gray-400 mb-1 uppercase pl-1">Senha</label>
+                <div class="flex items-center bg-gray-50 rounded-xl px-4 border border-gray-100 focus-within:border-orange-500 transition-colors">
+                    <i class="fas fa-key text-gray-300"></i>
+                    <input type="password" id="password" class="w-full bg-transparent p-3 outline-none text-sm text-gray-700 font-semibold" placeholder="******">
+                </div>
             </div>
 
-            <button type="submit" 
-                    class="w-full bg-orange-600 text-white font-bold py-4 rounded-xl hover:bg-orange-700 shadow-lg shadow-orange-200 active:scale-95 transition-all">
-                Entrar no Painel
+            <button onclick="login()" id="btn-login" class="w-full bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-200 active:scale-95 transition-all hover:bg-orange-700 mt-4">
+                ENTRAR NO SISTEMA
             </button>
-            
-            <p id="error-msg" class="text-red-500 text-center text-sm hidden">E-mail ou senha incorretos.</p>
-        </form>
+
+            <div class="text-center pt-2">
+                <a href="#" onclick="resetarSenha()" class="text-xs text-orange-600 font-bold hover:underline">Esqueci minha senha</a>
+            </div>
+        </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://zpdpscjjxqkbuhesdtyq.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_3uaoU1fmUEKBrDmbhnk0qw_j3hsPk06';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const loginForm = document.getElementById('login-form');
-        const errorMsg = document.getElementById('error-msg');
-
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errorMsg.classList.add('hidden');
-
+        async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login');
 
-            // Tentativa de Login no Supabase
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
+            if (!email || !password) return alert("Preencha todos os campos!");
+
+            btn.innerText = "VERIFICANDO..."; btn.disabled = true;
+
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
 
             if (error) {
-                errorMsg.innerText = "Erro: " + error.message;
-                errorMsg.classList.remove('hidden');
+                alert("Erro: E-mail ou senha incorretos.");
+                btn.innerText = "ENTRAR NO SISTEMA"; btn.disabled = false;
             } else {
-                // Login bem-sucedido: Redireciona para a página de administração
                 window.location.href = 'admin.html';
             }
-        });
+        }
+
+        async function resetarSenha() {
+            const email = document.getElementById('email').value;
+            if (!email) return alert("Por favor, digite seu e-mail no campo acima primeiro para recuperarmos sua senha.");
+
+            const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.href,
+            });
+
+            if (error) alert("Erro: " + error.message);
+            else alert("Verifique sua caixa de entrada (e spam) para redefinir a senha!");
+        }
     </script>
 </body>
 </html>

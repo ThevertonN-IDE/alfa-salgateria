@@ -1,193 +1,207 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alfa Salgateria - Cardápio</title>
+    <title>Alfa Salgateria | Cardápio Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
 </head>
+<body class="bg-orange-50 pb-32">
 
-<body class="bg-orange-50 font-sans pb-32">
-
-    <header class="bg-orange-600 text-white p-6 text-center shadow-lg">
-        <header class="bg-orange-600 text-white p-6 shadow-lg flex justify-between items-center relative">
-            <div class="text-center w-full">
-                <h1 class="text-2xl font-bold tracking-tight uppercase">ALFA SALGATERIA</h1>
-                <p class="text-sm opacity-90 text-yellow-100">Sabor que vem do coração</p>
+    <header class="bg-orange-600 text-white p-6 shadow-lg relative rounded-b-3xl z-40">
+        <div class="flex justify-between items-start mb-2">
+            <div id="area-usuario" class="flex items-center gap-2 bg-orange-700/50 px-3 py-1 rounded-full text-xs cursor-pointer hover:bg-orange-700 transition" onclick="irParaLogin()">
+                <i class="fas fa-user-circle"></i>
+                <span id="nome-cliente" class="font-bold">Entrar / Cadastrar</span>
             </div>
-            <a href="login.html" class="absolute right-4 top-4 text-orange-200 hover:text-white transition-colors">
-                <i class="fas fa-cog text-xl"></i>
-            </a>
-        </header>
+            <a href="login.html" class="text-orange-300 hover:text-white"><i class="fas fa-cog"></i></a>
+        </div>
+        
+        <div class="text-center mt-2">
+            <h1 class="text-2xl font-black tracking-tight uppercase drop-shadow-md">Alfa Salgateria</h1>
+            <p class="text-xs font-medium text-orange-100 mt-1 uppercase tracking-widest">Sabor que vem do coração</p>
+        </div>
     </header>
 
-    <main class="max-w-md mx-auto p-4">
-        <div class="flex items-center gap-2 mb-6 border-b-2 border-orange-200 pb-2">
-            <i class="fas fa-fire text-orange-600"></i>
-            <h2 class="text-xl font-bold text-gray-800 uppercase">Salgados Fritos</h2>
-        </div>
-
-        <div id="cardapio" class="space-y-4">
-
-            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100"
-                data-nome="Coxinha de Frango" data-preco="40.00">
-                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden shadow-sm">
-                    <img src="https://www.yoki.com.br/_next/image?url=https%3A%2F%2Fprodcontent.yoki.com.br%2Fwp-content%2Fuploads%2F2024%2F09%2FCoxinhas-com-pure-de-batatas-6016x4016-1.jpg&w=1024&q=75"
-                        class="w-full h-full object-cover">
-                </div>
-                <div class="flex-grow">
-                    <h3 class="font-bold text-gray-800">Coxinha de Frango</h3>
-                    <span class="text-orange-600 font-bold text-sm">R$ 40,00 <small
-                            class="text-gray-400 text-[10px]">/cento</small></span>
-                </div>
-                <div class="flex flex-col items-center gap-1 bg-gray-50 rounded-lg p-1">
-                    <button onclick="mudarQtd(this, 1)"
-                        class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200 active:bg-orange-100">+</button>
-                    <span class="qtd font-bold text-gray-700">0</span>
-                    <button onclick="mudarQtd(this, -1)"
-                        class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200 active:bg-gray-100">-</button>
-                </div>
-            </div>
-
-            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100"
-                data-nome="Bolinha de Queijo" data-preco="40.00">
-                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden shadow-sm">
-                    <img src="https://www.thebakers.com.br/wp-content/uploads/2022/12/bolinha-de-queijo-the-bakers.jpeg"
-                        class="w-full h-full object-cover">
-                </div>
-                <div class="flex-grow">
-                    <h3 class="font-bold text-gray-800">Bolinha de Queijo</h3>
-                    <span class="text-orange-600 font-bold text-sm">R$ 40,00 <small
-                            class="text-gray-400 text-[10px]">/cento</small></span>
-                </div>
-                <div class="flex flex-col items-center gap-1 bg-gray-50 rounded-lg p-1">
-                    <button onclick="mudarQtd(this, 1)"
-                        class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200 active:bg-orange-100">+</button>
-                    <span class="qtd font-bold text-gray-700">0</span>
-                    <button onclick="mudarQtd(this, -1)"
-                        class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200 active:bg-gray-100">-</button>
-                </div>
-            </div>
-
+    <main id="conteudo-cardapio" class="max-w-md mx-auto p-4 space-y-8 min-h-[60vh]">
+        <div class="flex flex-col items-center justify-center py-20 text-orange-300 animate-pulse">
+            <i class="fas fa-circle-notch fa-spin text-3xl mb-4"></i>
+            <p class="text-sm font-bold uppercase">Carregando delícias...</p>
         </div>
     </main>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+    <div id="barra-pedido" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-50 rounded-t-3xl hidden">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <div>
-                <p class="text-[10px] text-gray-400 uppercase font-black">Total a pagar</p>
+                <p class="text-[10px] text-gray-400 uppercase font-black tracking-wide">Total a Pagar</p>
                 <p id="total-geral" class="text-2xl font-black text-orange-600">R$ 0,00</p>
             </div>
-            <button onclick="enviarWhats()"
-                class="bg-green-600 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 active:scale-95 transition-all shadow-lg shadow-green-200">
-                Pedir no Whats
-                <i class="fab fa-whatsapp text-xl"></i>
+            <button onclick="enviarPedido()" id="btn-finalizar" class="bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-200 active:scale-95 transition-transform hover:bg-green-700">
+                Pedir Agora <i class="fab fa-whatsapp text-lg"></i>
             </button>
         </div>
     </div>
 
+    <div id="aviso-fechado" class="hidden fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-6 z-[60] text-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-3xl">
+        <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-4"></div>
+        <h3 class="font-black text-xl uppercase text-red-400 mb-1"><i class="fas fa-store-slash mr-2"></i> Estamos Fechados</h3>
+        <p class="text-sm text-gray-400">Voltamos amanhã com tudo fresquinho!</p>
+    </div>
+
     <script>
-        // 1. Configurações de Conexão (Use os dados que você pegou no painel)
         const SUPABASE_URL = 'https://zpdpscjjxqkbuhesdtyq.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_3uaoU1fmUEKBrDmbhnk0qw_j3hsPk06';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 2. Função para carregar os produtos do Banco de Dados
-        async function carregarCardapio() {
-            const cardapioContainer = document.getElementById('cardapio');
+        let dadosCliente = null; // Guardará o endereço se estiver logado
 
-            // Busca os dados no Supabase
-            const { data: produtos, error } = await supabaseClient
-                .from('products')
-                .select('*')
-                .eq('is_active', true); // Só traz o que estiver ativo
-
-            if (error) {
-                console.error('Erro ao buscar produtos:', error);
-                cardapioContainer.innerHTML = '<p class="text-center text-red-500">Erro ao carregar o cardápio.</p>';
-                return;
+        async function init() {
+            // 1. Verifica Loja Aberta
+            const { data: config } = await _supabase.from('store_config').select('*').limit(1);
+            const lojaAberta = config && config.length > 0 ? config[0].is_open : true;
+            
+            if (!lojaAberta) {
+                document.getElementById('barra-pedido').remove();
+                document.getElementById('aviso-fechado').classList.remove('hidden');
+            } else {
+                document.getElementById('barra-pedido').classList.remove('hidden');
             }
 
-            // Limpa o conteúdo fixo atual
-            cardapioContainer.innerHTML = '';
+            // 2. Verifica Usuário Logado (Auto-Preenchimento)
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                // Busca os dados extras na tabela clients
+                const { data: cliente } = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
+                if (cliente) {
+                    dadosCliente = cliente;
+                    document.getElementById('nome-cliente').innerText = `Olá, ${cliente.name.split(' ')[0]}`; // Só o primeiro nome
+                    // Troca o clique para Sair em vez de Login
+                    document.getElementById('area-usuario').onclick = fazerLogout;
+                }
+            }
 
-            // Cria os cartões dinamicamente
-            produtos.forEach(produto => {
-                const card = `
-            <div class="produto-item bg-white rounded-2xl shadow-sm flex items-center p-3 gap-4 border border-orange-100" 
-                 data-nome="${produto.name}" data-preco="${produto.price}">
-                <div class="w-20 h-20 bg-orange-100 rounded-xl flex-shrink-0 overflow-hidden shadow-sm">
-                    <img src="${produto.image_url}" class="w-full h-full object-cover" alt="${produto.name}">
-                </div>
-                <div class="flex-grow">
-                    <h3 class="font-bold text-gray-800">${produto.name}</h3>
-                    <p class="text-[10px] text-gray-500 leading-tight mb-1">${produto.description || ''}</p>
-                    <span class="text-orange-600 font-bold text-sm">R$ ${produto.price.toFixed(2).replace('.', ',')}</span>
-                </div>
-                <div class="flex flex-col items-center gap-1 bg-gray-50 rounded-lg p-1">
-                    <button onclick="mudarQtd(this, 1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-orange-600 font-bold border border-orange-200 active:bg-orange-100">+</button>
-                    <span class="qtd font-bold text-gray-700">0</span>
-                    <button onclick="mudarQtd(this, -1)" class="w-8 h-8 bg-white rounded-full shadow-sm text-gray-400 font-bold border border-gray-200 active:bg-gray-100">-</button>
-                </div>
-            </div>
-        `;
-                cardapioContainer.innerHTML += card;
+            carregarProdutos();
+        }
+
+        async function carregarProdutos() {
+            const container = document.getElementById('conteudo-cardapio');
+            const { data: categorias } = await _supabase.from('categories').select('*').order('name');
+            const { data: produtos } = await _supabase.from('products').select('*').eq('is_active', true);
+
+            if (!categorias) return;
+            container.innerHTML = '';
+
+            categorias.forEach(cat => {
+                const itens = produtos.filter(p => p.category_id === cat.id);
+                if (itens.length > 0) {
+                    let section = `
+                        <section class="animate-[fadeIn_0.5s_ease-out]">
+                            <h2 class="text-orange-600 font-black uppercase tracking-widest text-xs mb-4 flex items-center gap-2 pl-1">
+                                <span class="bg-orange-100 p-1 rounded text-orange-600"><i class="fas fa-utensils"></i></span> ${cat.name}
+                            </h2>
+                            <div class="space-y-4">`;
+                    
+                    itens.forEach(p => {
+                        const preco = p.on_sale ? p.sale_price : p.price;
+                        section += `
+                            <div class="produto-item bg-white rounded-3xl p-3 flex items-start gap-4 shadow-sm border border-transparent hover:border-orange-100 transition-all" data-nome="${p.name}" data-preco="${preco}">
+                                <div class="w-24 h-24 bg-gray-50 rounded-2xl overflow-hidden relative flex-shrink-0">
+                                    <img src="${p.image_url}" class="w-full h-full object-cover">
+                                    ${p.on_sale ? '<span class="absolute top-0 left-0 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-br-lg shadow-sm">OFERTA</span>' : ''}
+                                </div>
+                                <div class="flex-grow min-w-0 pt-1">
+                                    <h3 class="font-bold text-gray-800 text-sm leading-tight">${p.name}</h3>
+                                    <p class="text-[11px] text-gray-400 leading-tight mt-1 line-clamp-2">${p.description || ''}</p>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="text-orange-600 font-black text-base">R$ ${preco.toFixed(2).replace('.', ',')}</span>
+                                        ${p.on_sale ? `<span class="text-gray-300 line-through text-[10px]">R$ ${p.price.toFixed(2)}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center justify-center bg-gray-50 rounded-2xl p-1 h-24 w-10">
+                                    <button onclick="mudarQtd(this, 1)" class="w-8 h-8 bg-white rounded-full text-orange-600 shadow-sm font-bold text-sm">+</button>
+                                    <span class="qtd font-black text-gray-700 text-sm my-auto">0</span>
+                                    <button onclick="mudarQtd(this, -1)" class="w-8 h-8 bg-white rounded-full text-gray-400 shadow-sm font-bold text-sm">-</button>
+                                </div>
+                            </div>`;
+                    });
+                    container.innerHTML += section + '</div></section>';
+                }
             });
         }
 
-        // Funções de lógica do carrinho (mantidas do passo anterior)
-        function mudarQtd(btn, mudanca) {
-            const container = btn.closest('.produto-item');
-            const qtdElemento = container.querySelector('.qtd');
-            let qtd = parseInt(qtdElemento.innerText);
-            qtd = Math.max(0, qtd + mudanca);
-            qtdElemento.innerText = qtd;
+        // --- LÓGICA DE PEDIDO ---
+        function mudarQtd(btn, val) {
+            const qtdBox = btn.closest('.produto-item').querySelector('.qtd');
+            let novaQtd = Math.max(0, parseInt(qtdBox.innerText) + val);
+            qtdBox.innerText = novaQtd;
             atualizarTotal();
         }
 
         function atualizarTotal() {
             let total = 0;
-            document.querySelectorAll('.produto-item').forEach(item => {
-                const preco = parseFloat(item.getAttribute('data-preco'));
-                const qtd = parseInt(item.querySelector('.qtd').innerText);
-                total += preco * qtd;
+            document.querySelectorAll('.produto-item').forEach(p => {
+                total += parseFloat(p.getAttribute('data-preco')) * parseInt(p.querySelector('.qtd').innerText);
             });
             document.getElementById('total-geral').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+            
+            // Animação no botão
+            const btn = document.getElementById('btn-finalizar');
+            if(total > 0) btn.classList.add('animate-bounce');
+            else btn.classList.remove('animate-bounce');
         }
 
-        function enviarWhats() {
-            let mensagem = "*NOVO PEDIDO - ALFA SALGATERIA*\n\n";
-            let temItens = false;
+        function enviarPedido() {
+            let msg = `*PEDIDO VIA SITE* 🛵\n--------------------------\n`;
             let total = 0;
+            let itensAdd = 0;
 
-            document.querySelectorAll('.produto-item').forEach(item => {
-                const nome = item.getAttribute('data-nome');
-                const preco = parseFloat(item.getAttribute('data-preco'));
-                const qtd = parseInt(item.querySelector('.qtd').innerText);
-
+            document.querySelectorAll('.produto-item').forEach(p => {
+                const qtd = parseInt(p.querySelector('.qtd').innerText);
                 if (qtd > 0) {
-                    mensagem += `✅ *${qtd}x* ${nome}\n`;
-                    total += preco * qtd;
-                    temItens = true;
+                    const nome = p.getAttribute('data-nome');
+                    const sub = parseFloat(p.getAttribute('data-preco')) * qtd;
+                    msg += `✅ ${qtd}x *${nome}*\n`;
+                    total += sub;
+                    itensAdd++;
                 }
             });
 
-            if (!temItens) {
-                alert("Ops! Selecione algo antes de enviar.");
-                return;
+            if (itensAdd === 0) return alert("Selecione algum item!");
+
+            msg += `--------------------------\n💰 *TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n`;
+
+            // SE O CLIENTE ESTIVER LOGADO, JÁ PREENCHE O ENDEREÇO
+            if (dadosCliente) {
+                msg += `\n👤 *Cliente:* ${dadosCliente.name}`;
+                msg += `\n📍 *Endereço:* ${dadosCliente.address}`;
+                msg += `\n📞 *Contato:* ${dadosCliente.phone}`;
+            } else {
+                msg += `\n📍 *Endereço de Entrega:* (Digite aqui)`;
+                msg += `\n👤 *Seu Nome:* (Digite aqui)`;
             }
 
-            mensagem += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
-            const fone = "5584987371966";
-            window.open(`https://wa.me/${fone}?text=${encodeURIComponent(mensagem)}`, '_blank');
+            const link = `https://wa.me/5584987371966?text=${encodeURIComponent(msg)}`;
+            window.open(link, '_blank');
         }
 
-        // Inicializa o cardápio ao carregar a página
-        carregarCardapio();
+        function irParaLogin() {
+            window.location.href = 'cliente-login.html';
+        }
+
+        async function fazerLogout() {
+            if(confirm("Deseja sair da sua conta?")) {
+                await _supabase.auth.signOut();
+                window.location.reload();
+            }
+        }
+
+        init();
     </script>
 </body>
-
 </html>
