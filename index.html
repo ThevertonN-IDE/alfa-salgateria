@@ -21,6 +21,7 @@
         #busca-vazia { min-height: 50vh; }
         .btn-carrinho-anim { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #logo-loja { background-color: white; object-fit: cover; }
+        .contador-num { font-variant-numeric: tabular-nums; display: inline-block; width: 24px; text-align: center; }
     </style>
 </head>
 <body class="bg-orange-50/50 dark:bg-gray-900 text-gray-800 dark:text-white pb-36 select-none transition-colors duration-300 flex flex-col min-h-screen">
@@ -30,6 +31,7 @@
     </div>
 
     <header class="bg-orange-600 dark:bg-gray-800 pb-8 rounded-b-3xl shadow-lg sticky top-0 z-40 transition-colors duration-300">
+        
         <div class="px-4 pt-6 flex justify-between items-start text-white">
             <div class="flex items-center gap-2">
                 <div id="area-usuario" onclick="irParaLogin()" class="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-xs cursor-pointer active:scale-95 transition hover:bg-white/30 border border-transparent shadow-sm">
@@ -41,6 +43,10 @@
             </div>
             
             <div class="flex flex-col items-end gap-2">
+                <a href="admin.html" class="bg-white/20 text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/30 transition shadow-sm" title="Acessar Painel">
+                    <i class="fas fa-user-shield text-xs"></i>
+                </a>
+                
                 <div class="flex items-center gap-1 font-bold bg-black/20 px-2 py-1 rounded-lg text-[10px]">
                     <i class="fas fa-clock"></i> <span id="tempo-entrega-display">-- min</span>
                 </div>
@@ -49,7 +55,8 @@
 
         <div class="flex items-center justify-center gap-3 mt-1 px-4 pb-2">
             <div class="w-20 h-20 bg-white rounded-full p-1 shadow-xl flex-shrink-0 border-4 border-orange-300 dark:border-gray-700 overflow-hidden relative z-10 transition-transform hover:scale-105">
-                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="logo-loja" class="w-full h-full object-cover rounded-full" alt="Logo Alfa">
+                <img src="" id="logo-loja" onerror="if(typeof CONFIG!='undefined') this.src=CONFIG.logo" class="w-full h-full object-cover rounded-full" alt="Logo Alfa">
+                <script>if(typeof CONFIG!='undefined') document.getElementById('logo-loja').src = CONFIG.logo;</script>
             </div>
             <div class="text-left">
                 <h1 class="text-2xl font-black text-white tracking-tight uppercase leading-none drop-shadow-sm">Alfa <span class="text-orange-200">Salgateria</span></h1>
@@ -72,6 +79,7 @@
             <div class="h-24 bg-gray-200 dark:bg-gray-800 rounded-2xl"></div>
             <div class="h-24 bg-gray-200 dark:bg-gray-800 rounded-2xl"></div>
         </div>
+        
         <div id="busca-vazia" class="hidden flex-col items-center justify-center text-center opacity-0 transition-all duration-500 absolute inset-0 z-0">
             <div class="bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-soft flex flex-col items-center max-w-xs mx-auto animate-pop">
                 <div class="w-20 h-20 bg-orange-50 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4 text-orange-400 dark:text-orange-500 text-3xl animate-bounce"><i class="fas fa-search"></i></div>
@@ -93,6 +101,7 @@
         <div class="bg-white dark:bg-gray-900 w-full h-[85vh] rounded-t-[2rem] p-5 overflow-y-auto animate-up shadow-2xl relative">
             <button onclick="fecharCheckout()" class="absolute top-4 right-4 bg-gray-100 dark:bg-gray-800 w-8 h-8 rounded-full text-gray-500 font-bold hover:bg-gray-200 transition flex items-center justify-center"><i class="fas fa-times"></i></button>
             <h2 class="text-xl font-black text-orange-600 dark:text-orange-500 mb-5 uppercase flex items-center gap-2"><i class="fas fa-shopping-cart"></i> Carrinho</h2>
+            
             <div id="lista-checkout" class="space-y-3 mb-6 border-b border-dashed border-gray-200 dark:border-gray-700 pb-4"></div>
             
             <div class="mb-5">
@@ -130,12 +139,14 @@
                     </div>
                 </div>
             </div>
+
             <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl mb-24 space-y-1 text-xs">
                 <div class="flex justify-between text-gray-500"><span>Subtotal</span> <span id="val-subtotal">R$ 0,00</span></div>
                 <div class="flex justify-between text-gray-500"><span>Entrega</span> <span id="val-entrega">R$ 0,00</span></div>
                 <div class="flex justify-between text-green-500"><span>Desconto</span> <span id="val-desconto">- R$ 0,00</span></div>
                 <div class="border-t border-dashed border-gray-300 dark:border-gray-600 my-2 pt-2 flex justify-between text-lg font-black text-gray-800 dark:text-white"><span>TOTAL</span> <span id="val-total">R$ 0,00</span></div>
             </div>
+            
             <button id="btn-finalizar" onclick="finalizarPedido()" class="w-full bg-green-600 text-white py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-green-200 dark:shadow-none fixed bottom-5 left-5 right-5 max-w-[calc(100%-2.5rem)] mx-auto active:scale-95 transition-transform hover:bg-green-700 flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed">ENVIAR PEDIDO <i class="fab fa-whatsapp"></i></button>
         </div>
     </div>
@@ -144,9 +155,28 @@
         let carrinho={}, produtosDb=[], categoriasDb=[], taxasDb=[], estadoCheckout={tipoEntrega:'entrega',pagamento:null,cupom:null}, dadosCliente=null, isLojaAberta = true;
 
         async function init() {
+            // 1. CARREGA LOGO DO DATA.JS (Imediato)
             const imgEl = document.getElementById('logo-loja');
             if(typeof CONFIG !== 'undefined' && CONFIG.logo) imgEl.src = CONFIG.logo;
 
+            // --- DETECTOR DE CONFIRMAÇÃO DE E-MAIL ---
+            const params = new URLSearchParams(window.location.search);
+            const token_hash = params.get('token_hash');
+            const type = params.get('type');
+            if (token_hash && type) {
+                mostrarToast("Validando e-mail...", "info");
+                const { error } = await _supabase.auth.verifyOtp({ token_hash, type });
+                if (!error) {
+                    mostrarToast("E-mail confirmado!");
+                    window.history.replaceState(null, null, window.location.pathname);
+                    setTimeout(() => window.location.href = 'perfil.html', 1500);
+                    return;
+                } else {
+                    mostrarToast("Link inválido ou expirado.", "erro");
+                }
+            }
+
+            // 2. CONFIGURAÇÕES DA LOJA
             const {data:config} = await _supabase.from('store_config').select('*').limit(1);
             if(config && config.length) {
                 document.getElementById('tempo-entrega-display').innerText = config[0].delivery_estimate || '-- min';
@@ -155,7 +185,6 @@
                     temp.onload = () => { imgEl.src = config[0].logo_url; };
                     temp.src = config[0].logo_url;
                 }
-                
                 isLojaAberta = config[0].is_open;
                 if(!isLojaAberta) {
                     document.getElementById('banner-fechado').classList.remove('hidden');
@@ -166,24 +195,38 @@
                 }
             }
 
+            // Carrega Dados e Taxas
             await Promise.all([carregarDados(), carregarTaxas()]);
             recuperarCarrinho();
             
+            // 3. LOGIN CHECK + AUTO-REPARO DE FANTASMA
             const {data:{session}} = await _supabase.auth.getSession();
             if(session){
+                const areaUser = document.getElementById('area-usuario');
+                areaUser.classList.add('bg-green-600','border-transparent');
+                areaUser.onclick = null; 
+                document.getElementById('btn-perfil').classList.remove('hidden');
+
                 const{data}=await _supabase.from('clients').select('*').eq('id',session.user.id).single();
+                
                 if(data){
                     dadosCliente=data;
                     document.getElementById('nome-cliente').innerText=`Olá, ${data.name.split(' ')[0]}`;
-                    const areaUser = document.getElementById('area-usuario');
-                    areaUser.classList.add('bg-green-600','border-transparent');
-                    areaUser.onclick = null;
-                    document.getElementById('btn-perfil').classList.remove('hidden');
                     if(data.address) document.getElementById('input-endereco').value=data.address;
+                } else {
+                    // Auto-Reparo: Cria o perfil se não existir
+                    const nomeTemp = session.user.email.split('@')[0];
+                    await _supabase.from('clients').insert([{ id: session.user.id, email: session.user.email, name: nomeTemp, created_at: new Date() }]);
+                    document.getElementById('nome-cliente').innerText=`Olá, ${nomeTemp}`;
                 }
             }
+
+            // 4. Checkout Automático (Link Externo)
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('checkout') === 'true') { window.history.replaceState({}, document.title, window.location.pathname); setTimeout(abrirCheckout, 500); }
+            if (urlParams.get('checkout') === 'true') { 
+                window.history.replaceState({}, document.title, window.location.pathname); 
+                setTimeout(abrirCheckout, 500); 
+            }
         }
 
         async function carregarDados() {
@@ -192,6 +235,7 @@
             document.getElementById('skeleton').classList.add('hidden');
             renderizarCardapio();
         }
+
         async function carregarTaxas() {
             const {data} = await _supabase.from('delivery_fees').select('*');
             taxasDb = data||[];
@@ -202,17 +246,60 @@
         function renderizarCardapio() {
             const container = document.getElementById('conteudo-cardapio');
             container.querySelectorAll('.grupo-cat').forEach(e => e.remove());
+            
+            // Imagem Placeholder (SVG SVG data URI - Não depende de internet)
+            const placeholder = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2250%22%20font-family%3D%22sans-serif%22%20font-size%3D%2214%22%20font-weight%3D%22bold%22%20fill%3D%22%239ca3af%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3ESem%20Foto%3C%2Ftext%3E%3C%2Fsvg%3E";
+            
             let htmlFinal = '';
+            
             categoriasDb.forEach(cat => {
                 const itens = produtosDb.filter(p => p.category_id === cat.id);
                 if(itens.length > 0) {
-                    let html = `<div class="grupo-cat mb-6 scroll-mt-28" id="cat-${cat.id}"><div onclick="toggleCat('${cat.id}')" class="sticky-cat flex justify-between items-center cursor-pointer mb-3 p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 shadow-sm border border-orange-100 dark:border-gray-700 transition active:scale-[0.98]"><h2 class="text-orange-600 dark:text-orange-500 font-black uppercase text-xs tracking-wider flex items-center gap-2"><i class="fas fa-utensils bg-orange-100 dark:bg-gray-700 p-1.5 rounded-lg"></i> ${cat.name} <span class="bg-orange-50 dark:bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full text-[10px] font-bold ml-auto">${itens.length}</span></h2><i id="seta-${cat.id}" class="fas fa-chevron-down text-orange-300 text-xs transition-transform duration-300"></i></div><div id="lista-${cat.id}" class="space-y-3 px-1">`;
+                    let html = `<div class="grupo-cat mb-6 scroll-mt-28" id="cat-${cat.id}">
+                        <div onclick="toggleCat('${cat.id}')" class="sticky-cat flex justify-between items-center cursor-pointer mb-3 p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 shadow-sm border border-orange-100 dark:border-gray-700 transition active:scale-[0.98]">
+                            <h2 class="text-orange-600 dark:text-orange-500 font-black uppercase text-xs tracking-wider flex items-center gap-2">
+                                <i class="fas fa-utensils bg-orange-100 dark:bg-gray-700 p-1.5 rounded-lg"></i> ${cat.name} 
+                                <span class="bg-orange-50 dark:bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full text-[10px] font-bold ml-auto">${itens.length}</span>
+                            </h2>
+                            <i id="seta-${cat.id}" class="fas fa-chevron-down text-orange-300 text-xs transition-transform duration-300"></i>
+                        </div>
+                        <div id="lista-${cat.id}" class="space-y-3 px-1">`;
+
                     itens.forEach(p => {
                         const preco = p.on_sale ? p.sale_price : p.price;
                         const idStr = String(p.id);
-                        html += `<div class="prod-item bg-white dark:bg-gray-800 p-3 rounded-[1.5rem] flex gap-3 shadow-soft border border-transparent dark:border-gray-700 transition-all hover:shadow-md" data-nome="${p.name.toLowerCase()}"><div class="w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-2xl flex-shrink-0 overflow-hidden relative group"><img src="${p.image_url}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">${p.on_sale?'<span class="absolute top-0 left-0 bg-red-600 text-white text-[8px] font-bold px-2 py-1 rounded-br-xl shadow-md">OFERTA</span>':''}</div><div class="flex-grow py-1 flex flex-col justify-between"><div><h3 class="font-bold text-gray-800 dark:text-white leading-tight text-sm">${p.name}</h3><p class="text-[10px] text-gray-400 line-clamp-2 mt-1 font-medium leading-relaxed">${p.description||'Delicioso e feito na hora.'}</p></div><div class="flex justify-between items-end mt-2"><div class="flex flex-col">${p.on_sale ? `<span class="text-[10px] text-gray-400 line-through">R$ ${p.price.toFixed(2)}</span>` : ''}<span class="text-orange-600 dark:text-orange-500 font-black text-base">R$ ${preco.toFixed(2).replace('.',',')}</span></div><div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-700 rounded-xl p-1 shadow-inner"><button onclick="addQtd('${idStr}',-1)" class="w-7 h-7 bg-white dark:bg-gray-600 rounded-lg text-gray-400 dark:text-white font-bold shadow-sm text-xs active:scale-90 transition">-</button><span id="qtd-${idStr}" class="contador-num text-xs font-bold">0</span><button onclick="addQtd('${idStr}',1)" class="w-7 h-7 bg-white dark:bg-gray-600 rounded-lg text-green-600 font-bold shadow-sm text-xs active:scale-90 transition">+</button></div></div></div></div>`;
+                        
+                        // Lógica da Imagem Blindada
+                        let imgUrl = p.image_url;
+                        if (!imgUrl || imgUrl.length < 10) { imgUrl = placeholder; }
+
+                        html += `<div class="prod-item bg-white dark:bg-gray-800 p-3 rounded-[1.5rem] flex gap-3 shadow-soft border border-transparent dark:border-gray-700 transition-all hover:shadow-md" data-nome="${p.name.toLowerCase()}">
+                            <div class="w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-2xl flex-shrink-0 overflow-hidden relative group">
+                                <img src="${imgUrl}" onerror="this.onerror=null;this.src='${placeholder}';" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                ${p.on_sale ? '<span class="absolute top-0 left-0 bg-red-600 text-white text-[8px] font-bold px-2 py-1 rounded-br-xl shadow-md">OFERTA</span>' : ''}
+                            </div>
+                            <div class="flex-grow py-1 flex flex-col justify-between">
+                                <div>
+                                    <h3 class="font-bold text-gray-800 dark:text-white leading-tight text-sm">${p.name}</h3>
+                                    <p class="text-[10px] text-gray-400 line-clamp-2 mt-1 font-medium leading-relaxed">${p.description||'Delicioso e feito na hora.'}</p>
+                                </div>
+                                <div class="flex justify-between items-end mt-2">
+                                    <div class="flex flex-col">
+                                        ${p.on_sale ? `<span class="text-[10px] text-gray-400 line-through">R$ ${p.price.toFixed(2)}</span>` : ''}
+                                        <span class="text-orange-600 dark:text-orange-500 font-black text-base">R$ ${preco.toFixed(2).replace('.',',')}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-700 rounded-xl p-1 shadow-inner">
+                                        <button onclick="addQtd('${idStr}',-1)" class="w-7 h-7 bg-white dark:bg-gray-600 rounded-lg text-gray-400 dark:text-white font-bold shadow-sm text-xs active:scale-90 transition">-</button>
+                                        <span id="qtd-${idStr}" class="contador-num text-xs font-bold">0</span>
+                                        <button onclick="addQtd('${idStr}',1)" class="w-7 h-7 bg-white dark:bg-gray-600 rounded-lg text-green-600 font-bold shadow-sm text-xs active:scale-90 transition">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
                     });
-                    html += `</div></div>`; htmlFinal += html;
+
+                    html += `</div></div>`;
+                    htmlFinal += html;
                 }
             });
             document.getElementById('busca-vazia').insertAdjacentHTML('beforebegin', htmlFinal);
@@ -222,19 +309,7 @@
         function filtrarBusca(termo) { termo = termo.toLowerCase(); const prods = document.querySelectorAll('.prod-item'); let encontrouAlgo = false; prods.forEach(el => { const match = el.getAttribute('data-nome').includes(termo); el.style.display = match ? 'flex' : 'none'; if(match) encontrouAlgo = true; }); document.querySelectorAll('.grupo-cat').forEach(g => { g.style.display = g.querySelectorAll('.prod-item[style="display: flex;"]').length > 0 ? 'block' : 'none'; }); const emptyState = document.getElementById('busca-vazia'); const conteudo = document.getElementById('conteudo-cardapio'); if(!encontrouAlgo && termo.length > 0) { emptyState.classList.remove('hidden'); emptyState.classList.add('flex'); conteudo.style.overflow = 'hidden'; setTimeout(() => emptyState.classList.remove('opacity-0'), 50); } else { emptyState.classList.add('opacity-0'); conteudo.style.overflow = 'auto'; setTimeout(() => { emptyState.classList.add('hidden'); emptyState.classList.remove('flex'); }, 300); } }
         function limparBusca() { document.getElementById('input-busca').value = ''; filtrarBusca(''); }
         
-        function addQtd(id, val) { 
-            const idStr = String(id);
-            if(!carrinho[idStr]) carrinho[idStr] = 0;
-            carrinho[idStr] += val;
-            if(carrinho[idStr] <= 0) { carrinho[idStr] = 0; delete carrinho[idStr]; }
-            const el = document.getElementById(`qtd-${idStr}`);
-            if(el) el.innerText = carrinho[idStr] || 0;
-            const btn = document.getElementById('btn-ver-carrinho'); btn.classList.remove('btn-carrinho-anim'); void btn.offsetWidth; btn.classList.add('btn-carrinho-anim');
-            localStorage.setItem('carrinho_alfa',JSON.stringify(carrinho)); 
-            atualizarBarra(); 
-            if(val > 0 && navigator.vibrate) navigator.vibrate(10);
-        }
-
+        function addQtd(id, val) { const idStr=String(id); if(!carrinho[idStr]) carrinho[idStr]=0; carrinho[idStr]+=val; if(carrinho[idStr]<=0){carrinho[idStr]=0; delete carrinho[idStr];} const el=document.getElementById(`qtd-${idStr}`); if(el) el.innerText=carrinho[idStr]||0; const btn=document.getElementById('btn-ver-carrinho'); btn.classList.remove('btn-carrinho-anim'); void btn.offsetWidth; btn.classList.add('btn-carrinho-anim'); localStorage.setItem('carrinho_alfa',JSON.stringify(carrinho)); atualizarBarra(); if(val>0 && navigator.vibrate) navigator.vibrate(10); }
         function atualizarBarra() { let total=0; let qtd=0; for(const[id,q]of Object.entries(carrinho)){ const p=produtosDb.find(x=>String(x.id)===String(id)); if(p){ total+=(p.on_sale?p.sale_price:p.price)*q; qtd+=q; } } document.getElementById('total-barra').innerText=`R$ ${total.toFixed(2)}`; document.getElementById('qtd-total-badge').innerText = qtd; const b=document.getElementById('barra-pedido'); if(total>0){ b.classList.remove('hidden'); setTimeout(()=>b.classList.remove('translate-y-full'),10); } else { b.classList.add('translate-y-full'); setTimeout(()=>b.classList.add('hidden'),300); } }
         function recuperarCarrinho(){ try { const s=localStorage.getItem('carrinho_alfa'); if(s){ carrinho=JSON.parse(s); atualizarBarra(); setTimeout(()=>{for(const[id,qtd]of Object.entries(carrinho)){const el=document.getElementById(`qtd-${id}`);if(el)el.innerText=qtd;}},500); } } catch(e) { carrinho={}; } }
         
@@ -242,18 +317,8 @@
             if(!isLojaAberta) return mostrarToast("Loja Fechada!", "erro");
             const {data:{session}} = await _supabase.auth.getSession();
             if(!session) { mostrarToast("Faça login para pedir!", "erro"); setTimeout(() => window.location.href = 'cliente-login.html', 1500); return; }
-            const lista=document.getElementById('lista-checkout'); lista.innerHTML=''; 
-            for(const[id,qtd]of Object.entries(carrinho)){
-                const p=produtosDb.find(x=>String(x.id)===String(id)); 
-                if(p){
-                    const pr=p.on_sale?p.sale_price:p.price; 
-                    lista.innerHTML+=`<div class="flex justify-between text-xs dark:text-gray-300 mb-2"><span>${qtd}x ${p.name}</span><span>R$ ${(pr*qtd).toFixed(2)}</span></div>`;
-                }
-            } 
-            calcularTotalCheckout(); 
-            document.getElementById('modal-checkout').classList.remove('hidden'); 
+            const lista=document.getElementById('lista-checkout'); lista.innerHTML=''; for(const[id,qtd]of Object.entries(carrinho)){const p=produtosDb.find(x=>String(x.id)===String(id)); if(p){const pr=p.on_sale?p.sale_price:p.price; lista.innerHTML+=`<div class="flex justify-between text-xs dark:text-gray-300 mb-2"><span>${qtd}x ${p.name}</span><span>R$ ${(pr*qtd).toFixed(2)}</span></div>`;}} calcularTotalCheckout(); document.getElementById('modal-checkout').classList.remove('hidden'); 
         }
-
         function fecharCheckout() { document.getElementById('modal-checkout').classList.add('hidden'); }
         function setEntrega(t){estadoCheckout.tipoEntrega=t; const e=document.getElementById('btn-entrega'), r=document.getElementById('btn-retirada'), be=document.getElementById('box-entrega'), pd=document.getElementById('pay-dinheiro'), pc=document.getElementById('pay-cartao'), av=document.getElementById('aviso-retirada'); if(t==='entrega'){e.classList.replace('border-transparent','border-orange-500');e.classList.add('text-orange-600');r.classList.replace('border-orange-500','border-transparent');r.classList.remove('text-orange-600');be.classList.remove('hidden');av.classList.add('hidden');pd.classList.remove('hidden');pc.classList.remove('hidden');}else{r.classList.replace('border-transparent','border-orange-500');r.classList.add('text-orange-600');e.classList.replace('border-orange-500','border-transparent');e.classList.remove('text-orange-600');be.classList.add('hidden');av.classList.remove('hidden');setPagamento('pix');pd.classList.add('hidden');pc.classList.add('hidden');} calcularTotalCheckout();}
         function setPagamento(t){estadoCheckout.pagamento=t; ['pix','dinheiro','cartao'].forEach(x=>{const b=document.getElementById(`pay-${x}`); if(x===t){b.classList.add('border-green-500','bg-green-50','text-green-700');b.classList.remove('border-transparent');}else{b.classList.remove('border-green-500','bg-green-50','text-green-700');b.classList.add('border-transparent');}}); document.getElementById('box-troco').classList.toggle('hidden',t!=='dinheiro'); document.getElementById('box-pix').classList.toggle('hidden',t!=='pix'); calcularTotalCheckout(); verificarCheckPix(); }
