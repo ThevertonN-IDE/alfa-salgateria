@@ -24,6 +24,8 @@
         .contador-num { font-variant-numeric: tabular-nums; display: inline-block; width: 24px; text-align: center; }
         @keyframes pulse-status { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
         .status-pulse { animation: pulse-status 2s infinite; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
     </style>
 </head>
 <body class="bg-orange-50/50 dark:bg-gray-900 text-gray-800 dark:text-white pb-36 select-none transition-colors duration-300 flex flex-col min-h-screen">
@@ -56,7 +58,6 @@
                     ...
                 </div>
             </div>
-
             <div class="text-left">
                 <h1 class="text-2xl font-black text-white tracking-tight uppercase leading-none drop-shadow-sm">Alfa <span class="text-orange-200">Salgateria</span></h1>
                 <p class="text-[10px] text-orange-100 font-medium tracking-wide uppercase opacity-90 bg-black/10 px-2 py-0.5 rounded mt-1 inline-block">Sabor que vem do coração</p>
@@ -98,45 +99,62 @@
         </div>
     </main>
 
-    <div id="barra-pedido" class="fixed bottom-0 inset-x-0 bg-white dark:bg-gray-800 p-3 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl hidden flex justify-between items-center transition-transform duration-300 translate-y-full border-t border-gray-100 dark:border-gray-700 pb-8">
-        <div><p class="text-[10px] text-gray-400 uppercase font-bold">Total</p><p id="total-barra" class="text-xl font-black text-orange-600 dark:text-orange-500">R$ 0,00</p></div>
-        <button onclick="abrirCheckout()" id="btn-ver-carrinho" class="btn-carrinho-anim bg-green-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition text-sm flex items-center gap-2">
+    <div id="barra-pedido" class="fixed bottom-0 inset-x-0 bg-white dark:bg-gray-800 p-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-40 rounded-t-3xl hidden flex justify-between items-center transition-transform duration-300 translate-y-full border-t border-gray-100 dark:border-gray-700 pb-8">
+        <div class="flex items-center gap-3">
+            <button onclick="limparCarrinho()" class="w-10 h-10 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center hover:bg-red-200 transition active:scale-90 shadow-sm" title="Esvaziar Carrinho">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+            <div>
+                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Total</p>
+                <p id="total-barra" class="text-2xl font-black text-orange-600 dark:text-orange-500">R$ 0,00</p>
+            </div>
+        </div>
+        <button onclick="abrirCheckout()" id="btn-ver-carrinho" class="btn-carrinho-anim bg-green-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition text-sm flex items-center gap-2">
             VER CARRINHO <span class="bg-white/20 px-2 rounded-full text-xs" id="qtd-total-badge">0</span>
         </button>
     </div>
 
     <div id="modal-checkout" class="fixed inset-0 bg-black/60 z-[60] hidden flex justify-end flex-col backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-900 w-full h-[85vh] rounded-t-[2rem] p-5 overflow-y-auto animate-up shadow-2xl relative">
-            <button onclick="fecharCheckout()" class="absolute top-4 right-4 bg-gray-100 dark:bg-gray-800 w-8 h-8 rounded-full text-gray-500 font-bold hover:bg-gray-200 transition flex items-center justify-center"><i class="fas fa-times"></i></button>
-            <h2 class="text-xl font-black text-orange-600 dark:text-orange-500 mb-5 uppercase flex items-center gap-2"><i class="fas fa-shopping-cart"></i> Carrinho</h2>
-            <div id="lista-checkout" class="space-y-3 mb-6 border-b border-dashed border-gray-200 dark:border-gray-700 pb-4"></div>
+        <div class="bg-white dark:bg-gray-900 w-full h-[90vh] rounded-t-[2.5rem] p-6 overflow-y-auto animate-up shadow-2xl relative">
+            <button onclick="fecharCheckout()" class="absolute top-5 right-5 bg-gray-100 dark:bg-gray-800 w-10 h-10 rounded-full text-gray-500 font-bold hover:bg-gray-200 transition flex items-center justify-center shadow-sm"><i class="fas fa-times"></i></button>
+            
+            <h2 class="text-2xl font-black text-orange-600 dark:text-orange-500 mb-6 uppercase flex items-center gap-2"><i class="fas fa-shopping-cart"></i> Carrinho</h2>
+            
+            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 mb-6">
+                <div class="flex justify-between items-center mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Itens do Pedido</span>
+                    <span id="qtd-itens-resumo" class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+                </div>
+                <div id="lista-checkout" class="space-y-3 max-h-60 overflow-y-auto custom-scroll pr-1">
+                    </div>
+            </div>
             
             <div class="mb-5">
                 <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Entrega</p>
-                <div class="flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-3">
-                    <button onclick="setEntrega('entrega')" id="btn-entrega" class="flex-1 py-2 rounded-lg font-bold bg-white text-orange-600 border-2 border-orange-500 text-xs shadow-sm transition-all">🛵 Entrega</button>
-                    <button onclick="setEntrega('retirada')" id="btn-retirada" class="flex-1 py-2 rounded-lg font-bold text-gray-400 border-2 border-transparent text-xs transition-all">🥡 Retirada</button>
+                <div class="flex gap-2 bg-gray-100 dark:bg-gray-800 p-1.5 rounded-2xl mb-3">
+                    <button onclick="setEntrega('entrega')" id="btn-entrega" class="flex-1 py-3 rounded-xl font-bold bg-white text-orange-600 border-2 border-orange-500 text-xs shadow-sm transition-all">🛵 Entrega</button>
+                    <button onclick="setEntrega('retirada')" id="btn-retirada" class="flex-1 py-3 rounded-xl font-bold text-gray-400 border-2 border-transparent text-xs transition-all">🥡 Retirada</button>
                 </div>
                 <div id="box-entrega" class="space-y-2">
-                    <select id="select-bairro" onchange="calcularTotalCheckout()" class="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-transparent focus:border-orange-500 outline-none font-bold text-gray-700 dark:text-white text-sm transition"><option value="0">Selecione Bairro...</option></select>
-                    <input type="text" id="input-endereco" placeholder="Endereço Completo (Rua, Nº, Comp.)" class="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold text-gray-700 dark:text-white text-sm transition border-2 border-transparent focus:border-orange-500">
+                    <select id="select-bairro" onchange="calcularTotalCheckout()" class="w-full p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-transparent focus:border-orange-500 outline-none font-bold text-gray-700 dark:text-white text-sm transition appearance-none"><option value="0">Selecione Bairro...</option></select>
+                    <input type="text" id="input-endereco" placeholder="Endereço Completo (Rua, Nº, Comp.)" class="w-full p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold text-gray-700 dark:text-white text-sm transition border-2 border-transparent focus:border-orange-500">
                 </div>
                 <div id="aviso-retirada" class="hidden bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-xl text-yellow-700 dark:text-yellow-400 text-[10px] font-bold text-center border border-yellow-200 dark:border-yellow-800"><i class="fas fa-exclamation-triangle mr-1"></i> Retirada exige pagamento antecipado no Pix.</div>
             </div>
 
             <div class="flex gap-2 mb-5">
-                <input type="text" id="input-cupom" placeholder="CUPOM" class="flex-grow p-3 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold uppercase text-gray-700 dark:text-white text-sm border-2 border-transparent focus:border-green-500">
-                <button onclick="aplicarCupom()" class="bg-gray-200 dark:bg-gray-700 px-4 rounded-xl font-bold text-gray-600 dark:text-white text-xs hover:bg-gray-300 transition">Aplicar</button>
+                <input type="text" id="input-cupom" placeholder="CUPOM" class="flex-grow p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold uppercase text-gray-700 dark:text-white text-sm border-2 border-transparent focus:border-green-500">
+                <button onclick="aplicarCupom()" class="bg-gray-200 dark:bg-gray-700 px-5 rounded-xl font-bold text-gray-600 dark:text-white text-xs hover:bg-gray-300 transition">Aplicar</button>
             </div>
 
             <div class="mb-6">
                 <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Pagamento</p>
                 <div class="grid grid-cols-3 gap-2">
-                    <button onclick="setPagamento('pix')" id="pay-pix" class="py-2 bg-gray-50 text-gray-500 border-2 border-transparent rounded-xl font-bold flex flex-col items-center gap-1 text-[10px] transition-all"><i class="fas fa-qrcode text-sm"></i> PIX</button>
-                    <button onclick="setPagamento('dinheiro')" id="pay-dinheiro" class="py-2 bg-gray-50 text-gray-500 border-2 border-transparent rounded-xl font-bold flex flex-col items-center gap-1 text-[10px] transition-all"><i class="fas fa-money-bill-wave text-sm"></i> Dinheiro</button>
-                    <button onclick="setPagamento('cartao')" id="pay-cartao" class="py-2 bg-gray-50 text-gray-500 border-2 border-transparent rounded-xl font-bold flex flex-col items-center gap-1 text-[10px] transition-all"><i class="fas fa-credit-card text-sm"></i> Cartão</button>
+                    <button onclick="setPagamento('pix')" id="pay-pix" class="py-3 bg-gray-50 text-gray-500 border-2 border-transparent rounded-xl font-bold flex flex-col items-center gap-1 text-[10px] transition-all"><i class="fas fa-qrcode text-sm"></i> PIX</button>
+                    <button onclick="setPagamento('dinheiro')" id="pay-dinheiro" class="py-3 bg-gray-50 text-gray-500 border-2 border-transparent rounded-xl font-bold flex flex-col items-center gap-1 text-[10px] transition-all"><i class="fas fa-money-bill-wave text-sm"></i> Dinheiro</button>
+                    <button onclick="setPagamento('cartao')" id="pay-cartao" class="py-3 bg-gray-50 text-gray-500 border-2 border-transparent rounded-xl font-bold flex flex-col items-center gap-1 text-[10px] transition-all"><i class="fas fa-credit-card text-sm"></i> Cartão</button>
                 </div>
-                <div id="box-troco" class="hidden mt-2 animate-up"><input type="number" id="input-troco" placeholder="Troco para quanto?" class="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold dark:text-white text-sm border-2 border-transparent focus:border-green-500"></div>
+                <div id="box-troco" class="hidden mt-2 animate-up"><input type="number" id="input-troco" placeholder="Troco para quanto?" class="w-full p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold dark:text-white text-sm border-2 border-transparent focus:border-green-500"></div>
                 <div id="box-pix" class="hidden mt-2 bg-white dark:bg-gray-800 p-4 rounded-xl text-center animate-up border-2 border-green-500 shadow-md">
                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Chave Pix (Celular)</p>
                     <h2 class="text-2xl font-black text-gray-800 dark:text-white tracking-widest mb-1 select-all" id="chave-pix-texto">84999999999</h2>
@@ -146,13 +164,14 @@
                 </div>
             </div>
 
-            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl mb-24 space-y-1 text-xs">
-                <div class="flex justify-between text-gray-500"><span>Subtotal</span> <span id="val-subtotal">R$ 0,00</span></div>
-                <div class="flex justify-between text-gray-500"><span>Entrega</span> <span id="val-entrega">R$ 0,00</span></div>
-                <div class="flex justify-between text-green-500"><span>Desconto</span> <span id="val-desconto">- R$ 0,00</span></div>
-                <div class="border-t border-dashed border-gray-300 dark:border-gray-600 my-2 pt-2 flex justify-between text-lg font-black text-gray-800 dark:text-white"><span>TOTAL</span> <span id="val-total">R$ 0,00</span></div>
+            <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-2xl mb-24 space-y-1 text-xs border border-gray-100 dark:border-gray-700">
+                <div class="flex justify-between text-gray-500"><span>Subtotal</span> <span id="val-subtotal" class="font-bold">R$ 0,00</span></div>
+                <div class="flex justify-between text-gray-500"><span>Entrega</span> <span id="val-entrega" class="font-bold">R$ 0,00</span></div>
+                <div class="flex justify-between text-green-500"><span>Desconto</span> <span id="val-desconto" class="font-bold">- R$ 0,00</span></div>
+                <div class="border-t border-dashed border-gray-300 dark:border-gray-600 my-2 pt-2 flex justify-between text-xl font-black text-gray-800 dark:text-white"><span>TOTAL</span> <span id="val-total">R$ 0,00</span></div>
             </div>
-            <button id="btn-finalizar" onclick="finalizarPedido()" class="w-full bg-green-600 text-white py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-green-200 dark:shadow-none fixed bottom-5 left-5 right-5 max-w-[calc(100%-2.5rem)] mx-auto active:scale-95 transition-transform hover:bg-green-700 flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed">ENVIAR PEDIDO <i class="fab fa-whatsapp"></i></button>
+            
+            <button id="btn-finalizar" onclick="finalizarPedido()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-green-200 dark:shadow-none fixed bottom-5 left-5 right-5 max-w-[calc(100%-2.5rem)] mx-auto active:scale-95 transition-transform hover:bg-green-700 flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed">ENVIAR PEDIDO <i class="fab fa-whatsapp"></i></button>
         </div>
     </div>
 
@@ -169,12 +188,10 @@
             imgEl.onerror = () => { imgEl.src = fallbackLogo; };
             if(typeof CONFIG !== 'undefined' && CONFIG.logo) imgEl.src = CONFIG.logo;
 
-            // ... (Auth Code mantido) ...
             const params = new URLSearchParams(window.location.search);
             const token_hash = params.get('token_hash');
             const type = params.get('type');
             if (token_hash && type) {
-                mostrarToast("Validando...", "info");
                 const { error } = await _supabase.auth.verifyOtp({ token_hash, type });
                 if (!error) {
                     mostrarToast("E-mail confirmado!");
@@ -232,7 +249,7 @@
             const {data} = await _supabase.from('delivery_fees').select('*');
             taxasDb = data||[];
             const sel = document.getElementById('select-bairro');
-            taxasDb.forEach(t => sel.innerHTML += `<option value="${t.price}">${t.neighborhood} (+ R$ ${t.price})</option>`);
+            taxasDb.forEach(t => sel.innerHTML += `<option value="${t.price}">${t.neighborhood} (+ R$ ${t.price.toFixed(2)})</option>`);
         }
 
         function renderizarCardapio() {
@@ -257,7 +274,6 @@
                             variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
                         }
                         const hasVariants = Array.isArray(variants) && variants.length > 0;
-                        
                         const idStr = String(p.id);
                         const imgUrl = (!p.image_url || p.image_url.length < 10) ? placeholder : p.image_url;
                         
@@ -272,7 +288,7 @@
                             
                             controlesHtml = `
                                 <div class="w-full mt-2">
-                                    <select id="sel-${idStr}" class="w-full bg-gray-50 dark:bg-gray-700 text-xs p-2 rounded-lg border border-gray-200 dark:border-gray-600 outline-none mb-2 font-bold text-gray-700 dark:text-gray-200 cursor-pointer">
+                                    <select id="sel-${idStr}" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white text-xs p-2 rounded-lg border border-gray-200 dark:border-gray-600 outline-none mb-2 font-bold cursor-pointer">
                                         ${optionsHtml}
                                     </select>
                                     <button onclick="addVariant('${idStr}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg shadow-sm active:scale-95 transition flex justify-center items-center gap-2">
@@ -298,7 +314,7 @@
                         }
 
                         html += `<div class="prod-item bg-white dark:bg-gray-800 p-3 rounded-[1.5rem] flex gap-3 shadow-soft border border-transparent dark:border-gray-700 transition-all hover:shadow-md" data-nome="${p.name.toLowerCase()}">
-                            <div class="w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-2xl flex-shrink-0 overflow-hidden relative group">
+                            <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-2xl overflow-hidden flex-shrink-0 relative group">
                                 <img src="${imgUrl}" onerror="this.onerror=null;this.src='${placeholder}';" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                                 ${isPromo ? '<span class="absolute top-0 left-0 bg-red-600 text-white text-[8px] font-bold px-2 py-1 rounded-br-xl shadow-md">OFERTA</span>' : ''}
                             </div>
@@ -318,12 +334,16 @@
             document.getElementById('busca-vazia').insertAdjacentHTML('beforebegin', htmlFinal);
         }
 
-        // --- FUNÇÕES DE CARRINHO (CORRIGIDAS PARA LER VARIAÇÕES CERTAS) ---
+        function toggleCat(id) { document.getElementById(`lista-${id}`).classList.toggle('hidden'); document.getElementById(`seta-${id}`).classList.toggle('rotate-180-force'); }
+        function filtrarBusca(termo) { termo = termo.toLowerCase(); const prods = document.querySelectorAll('.prod-item'); let encontrouAlgo = false; prods.forEach(el => { const match = el.getAttribute('data-nome').includes(termo); el.style.display = match ? 'flex' : 'none'; if(match) encontrouAlgo = true; }); document.querySelectorAll('.grupo-cat').forEach(g => { g.style.display = g.querySelectorAll('.prod-item[style="display: flex;"]').length > 0 ? 'block' : 'none'; }); const emptyState = document.getElementById('busca-vazia'); const conteudo = document.getElementById('conteudo-cardapio'); if(!encontrouAlgo && termo.length > 0) { emptyState.classList.remove('hidden'); emptyState.classList.add('flex'); conteudo.style.overflow = 'hidden'; setTimeout(() => emptyState.classList.remove('opacity-0'), 50); } else { emptyState.classList.add('opacity-0'); conteudo.style.overflow = 'auto'; setTimeout(() => { emptyState.classList.add('hidden'); emptyState.classList.remove('flex'); }, 300); } }
+        function limparBusca() { document.getElementById('input-busca').value = ''; filtrarBusca(''); }
+
+        // --- CARRINHO ---
 
         function addVariant(prodId) {
             const select = document.getElementById(`sel-${prodId}`);
             const variantIdx = select.value;
-            const key = `${prodId}__${variantIdx}`; 
+            const key = `${prodId}__${variantIdx}`;
             addQtd(key, 1);
             mostrarToast("Adicionado!");
         }
@@ -334,42 +354,52 @@
             carrinho[idStr]+=val; 
             if(carrinho[idStr]<=0) delete carrinho[idStr];
             
-            // Só atualiza contador visual se não for combo (sem __)
+            // Só atualiza contador simples
             if(!idStr.includes('__')) {
                 const el = document.getElementById(`qtd-${idStr}`); 
                 if(el) el.innerText=carrinho[idStr]||0; 
             }
             
-            // Animação botão
-            const btn=document.getElementById('btn-ver-carrinho'); 
-            btn.classList.remove('btn-carrinho-anim'); void btn.offsetWidth; btn.classList.add('btn-carrinho-anim'); 
-            
-            localStorage.setItem('carrinho_alfa',JSON.stringify(carrinho)); 
-            atualizarBarra(); 
+            atualizarBarra();
+            localStorage.setItem('carrinho_alfa',JSON.stringify(carrinho));
             if(val>0 && navigator.vibrate) navigator.vibrate(10); 
+        }
+
+        function removerItemCarrinho(key) {
+            delete carrinho[key];
+            if(!key.includes('__')) {
+                const el = document.getElementById(`qtd-${key}`);
+                if(el) el.innerText = 0;
+            }
+            atualizarBarra();
+            renderizarListaCheckout(); // Atualiza a lista visual
+            calcularTotalCheckout(); // Atualiza valores
+            localStorage.setItem('carrinho_alfa',JSON.stringify(carrinho));
+            mostrarToast("Item removido");
+        }
+
+        function limparCarrinho() {
+            if(Object.keys(carrinho).length === 0) return;
+            carrinho = {};
+            document.querySelectorAll('[id^="qtd-"]').forEach(el => el.innerText = '0');
+            atualizarBarra();
+            localStorage.setItem('carrinho_alfa',JSON.stringify(carrinho));
+            mostrarToast("Carrinho esvaziado!", "sucesso");
         }
 
         function atualizarBarra() { 
             let total=0; let qtd=0; 
             for(const[key, q] of Object.entries(carrinho)){ 
                 const parts = key.split('__');
-                const prodId = parts[0];
-                const variantIdx = parts[1]; // Pode ser string "0", "1"...
-
-                const p = produtosDb.find(x => String(x.id) === String(prodId));
+                const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){ 
-                    // Parse seguro das variantes novamente
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-
-                    let precoUnit = p.on_sale ? p.sale_price : p.price;
-                    
-                    if(variantIdx !== undefined && variants && variants[variantIdx]) {
-                        // É VARIAÇÃO - USA PREÇO DO COMBO
-                        precoUnit = Number(variants[variantIdx].price);
+                    let preco = p.on_sale ? p.sale_price : p.price;
+                    // Preço da Variação
+                    if(parts[1] !== undefined) {
+                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+                        if(variants && variants[parts[1]]) preco = Number(variants[parts[1]].price);
                     }
-                    
-                    total += precoUnit * q;
+                    total += preco * q;
                     qtd += q; 
                 } 
             } 
@@ -402,45 +432,48 @@
             const {data:{session}} = await _supabase.auth.getSession();
             if(!session) { mostrarToast("Faça login!", "erro"); setTimeout(() => window.location.href = 'cliente-login.html', 1500); return; }
             
+            renderizarListaCheckout();
+            calcularTotalCheckout(); 
+            document.getElementById('modal-checkout').classList.remove('hidden'); 
+        }
+
+        function renderizarListaCheckout() {
             const lista = document.getElementById('lista-checkout'); 
             lista.innerHTML=''; 
-            
+            let qtdTotal = 0;
+
             for(const[key,qtd] of Object.entries(carrinho)){
                 const parts = key.split('__');
-                const prodId = parts[0];
-                const variantIdx = parts[1];
-
-                const p = produtosDb.find(x => String(x.id) === String(prodId));
+                const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    // Parse seguro
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-
                     let nomeItem = p.name;
                     let precoUnit = p.on_sale ? p.sale_price : p.price;
 
-                    // Se for variação, ajusta nome e preço
-                    if(variantIdx !== undefined && variants && variants[variantIdx]) {
-                        nomeItem += ` <strong>(${variants[variantIdx].qtd} un)</strong>`;
-                        precoUnit = Number(variants[variantIdx].price);
+                    if(parts[1] !== undefined) {
+                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+                        if(variants && variants[parts[1]]) {
+                            nomeItem += ` <strong class="text-orange-500">(${variants[parts[1]].qtd} un)</strong>`;
+                            precoUnit = Number(variants[parts[1]].price);
+                        }
                     }
 
+                    qtdTotal += qtd;
+                    const subtotal = precoUnit * qtd;
+
                     lista.innerHTML += `
-                        <div class="flex justify-between text-xs dark:text-gray-300 mb-2 border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0">
-                            <div class="flex gap-3 items-center">
-                                <div class="flex flex-col items-center gap-1 bg-gray-50 dark:bg-gray-800 p-1 rounded-lg">
-                                    <button onclick="addQtd('${key}', 1); abrirCheckout();" class="w-5 h-5 bg-green-100 text-green-600 rounded flex items-center justify-center text-[10px] font-bold hover:bg-green-200">+</button>
-                                    <span class="font-bold text-xs">${qtd}</span>
-                                    <button onclick="addQtd('${key}', -1); abrirCheckout();" class="w-5 h-5 bg-gray-100 text-gray-500 rounded flex items-center justify-center text-[10px] font-bold hover:bg-gray-200">-</button>
-                                </div>
-                                <span class="pt-1 text-sm">${nomeItem}</span>
+                        <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
+                            <div>
+                                <p class="text-xs font-bold text-gray-800 dark:text-white leading-tight">${qtd}x ${nomeItem}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-gray-400">Unit: R$ ${precoUnit.toFixed(2)}</p>
                             </div>
-                            <span class="pt-1 font-bold text-sm">R$ ${(precoUnit * qtd).toFixed(2)}</span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-black text-gray-700 dark:text-gray-300">R$ ${subtotal.toFixed(2)}</span>
+                                <button onclick="removerItemCarrinho('${key}')" class="text-red-400 hover:text-red-600 transition"><i class="fas fa-trash-alt"></i></button>
+                            </div>
                         </div>`;
                 }
-            } 
-            calcularTotalCheckout(); 
-            document.getElementById('modal-checkout').classList.remove('hidden'); 
+            }
+            document.getElementById('qtd-itens-resumo').innerText = qtdTotal;
         }
 
         function fecharCheckout() { document.getElementById('modal-checkout').classList.add('hidden'); }
@@ -454,13 +487,10 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    // Parse seguro
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-
                     let preco = p.on_sale ? p.sale_price : p.price;
-                    if(parts[1] !== undefined && variants && variants[parts[1]]) {
-                        preco = Number(variants[parts[1]].price);
+                    if(parts[1] !== undefined) {
+                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+                        if(variants && variants[parts[1]]) preco = Number(variants[parts[1]].price);
                     }
                     sub += preco * qtd;
                 }
@@ -472,6 +502,7 @@
             document.getElementById('val-entrega').innerText=`R$ ${ent.toFixed(2)}`; 
             document.getElementById('val-desconto').innerText=`- R$ ${desc.toFixed(2)}`; 
             document.getElementById('val-total').innerText=`R$ ${tot.toFixed(2)}`; 
+            if(tot>0 && window.gerarPix && estadoCheckout.pagamento === 'pix'){const p=window.gerarPix(tot); document.getElementById('pix-copia-cola').value=p; if(window.iniciarTimerPix) window.iniciarTimerPix('timer-pix', 30);}
         }
 
         function copiarPix(){const t=document.getElementById('pix-copia-cola');t.select();document.execCommand('copy');mostrarToast("Copiado!"); document.getElementById('area-confirmacao-pix').classList.remove('hidden');}
@@ -495,11 +526,9 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-
-                    if(parts[1] !== undefined && variants && variants[parts[1]]) {
-                        msg += `${qtd}x ${p.name} (${variants[parts[1]].qtd} un)\n`;
+                    if(parts[1] !== undefined) {
+                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+                        msg += `${qtd}x ${p.name} *(${variants[parts[1]].qtd} un)*\n`;
                     } else {
                         msg += `${qtd}x ${p.name}\n`;
                     }
