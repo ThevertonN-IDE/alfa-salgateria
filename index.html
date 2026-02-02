@@ -102,7 +102,7 @@
     <div id="barra-pedido" class="fixed bottom-0 inset-x-0 bg-white dark:bg-gray-800 p-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-40 rounded-t-3xl hidden flex justify-between items-center transition-transform duration-300 translate-y-full border-t border-gray-100 dark:border-gray-700 pb-8">
         <div class="flex items-center gap-3">
             <button onclick="limparCarrinho()" class="w-10 h-10 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center hover:bg-red-200 transition active:scale-90 shadow-sm" title="Esvaziar Carrinho">
-                <i class="fas fa-trash-alt"></i>
+                <i class="fas fa-trash-alt text-sm"></i>
             </button>
             <div>
                 <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Total</p>
@@ -115,7 +115,7 @@
     </div>
 
     <div id="modal-checkout" class="fixed inset-0 bg-black/60 z-[60] hidden flex justify-end flex-col backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-900 w-full h-[90vh] rounded-t-[2.5rem] p-6 overflow-y-auto animate-up shadow-2xl relative">
+        <div class="bg-white dark:bg-gray-900 w-full h-[85vh] rounded-t-[2.5rem] p-5 overflow-y-auto animate-up shadow-2xl relative">
             <button onclick="fecharCheckout()" class="absolute top-5 right-5 bg-gray-100 dark:bg-gray-800 w-10 h-10 rounded-full text-gray-500 font-bold hover:bg-gray-200 transition flex items-center justify-center shadow-sm"><i class="fas fa-times"></i></button>
             
             <h2 class="text-2xl font-black text-orange-600 dark:text-orange-500 mb-6 uppercase flex items-center gap-2"><i class="fas fa-shopping-cart"></i> Carrinho</h2>
@@ -179,19 +179,31 @@
         const CHAVE_PIX_OFICIAL = "84987371966"; 
         document.getElementById('chave-pix-texto').innerText = CHAVE_PIX_OFICIAL;
 
+        // SEGURANÇA: Função para escapar HTML (Anti-XSS)
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         let carrinho={}, produtosDb=[], categoriasDb=[], taxasDb=[], estadoCheckout={tipoEntrega:'entrega',pagamento:null,cupom:null}, dadosCliente=null, isLojaAberta = true;
 
         async function init() {
-            // Inicializa Logo com Fallback
             const imgEl = document.getElementById('logo-loja');
             const fallbackLogo = "https://placehold.co/100/ea580c/white?text=Alfa";
             imgEl.onerror = () => { imgEl.src = fallbackLogo; };
             if(typeof CONFIG !== 'undefined' && CONFIG.logo) imgEl.src = CONFIG.logo;
 
+            // Auth code...
             const params = new URLSearchParams(window.location.search);
             const token_hash = params.get('token_hash');
             const type = params.get('type');
             if (token_hash && type) {
+                mostrarToast("Validando...", "info");
                 const { error } = await _supabase.auth.verifyOtp({ token_hash, type });
                 if (!error) {
                     mostrarToast("E-mail confirmado!");
@@ -204,9 +216,7 @@
             const {data:config} = await _supabase.from('store_config').select('*').limit(1);
             if(config && config.length) {
                 document.getElementById('tempo-entrega-display').innerText = config[0].delivery_estimate || '-- min';
-                if(config[0].logo_url && config[0].logo_url.length > 5) {
-                    imgEl.src = config[0].logo_url;
-                }
+                if(config[0].logo_url && config[0].logo_url.length > 5) imgEl.src = config[0].logo_url;
                 
                 isLojaAberta = config[0].is_open;
                 const badge = document.getElementById('status-badge');
@@ -232,7 +242,7 @@
                 document.getElementById('btn-perfil').classList.remove('hidden');
                 const{data}=await _supabase.from('clients').select('*').eq('id',session.user.id).single();
                 if(data){
-                    dadosCliente=data; document.getElementById('nome-cliente').innerText=`Olá, ${data.name.split(' ')[0]}`;
+                    dadosCliente=data; document.getElementById('nome-cliente').innerText=`Olá, ${escapeHtml(data.name.split(' ')[0])}`;
                     if(data.address) document.getElementById('input-endereco').value=data.address;
                 }
             }
@@ -249,7 +259,7 @@
             const {data} = await _supabase.from('delivery_fees').select('*');
             taxasDb = data||[];
             const sel = document.getElementById('select-bairro');
-            taxasDb.forEach(t => sel.innerHTML += `<option value="${t.price}">${t.neighborhood} (+ R$ ${t.price.toFixed(2)})</option>`);
+            taxasDb.forEach(t => sel.innerHTML += `<option value="${t.price}">${escapeHtml(t.neighborhood)} (+ R$ ${t.price.toFixed(2)})</option>`);
         }
 
         function renderizarCardapio() {
@@ -262,13 +272,12 @@
                 const itens = produtosDb.filter(p => String(p.category_id) === String(cat.id) && p.for_delivery !== false);
                 
                 if(itens.length > 0) {
-                    let html = `<div class="grupo-cat mb-6 scroll-mt-28" id="cat-${cat.id}"><div onclick="toggleCat('${cat.id}')" class="sticky-cat flex justify-between items-center cursor-pointer mb-3 p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 shadow-sm border border-orange-100 dark:border-gray-700 transition active:scale-[0.98]"><h2 class="text-orange-600 dark:text-orange-500 font-black uppercase text-xs tracking-wider flex items-center gap-2"><i class="fas fa-utensils bg-orange-100 dark:bg-gray-700 p-1.5 rounded-lg"></i> ${cat.name} <span class="bg-orange-50 dark:bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full text-[10px] font-bold ml-auto">${itens.length}</span></h2><i id="seta-${cat.id}" class="fas fa-chevron-down text-orange-300 text-xs transition-transform duration-300"></i></div><div id="lista-${cat.id}" class="space-y-3 px-1">`;
+                    let html = `<div class="grupo-cat mb-6 scroll-mt-28" id="cat-${cat.id}"><div onclick="toggleCat('${cat.id}')" class="sticky-cat flex justify-between items-center cursor-pointer mb-3 p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 shadow-sm border border-orange-100 dark:border-gray-700 transition active:scale-[0.98]"><h2 class="text-orange-600 dark:text-orange-500 font-black uppercase text-xs tracking-wider flex items-center gap-2"><i class="fas fa-utensils bg-orange-100 dark:bg-gray-700 p-1.5 rounded-lg"></i> ${escapeHtml(cat.name)} <span class="bg-orange-50 dark:bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full text-[10px] font-bold ml-auto">${itens.length}</span></h2><i id="seta-${cat.id}" class="fas fa-chevron-down text-orange-300 text-xs transition-transform duration-300"></i></div><div id="lista-${cat.id}" class="space-y-3 px-1">`;
                     
                     itens.forEach(p => {
                         const isPromo = p.on_sale === true;
                         const precoBase = isPromo ? p.sale_price : p.price;
                         
-                        // PARSE ROBUSTO DAS VARIAÇÕES
                         let variants = [];
                         if (p.variants) {
                             variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
@@ -280,24 +289,22 @@
                         let controlesHtml = '';
                         
                         if (hasVariants) {
-                            // Seletor de Variações
                             let optionsHtml = '';
                             variants.forEach((v, idx) => {
-                                optionsHtml += `<option value="${idx}">${v.qtd} un - R$ ${Number(v.price).toFixed(2)}</option>`;
+                                optionsHtml += `<option value="${idx}">${escapeHtml(v.qtd)} un - R$ ${Number(v.price).toFixed(2)}</option>`;
                             });
                             
                             controlesHtml = `
                                 <div class="w-full mt-2">
-                                    <select id="sel-${idStr}" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white text-xs p-2 rounded-lg border border-gray-200 dark:border-gray-600 outline-none mb-2 font-bold cursor-pointer">
+                                    <select id="sel-${idStr}" class="w-full bg-gray-50 dark:bg-gray-700 text-xs p-2.5 rounded-xl border border-gray-200 dark:border-gray-600 outline-none mb-2 font-bold text-gray-700 dark:text-gray-200 cursor-pointer">
                                         ${optionsHtml}
                                     </select>
-                                    <button onclick="addVariant('${idStr}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg shadow-sm active:scale-95 transition flex justify-center items-center gap-2">
+                                    <button onclick="addVariant('${idStr}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm active:scale-95 transition flex justify-center items-center gap-2">
                                         <i class="fas fa-plus"></i> ADICIONAR
                                     </button>
                                 </div>
                             `;
                         } else {
-                            // Produto Normal
                             controlesHtml = `
                                 <div class="flex justify-between items-end mt-2 w-full">
                                     <div class="flex flex-col">
@@ -313,15 +320,15 @@
                             `;
                         }
 
-                        html += `<div class="prod-item bg-white dark:bg-gray-800 p-3 rounded-[1.5rem] flex gap-3 shadow-soft border border-transparent dark:border-gray-700 transition-all hover:shadow-md" data-nome="${p.name.toLowerCase()}">
-                            <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-2xl overflow-hidden flex-shrink-0 relative group">
+                        html += `<div class="prod-item bg-white dark:bg-gray-800 p-3 rounded-[1.5rem] flex gap-3 shadow-soft border border-transparent dark:border-gray-700 transition-all hover:shadow-md" data-nome="${escapeHtml(p.name.toLowerCase())}">
+                            <div class="w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-2xl flex-shrink-0 overflow-hidden relative group">
                                 <img src="${imgUrl}" onerror="this.onerror=null;this.src='${placeholder}';" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                                 ${isPromo ? '<span class="absolute top-0 left-0 bg-red-600 text-white text-[8px] font-bold px-2 py-1 rounded-br-xl shadow-md">OFERTA</span>' : ''}
                             </div>
                             <div class="flex-grow py-1 flex flex-col justify-between">
                                 <div>
-                                    <h3 class="font-bold text-gray-800 dark:text-white leading-tight text-sm">${p.name}</h3>
-                                    <p class="text-[10px] text-gray-400 line-clamp-2 mt-1 font-medium leading-relaxed">${p.description||'Delicioso e feito na hora.'}</p>
+                                    <h3 class="font-bold text-gray-800 dark:text-white leading-tight text-sm">${escapeHtml(p.name)}</h3>
+                                    <p class="text-[10px] text-gray-400 line-clamp-2 mt-1 font-medium leading-relaxed">${escapeHtml(p.description||'Delicioso e feito na hora.')}</p>
                                 </div>
                                 ${controlesHtml}
                             </div>
@@ -337,15 +344,14 @@
         function toggleCat(id) { document.getElementById(`lista-${id}`).classList.toggle('hidden'); document.getElementById(`seta-${id}`).classList.toggle('rotate-180-force'); }
         function filtrarBusca(termo) { termo = termo.toLowerCase(); const prods = document.querySelectorAll('.prod-item'); let encontrouAlgo = false; prods.forEach(el => { const match = el.getAttribute('data-nome').includes(termo); el.style.display = match ? 'flex' : 'none'; if(match) encontrouAlgo = true; }); document.querySelectorAll('.grupo-cat').forEach(g => { g.style.display = g.querySelectorAll('.prod-item[style="display: flex;"]').length > 0 ? 'block' : 'none'; }); const emptyState = document.getElementById('busca-vazia'); const conteudo = document.getElementById('conteudo-cardapio'); if(!encontrouAlgo && termo.length > 0) { emptyState.classList.remove('hidden'); emptyState.classList.add('flex'); conteudo.style.overflow = 'hidden'; setTimeout(() => emptyState.classList.remove('opacity-0'), 50); } else { emptyState.classList.add('opacity-0'); conteudo.style.overflow = 'auto'; setTimeout(() => { emptyState.classList.add('hidden'); emptyState.classList.remove('flex'); }, 300); } }
         function limparBusca() { document.getElementById('input-busca').value = ''; filtrarBusca(''); }
-
-        // --- CARRINHO ---
-
+        
         function addVariant(prodId) {
             const select = document.getElementById(`sel-${prodId}`);
+            if(!select) return;
             const variantIdx = select.value;
-            const key = `${prodId}__${variantIdx}`;
+            const key = `${prodId}__${variantIdx}`; 
             addQtd(key, 1);
-            mostrarToast("Adicionado!");
+            mostrarToast("Item Adicionado!");
         }
 
         function addQtd(id, val) { 
@@ -354,14 +360,16 @@
             carrinho[idStr]+=val; 
             if(carrinho[idStr]<=0) delete carrinho[idStr];
             
-            // Só atualiza contador simples
             if(!idStr.includes('__')) {
                 const el = document.getElementById(`qtd-${idStr}`); 
                 if(el) el.innerText=carrinho[idStr]||0; 
             }
             
-            atualizarBarra();
-            localStorage.setItem('carrinho_alfa',JSON.stringify(carrinho));
+            const btn=document.getElementById('btn-ver-carrinho'); 
+            btn.classList.remove('btn-carrinho-anim'); void btn.offsetWidth; btn.classList.add('btn-carrinho-anim'); 
+            
+            localStorage.setItem('carrinho_alfa',JSON.stringify(carrinho)); 
+            atualizarBarra(); 
             if(val>0 && navigator.vibrate) navigator.vibrate(10); 
         }
 
@@ -372,8 +380,8 @@
                 if(el) el.innerText = 0;
             }
             atualizarBarra();
-            renderizarListaCheckout(); // Atualiza a lista visual
-            calcularTotalCheckout(); // Atualiza valores
+            renderizarListaCheckout(); 
+            calcularTotalCheckout(); 
             localStorage.setItem('carrinho_alfa',JSON.stringify(carrinho));
             mostrarToast("Item removido");
         }
@@ -391,13 +399,17 @@
             let total=0; let qtd=0; 
             for(const[key, q] of Object.entries(carrinho)){ 
                 const parts = key.split('__');
-                const p = produtosDb.find(x => String(x.id) === String(parts[0]));
+                const prodId = parts[0];
+                const variantIdx = parts[1];
+
+                const p = produtosDb.find(x => String(x.id) === String(prodId));
                 if(p){ 
+                    let variants = p.variants;
+                    if(typeof variants === 'string') variants = JSON.parse(variants);
+
                     let preco = p.on_sale ? p.sale_price : p.price;
-                    // Preço da Variação
-                    if(parts[1] !== undefined) {
-                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
-                        if(variants && variants[parts[1]]) preco = Number(variants[parts[1]].price);
+                    if(variantIdx !== undefined && variants && variants[variantIdx]) {
+                        preco = Number(variants[variantIdx].price);
                     }
                     total += preco * q;
                     qtd += q; 
@@ -446,14 +458,17 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    let nomeItem = p.name;
+                    let variants = p.variants;
+                    if(typeof variants === 'string') variants = JSON.parse(variants);
+
+                    let nomeItem = escapeHtml(p.name);
                     let precoUnit = p.on_sale ? p.sale_price : p.price;
 
                     if(parts[1] !== undefined) {
-                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
-                        if(variants && variants[parts[1]]) {
-                            nomeItem += ` <strong class="text-orange-500">(${variants[parts[1]].qtd} un)</strong>`;
-                            precoUnit = Number(variants[parts[1]].price);
+                        const variantIdx = parts[1];
+                        if(variants && variants[variantIdx]) {
+                            nomeItem += ` <strong class="text-orange-500">(${escapeHtml(variants[variantIdx].qtd)} un)</strong>`;
+                            precoUnit = Number(variants[variantIdx].price);
                         }
                     }
 
@@ -487,10 +502,13 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
+                    // Parse seguro
+                    let variants = p.variants;
+                    if(typeof variants === 'string') variants = JSON.parse(variants);
+
                     let preco = p.on_sale ? p.sale_price : p.price;
-                    if(parts[1] !== undefined) {
-                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
-                        if(variants && variants[parts[1]]) preco = Number(variants[parts[1]].price);
+                    if(parts[1] !== undefined && variants && variants[parts[1]]) {
+                        preco = Number(variants[parts[1]].price);
                     }
                     sub += preco * qtd;
                 }
@@ -502,7 +520,6 @@
             document.getElementById('val-entrega').innerText=`R$ ${ent.toFixed(2)}`; 
             document.getElementById('val-desconto').innerText=`- R$ ${desc.toFixed(2)}`; 
             document.getElementById('val-total').innerText=`R$ ${tot.toFixed(2)}`; 
-            if(tot>0 && window.gerarPix && estadoCheckout.pagamento === 'pix'){const p=window.gerarPix(tot); document.getElementById('pix-copia-cola').value=p; if(window.iniciarTimerPix) window.iniciarTimerPix('timer-pix', 30);}
         }
 
         function copiarPix(){const t=document.getElementById('pix-copia-cola');t.select();document.execCommand('copy');mostrarToast("Copiado!"); document.getElementById('area-confirmacao-pix').classList.remove('hidden');}
@@ -526,8 +543,11 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    if(parts[1] !== undefined) {
-                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+                    // Parse seguro
+                    let variants = p.variants;
+                    if(typeof variants === 'string') variants = JSON.parse(variants);
+
+                    if(parts[1] !== undefined && variants && variants[parts[1]]) {
                         msg += `${qtd}x ${p.name} *(${variants[parts[1]].qtd} un)*\n`;
                     } else {
                         msg += `${qtd}x ${p.name}\n`;

@@ -1,49 +1,113 @@
-// utils.js - Ferramentas, Segurança e Pix
+// --- FUNÇÃO DE SEGURANÇA GLOBAL (Anti-XSS) ---
+// Protege contra injeção de código em qualquer lugar do sistema
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-// 1. Monitor de Rede
-window.checkOnline = () => {
+// --- UTILITÁRIOS DE FORMATAÇÃO ---
+
+function formatPrice(value) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR') + ' às ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// --- SISTEMA DE NOTIFICAÇÃO (TOAST) SEGURO ---
+
+function mostrarToast(mensagem, tipo = 'sucesso') {
+    // Remove toast antigo se existir
+    const existente = document.getElementById('toast-notification');
+    if (existente) existente.remove();
+
+    // Cria o elemento
+    const toast = document.createElement('div');
+    toast.id = 'toast-notification';
+    
+    // Define cores baseadas no tipo
+    let cores = 'bg-gray-800 text-white'; // Padrão
+    let icone = '<i class="fas fa-info-circle"></i>';
+
+    if (tipo === 'sucesso') {
+        cores = 'bg-green-600 text-white';
+        icone = '<i class="fas fa-check-circle"></i>';
+    } else if (tipo === 'erro') {
+        cores = 'bg-red-600 text-white';
+        icone = '<i class="fas fa-exclamation-circle"></i>';
+    } else if (tipo === 'info') {
+        cores = 'bg-blue-600 text-white';
+        icone = '<i class="fas fa-info-circle"></i>';
+    }
+
+    // Estilização (Tailwind)
+    toast.className = `fixed top-5 left-1/2 transform -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 text-sm font-bold transition-all duration-500 translate-y-[-150%] ${cores}`;
+    
+    // INSERÇÃO SEGURA: Usamos innerHTML apenas para o ícone fixo,
+    // mas a mensagem do usuário é inserida como TEXTO puro (innerText).
+    const iconSpan = document.createElement('span');
+    iconSpan.innerHTML = icone;
+    
+    const msgSpan = document.createElement('span');
+    msgSpan.innerText = mensagem; // <--- AQUI ESTÁ A SEGURANÇA (Não executa HTML)
+
+    toast.appendChild(iconSpan);
+    toast.appendChild(msgSpan);
+
+    document.body.appendChild(toast);
+
+    // Animação de Entrada
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-[-150%]');
+    });
+
+    // Som de notificação (sutil)
+    if (navigator.vibrate) navigator.vibrate(50);
+
+    // Remove após 3 segundos
+    setTimeout(() => {
+        toast.classList.add('translate-y-[-150%]', 'opacity-0');
+        setTimeout(() => toast.remove(), 500);
+    }, 3500);
+}
+
+// --- VERIFICAÇÃO DE CONEXÃO ---
+
+function checkOnline() {
     if (!navigator.onLine) {
-        if(window.mostrarToast) window.mostrarToast("Sem conexão com a internet!", "erro");
+        mostrarToast("Sem conexão com a internet!", "erro");
         return false;
     }
     return true;
-};
-
-// 2. Formatadores
-window.formatMoney = (val) => parseFloat(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-// 3. Módulo Pix (Matemática Pura)
-class PixPayload {
-    constructor(k,n,c,v,i='ALFA'){this.k=k;this.n=this.cl(n,25);this.c=this.cl(c,15);this.v=v.toFixed(2);this.i=i;}
-    cl(t,m){return t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").substring(0,m).toUpperCase();}
-    pad(id,v){return id+v.toString().length.toString().padStart(2,'0')+v;}
-    crc(s){let c=0xFFFF;for(let i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(let j=0;j<8;j++)c=(c&0x8000)?(c<<1)^0x1021:c<<1;}return(c&0xFFFF).toString(16).toUpperCase().padStart(4,'0');}
-    gen(){let p=this.pad('00','01')+this.pad('26',this.pad('00','br.gov.bcb.pix')+this.pad('01',this.k))+this.pad('52','0000')+this.pad('53','986')+this.pad('54',this.v)+this.pad('58','BR')+this.pad('59',this.n)+this.pad('60',this.c)+this.pad('62',this.pad('05',this.i));return p+'6304'+this.crc(p+'6304');}
 }
-window.gerarPix = (v) => new PixPayload(CONFIG.pixKey, "ALFA SALGATERIA", "CURRAIS NOVOS", v).gen();
 
-// 4. [NOVO] Timer de Pagamento Pix
+// --- TIMER PIX (Opcional, se usado no carrinho) ---
 let pixInterval;
-window.iniciarTimerPix = (displayId, minutos) => {
-    let timer = minutos * 60;
-    const display = document.getElementById(displayId);
+function iniciarTimerPix(elementId, durationInMinutes) {
+    const display = document.getElementById(elementId);
+    if (!display) return;
     
-    // Limpa timer anterior se existir
-    if (pixInterval) clearInterval(pixInterval);
+    let timer = durationInMinutes * 60;
+    clearInterval(pixInterval);
     
-    pixInterval = setInterval(() => {
-        let m = parseInt(timer / 60, 10);
-        let s = parseInt(timer % 60, 10);
+    pixInterval = setInterval(function () {
+        const minutes = parseInt(timer / 60, 10);
+        const seconds = parseInt(timer % 60, 10);
 
-        m = m < 10 ? "0" + m : m;
-        s = s < 10 ? "0" + s : s;
-
-        if (display) display.textContent = m + ":" + s;
+        display.textContent = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
 
         if (--timer < 0) {
             clearInterval(pixInterval);
-            if(display) display.textContent = "EXPIRADO";
-            if(window.mostrarToast) window.mostrarToast("Tempo para pagamento expirou!", "erro");
+            display.textContent = "EXPIRADO";
+            display.classList.add('text-red-500');
         }
     }, 1000);
-};
+}

@@ -1,248 +1,332 @@
 <!DOCTYPE html>
-<html lang="pt-br" class="transition-colors duration-300">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Meu Perfil - Alfa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Alfa Salgateria</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     
     <script src="data.js"></script>
     <script src="utils.js"></script>
     <script src="ui.js"></script>
+    
+    <style> 
+        body { font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+    </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white pb-10 transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white min-h-screen pb-24 transition-colors duration-300">
 
-    <header class="bg-orange-600 dark:bg-gray-800 p-6 pb-12 rounded-b-[2.5rem] shadow-lg sticky top-0 z-40">
-        <div class="flex justify-between items-center text-white mb-6">
-            <a href="index.html" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition backdrop-blur-md">
+    <header class="bg-orange-600 h-48 rounded-b-[3rem] shadow-lg relative z-10">
+        <div class="px-6 pt-8 flex justify-between items-start text-white">
+            <a href="index.html" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition backdrop-blur-md shadow-sm">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h1 class="text-xl font-black uppercase tracking-wider">Meu Perfil</h1>
-            <button onclick="alternarTema()" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition backdrop-blur-md"><i id="icone-tema" class="fas fa-moon"></i></button>
+            <button onclick="alternarTema()" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition backdrop-blur-md shadow-sm">
+                <i class="fas fa-moon"></i>
+            </button>
         </div>
-        
-        <div class="text-center relative">
-            <div class="relative w-28 h-28 mx-auto group">
-                <input type="file" id="input-avatar" accept="image/*" class="hidden" onchange="uploadAvatar(this)">
-                
-                <label for="input-avatar" class="cursor-pointer block w-full h-full rounded-full overflow-hidden border-4 border-white/30 shadow-xl bg-orange-500 flex items-center justify-center relative">
-                    <img id="img-avatar" src="" class="hidden w-full h-full object-cover">
-                    <span id="txt-inicial" class="text-5xl font-black text-white/90">U</span>
-                    
-                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
-                        <i class="fas fa-camera text-white text-2xl"></i>
-                    </div>
-                    <div id="loading-avatar" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <i class="fas fa-circle-notch fa-spin text-white text-2xl"></i>
-                    </div>
-                </label>
-                
-                <label for="input-avatar" class="absolute bottom-0 right-0 bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 w-8 h-8 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition border border-gray-100">
-                    <i class="fas fa-pen text-xs"></i>
-                </label>
-            </div>
-            
-            <p id="perfil-nome" class="text-white font-black text-lg truncate mt-3">Carregando...</p>
-            <p id="perfil-email" class="text-orange-100 text-xs font-medium opacity-80">...</p>
-        </div>
+        <h1 class="text-center text-white font-black text-3xl uppercase tracking-widest mt-2 drop-shadow-md" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+            Meu Perfil
+        </h1>
     </header>
 
-    <main class="max-w-md mx-auto p-6 -mt-6 space-y-6 relative z-10">
+    <main class="max-w-md mx-auto px-4 relative z-20 -mt-16">
         
-        <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl shadow-soft flex justify-between items-center gap-3">
-            <a href="meus-pedidos.html" class="flex-1 bg-orange-50 dark:bg-gray-700/50 py-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-orange-100 dark:hover:bg-gray-600 transition group border border-transparent hover:border-orange-200">
-                <div class="w-10 h-10 bg-orange-100 dark:bg-gray-600 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-110 transition shadow-sm">
-                    <i class="fas fa-receipt"></i>
-                </div>
-                <span class="text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-wide">Pedidos</span>
-            </a>
-            <button onclick="logout()" class="flex-1 bg-red-50 dark:bg-red-900/10 py-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-red-100 dark:hover:bg-red-900/30 transition group border border-transparent hover:border-red-200">
-                <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-600 dark:text-red-400 group-hover:scale-110 transition shadow-sm">
-                    <i class="fas fa-sign-out-alt"></i>
-                </div>
-                <span class="text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-wide">Sair</span>
-            </button>
-        </div>
-
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-soft space-y-5 border border-gray-100 dark:border-gray-700">
-            <h3 class="font-black text-orange-600 dark:text-orange-500 uppercase text-xs tracking-widest mb-2 border-b border-gray-100 dark:border-gray-700 pb-3 flex items-center gap-2">
-                <i class="fas fa-user-edit"></i> Meus Dados
-            </h3>
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-6 pt-0 mb-6">
             
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Nome Completo</label>
-                <input type="text" id="edit-nome" class="w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-orange-500 transition text-gray-700 dark:text-white">
+            <div class="flex flex-col items-center -mt-12 mb-6">
+                <div class="relative group cursor-pointer" onclick="document.getElementById('input-foto-perfil').click()">
+                    <div class="w-24 h-24 rounded-full border-4 border-white dark:border-gray-800 shadow-md bg-orange-500 flex items-center justify-center overflow-hidden">
+                        <img id="img-avatar" src="" class="w-full h-full object-cover hidden">
+                        <span id="txt-iniciais" class="text-3xl font-bold text-white">?</span>
+                    </div>
+                    <div class="absolute bottom-0 right-0 bg-white text-orange-600 w-8 h-8 rounded-full flex items-center justify-center shadow-md border-2 border-gray-100 hover:bg-gray-50 transition">
+                        <i class="fas fa-pencil-alt text-xs"></i>
+                    </div>
+                    <input type="file" id="input-foto-perfil" class="hidden" accept="image/*" onchange="uploadFotoPerfil()">
+                </div>
+                <h2 id="display-nome" class="mt-3 font-black text-lg text-gray-800 dark:text-white text-center">Carregando...</h2>
+                <p id="display-email" class="text-xs text-gray-400 font-bold">...</p>
             </div>
 
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Celular / WhatsApp</label>
-                <input type="text" id="edit-phone" class="phone_with_ddd w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-orange-500 transition text-gray-700 dark:text-white">
-            </div>
+            <div class="space-y-4">
+                
+                <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">E-mail de Acesso</label>
+                        <span id="badge-verificado" class="hidden text-[9px] font-bold bg-green-100 text-green-600 px-2 py-0.5 rounded-full uppercase">Verificado</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="email" id="perfil-email" disabled class="w-full bg-transparent outline-none font-bold text-sm text-gray-600 dark:text-gray-300 disabled:opacity-70">
+                        <button onclick="habilitarEdicaoEmail()" class="text-[10px] font-bold text-orange-600 hover:underline uppercase whitespace-nowrap">Alterar</button>
+                    </div>
+                    <p id="msg-email-change" class="text-[9px] text-orange-500 mt-1 hidden">⚠️ Será enviado um link de confirmação para o novo e-mail.</p>
+                </div>
 
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Endereço Padrão</label>
-                <textarea id="edit-address" rows="2" class="w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-orange-500 transition resize-none text-gray-700 dark:text-white"></textarea>
-            </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Nome Completo</label>
+                    <input type="text" id="perfil-nome" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition">
+                </div>
 
-            <div class="space-y-1 pt-2 border-t border-dashed border-gray-200 dark:border-gray-700">
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 flex justify-between items-center">
-                    E-mail de Acesso 
-                    <span class="bg-orange-100 text-orange-600 text-[8px] px-2 py-0.5 rounded-full font-bold">Requer Confirmação</span>
-                </label>
-                <input type="email" id="edit-email" class="w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-orange-500 transition text-gray-700 dark:text-white">
-            </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Celular / WhatsApp</label>
+                    <input type="tel" id="perfil-phone" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition">
+                </div>
 
-            <button onclick="salvarAlteracoes()" id="btn-salvar" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition mt-2 flex items-center justify-center gap-2">
-                <i class="fas fa-check"></i> SALVAR ALTERAÇÕES
-            </button>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Endereço Principal</label>
+                    <textarea id="perfil-endereco" rows="2" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition resize-none"></textarea>
+                </div>
+
+                <button onclick="salvarPerfil()" id="btn-salvar" class="w-full bg-green-600 text-white py-3.5 rounded-xl font-black text-sm shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-check"></i> SALVAR ALTERAÇÕES
+                </button>
+            </div>
         </div>
 
-        <div class="text-center pt-2">
-            <button onclick="excluirConta()" class="text-[10px] font-bold text-red-400 hover:text-red-600 hover:underline transition uppercase tracking-wide">
-                <i class="fas fa-trash mr-1"></i> Excluir minha conta permanentemente
-            </button>
+        <div>
+            <h2 class="text-sm font-black text-gray-400 uppercase mb-4 tracking-widest px-2 flex items-center gap-2">
+                <i class="fas fa-history"></i> Histórico Recente
+            </h2>
+            <div id="lista-historico" class="space-y-4">
+                <div class="animate-pulse space-y-3">
+                    <div class="h-24 bg-gray-200 dark:bg-gray-800 rounded-2xl"></div>
+                    <div class="h-24 bg-gray-200 dark:bg-gray-800 rounded-2xl"></div>
+                </div>
+            </div>
         </div>
 
-        <footer class="mt-8 mb-4 text-center border-t border-gray-200 dark:border-gray-700 pt-6">
-            <p class="text-[10px] text-gray-400 dark:text-gray-500 font-medium tracking-wide">Alfa Salgateria v1.0.0</p>
-            <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
-                Desenvolvido por <span class="font-bold text-orange-500">TG Tech</span>
-            </p>
-        </footer>
+        <div class="text-center mt-12 pb-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+            <button onclick="logout()" class="text-xs font-bold text-gray-400 hover:text-orange-600 transition mb-4 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-full">
+                <i class="fas fa-sign-out-alt mr-1"></i> Sair da Conta
+            </button>
+            <br>
+            <button onclick="excluirConta()" class="text-[10px] font-bold text-red-300 hover:text-red-500 transition hover:underline mb-6">
+                Excluir minha conta permanentemente
+            </button>
+            
+            <div class="text-[10px] text-gray-300 font-bold uppercase tracking-widest">
+                <p>Alfa Salgateria v1.0.0</p>
+                <p class="mt-1">Desenvolvido por <span class="text-orange-400">TG Tech</span></p>
+            </div>
+        </div>
 
     </main>
 
     <script>
-        $(document).ready(function(){ $('.phone_with_ddd').mask('(00) 00000-0000'); });
+        // --- SEGURANÇA (Anti-XSS) ---
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
 
-        let originalEmail = "";
+        let userId = null;
+        let userEmailOriginal = null;
+
+        // Recupera tema
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
 
         async function initPerfil() {
+            // 1. Sessão
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'cliente-login.html'; return; }
+            userId = session.user.id;
+            userEmailOriginal = session.user.email;
 
-            const { data: cliente } = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
+            // 2. Dados de Autenticação
+            document.getElementById('perfil-email').value = userEmailOriginal;
+            document.getElementById('display-email').innerText = userEmailOriginal;
             
+            if (session.user.email_confirmed_at) {
+                document.getElementById('badge-verificado').classList.remove('hidden');
+            }
+
+            // 3. Dados do Banco (Cliente)
+            const { data: cliente } = await _supabase.from('clients').select('*').eq('id', userId).single();
             if (cliente) {
-                document.getElementById('perfil-nome').innerText = cliente.name;
-                document.getElementById('perfil-email').innerText = session.user.email;
+                document.getElementById('perfil-nome').value = cliente.name || '';
+                document.getElementById('perfil-phone').value = cliente.phone || '';
+                document.getElementById('perfil-endereco').value = cliente.address || '';
                 
-                // Lógica de Foto de Perfil
-                if (cliente.avatar_url) {
-                    document.getElementById('img-avatar').src = cliente.avatar_url;
-                    document.getElementById('img-avatar').classList.remove('hidden');
-                    document.getElementById('txt-inicial').classList.add('hidden');
-                } else {
-                    document.getElementById('txt-inicial').innerText = cliente.name.charAt(0).toUpperCase();
+                const primeiroNome = (cliente.name || 'Cliente').split(' ')[0];
+                document.getElementById('display-nome').innerText = escapeHtml(primeiroNome);
+                document.getElementById('txt-iniciais').innerText = primeiroNome.charAt(0).toUpperCase();
+
+                if (cliente.avatar_url && cliente.avatar_url.length > 10) {
+                    const img = document.getElementById('img-avatar');
+                    img.src = cliente.avatar_url;
+                    img.classList.remove('hidden');
+                    document.getElementById('txt-iniciais').classList.add('hidden');
                 }
-                
-                document.getElementById('edit-nome').value = cliente.name;
-                document.getElementById('edit-phone').value = cliente.phone;
-                document.getElementById('edit-address').value = cliente.address;
-                document.getElementById('edit-email').value = session.user.email;
-                originalEmail = session.user.email;
             }
+
+            carregarHistorico();
         }
 
-        // --- UPLOAD DE FOTO ---
-        async function uploadAvatar(input) {
+        function habilitarEdicaoEmail() {
+            const input = document.getElementById('perfil-email');
+            input.disabled = false;
+            input.focus();
+            input.classList.remove('bg-transparent', 'text-gray-600');
+            input.classList.add('bg-white', 'text-gray-800', 'border-orange-500');
+            document.getElementById('msg-email-change').classList.remove('hidden');
+            mostrarToast("Edite o e-mail e clique em Salvar", "info");
+        }
+
+        async function uploadFotoPerfil() {
+            const input = document.getElementById('input-foto-perfil');
             if (input.files && input.files[0]) {
+                mostrarToast("Enviando foto...", "info");
                 const file = input.files[0];
-                const loading = document.getElementById('loading-avatar');
-                loading.classList.remove('hidden'); 
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${userId}_avatar_${Date.now()}.${fileExt}`;
 
-                try {
-                    const { data: { session } } = await _supabase.auth.getSession();
-                    const userId = session.user.id;
-                    const fileName = `avatar_${userId}_${Date.now()}`;
-
-                    const { error: uploadError } = await _supabase.storage.from('assets').upload(fileName, file);
-                    if (uploadError) throw uploadError;
-
-                    const { data: { publicUrl } } = _supabase.storage.from('assets').getPublicUrl(fileName);
-
-                    const { error: dbError } = await _supabase.from('clients').update({ avatar_url: publicUrl }).eq('id', userId);
-                    if (dbError) throw dbError;
-
-                    document.getElementById('img-avatar').src = publicUrl;
-                    document.getElementById('img-avatar').classList.remove('hidden');
-                    document.getElementById('txt-inicial').classList.add('hidden');
-                    mostrarToast("Foto atualizada!");
-
-                } catch (error) {
-                    console.error(error);
-                    mostrarToast("Erro ao enviar foto", "erro");
-                } finally {
-                    loading.classList.add('hidden'); 
+                const { error: uploadError } = await _supabase.storage.from('imagens').upload(`perfis/${fileName}`, file);
+                
+                if (uploadError) {
+                    mostrarToast("Erro no upload", "erro");
+                    return;
                 }
+
+                const { data: publicData } = _supabase.storage.from('imagens').getPublicUrl(`perfis/${fileName}`);
+                const avatarUrl = publicData.publicUrl;
+
+                await _supabase.from('clients').update({ avatar_url: avatarUrl }).eq('id', userId);
+                
+                const img = document.getElementById('img-avatar');
+                img.src = avatarUrl;
+                img.classList.remove('hidden');
+                document.getElementById('txt-iniciais').classList.add('hidden');
+                mostrarToast("Foto atualizada!");
             }
         }
 
-        async function salvarAlteracoes() {
-            const btn = document.getElementById('btn-salvar');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> SALVANDO...';
+        async function carregarHistorico() {
+            const [ordersRes, prodsRes] = await Promise.all([
+                _supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
+                _supabase.from('products').select('id, name, variants')
+            ]);
 
-            const nome = document.getElementById('edit-nome').value;
-            const phone = document.getElementById('edit-phone').value;
-            const address = document.getElementById('edit-address').value;
-            const email = document.getElementById('edit-email').value;
+            const pedidos = ordersRes.data || [];
+            const produtos = prodsRes.data || [];
+            const lista = document.getElementById('lista-historico');
+            lista.innerHTML = '';
 
-            if(!nome || !phone) {
-                mostrarToast("Nome e Celular são obrigatórios!", "erro");
-                btn.disabled = false; btn.innerText = "SALVAR ALTERAÇÕES";
+            if (pedidos.length === 0) {
+                lista.innerHTML = '<div class="text-center py-8 text-gray-400"><i class="fas fa-receipt text-3xl mb-2"></i><p class="text-xs">Sem pedidos recentes.</p></div>';
                 return;
             }
 
-            try {
-                const { data: { session } } = await _supabase.auth.getSession();
+            pedidos.forEach(p => {
+                const data = new Date(p.created_at).toLocaleDateString('pt-BR');
+                let itensTexto = [];
+                
+                if(p.items) {
+                    for(const [key, qtd] of Object.entries(p.items)) {
+                        const parts = key.split('__');
+                        const prodId = parts[0];
+                        const variantIdx = parts[1];
+                        
+                        const prod = produtos.find(x => String(x.id) === String(prodId));
+                        if(prod) {
+                            let nome = escapeHtml(prod.name);
+                            if(variantIdx !== undefined) {
+                                try {
+                                    let vars = prod.variants;
+                                    if(typeof vars === 'string') vars = JSON.parse(vars);
+                                    if(vars && vars[variantIdx]) nome += ` (${escapeHtml(vars[variantIdx].qtd)} un)`;
+                                } catch(e){}
+                            }
+                            itensTexto.push(`${qtd}x ${nome}`);
+                        }
+                    }
+                }
 
-                const { error: errData } = await _supabase.from('clients').update({
-                    name: nome, phone: phone, address: address
-                }).eq('id', session.user.id);
+                let statusClass = "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300";
+                const st = (p.status || 'pendente').toLowerCase();
+                if(st === 'entregue') statusClass = "bg-green-100 text-green-700 border-green-200";
+                if(st === 'cancelado') statusClass = "bg-red-100 text-red-700 border-red-200";
 
-                if (errData) throw errData;
+                lista.innerHTML += `
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] font-bold text-gray-400">${data}</span>
+                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border ${statusClass}">${escapeHtml(p.status || 'Pendente')}</span>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-300 font-medium line-clamp-2 mb-2 leading-relaxed">
+                            ${itensTexto.join(', ')}
+                        </p>
+                        <div class="flex justify-between items-center border-t border-dashed border-gray-200 dark:border-gray-700 pt-2">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase">${p.delivery_type === 'entrega' ? '🛵 Entrega' : '🥡 Retirada'}</span>
+                            <span class="text-sm font-black text-gray-800 dark:text-white">R$ ${p.total_amount.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
-                if (email !== originalEmail) {
-                    if(confirm("Ao mudar o e-mail, você será deslogado para confirmar o novo endereço. Continuar?")) {
-                        const { error: errAuth } = await _supabase.auth.updateUser({ email: email });
-                        if (errAuth) throw errAuth;
-                        mostrarToast("Verifique seu novo e-mail!");
+        async function salvarPerfil() {
+            const btn = document.getElementById('btn-salvar');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVANDO...';
+
+            const nome = document.getElementById('perfil-nome').value;
+            const phone = document.getElementById('perfil-phone').value;
+            const address = document.getElementById('perfil-endereco').value;
+            const emailNovo = document.getElementById('perfil-email').value.trim();
+
+            if(!nome) {
+                mostrarToast("Nome é obrigatório", "erro");
+                btn.disabled = false; btn.innerHTML = originalText;
+                return;
+            }
+
+            // 1. Atualiza Dados do Cliente (Tabela Pública)
+            const { error } = await _supabase.from('clients').update({ name: nome, phone: phone, address: address }).eq('id', userId);
+
+            if(error) {
+                mostrarToast("Erro ao salvar dados", "erro");
+            } else {
+                // 2. Atualiza E-mail (Auth) - Se mudou
+                if (emailNovo !== userEmailOriginal) {
+                    const { error: authError } = await _supabase.auth.updateUser({ email: emailNovo });
+                    if (authError) {
+                        mostrarToast("Erro ao mudar e-mail: " + authError.message, "erro");
+                    } else {
+                        mostrarToast("Verifique seu novo e-mail!", "sucesso");
                     }
                 } else {
                     mostrarToast("Perfil atualizado!");
-                    setTimeout(() => location.reload(), 1000);
                 }
-
-            } catch (error) {
-                mostrarToast("Erro ao atualizar", "erro");
-            } finally {
-                btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> SALVAR ALTERAÇÕES';
+                document.getElementById('display-nome').innerText = escapeHtml(nome.split(' ')[0]);
             }
-        }
-
-        async function excluirConta() {
-            const confirmacao = prompt("Para EXCLUIR SUA CONTA permanentemente, digite DELETAR:");
-            if (confirmacao === "DELETAR") {
-                mostrarToast("Excluindo...", "erro");
-                const { error } = await _supabase.rpc('delete_user');
-                if (error) {
-                    console.error(error);
-                    await _supabase.from('clients').delete().eq('id', (await _supabase.auth.getUser()).data.user.id);
-                    await _supabase.auth.signOut();
-                }
-                alert("Conta excluída. Até logo!");
-                window.location.href = 'index.html';
-            }
+            
+            btn.disabled = false;
+            btn.innerHTML = originalText;
         }
 
         async function logout() {
-            await _supabase.auth.signOut();
-            window.location.href = 'cliente-login.html';
+            if(confirm("Sair da conta?")) {
+                await _supabase.auth.signOut();
+                window.location.href = 'index.html';
+            }
+        }
+        
+        async function excluirConta() {
+            if(confirm("ATENÇÃO: Isso apagará seus dados permanentemente. Tem certeza?")) {
+                mostrarToast("Contate o suporte para exclusão definitiva.", "info");
+            }
         }
 
         initPerfil();

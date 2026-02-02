@@ -421,6 +421,17 @@
     </div>
 
     <script>
+        // --- SEGURANÇA: FUNÇÃO PARA ESCAPAR HTML (XSS) ---
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         // Variáveis Globais
         let produtos = [], categorias = [], clientes = [], configLoja = {}, taxas = [], cupons = [];
         let diasBloqueados = [];
@@ -476,7 +487,7 @@
             div.innerHTML = `
                 <div class="flex-grow relative">
                     <span class="absolute left-2 top-2 text-[10px] text-gray-400 font-bold uppercase">Qtd</span>
-                    <input type="text" placeholder="Ex: 25" value="${qtd}" class="var-qtd w-full border border-gray-200 p-1 pl-2 pt-4 rounded text-sm font-bold outline-none focus:border-blue-500 transition">
+                    <input type="text" placeholder="Ex: 25" value="${escapeHtml(qtd)}" class="var-qtd w-full border border-gray-200 p-1 pl-2 pt-4 rounded text-sm font-bold outline-none focus:border-blue-500 transition">
                 </div>
                 <div class="w-1/3 relative">
                     <span class="absolute left-2 top-2 text-[10px] text-gray-400 font-bold uppercase">Preço</span>
@@ -496,9 +507,9 @@
         function renderCategorias() {
             document.getElementById('lista-categorias').innerHTML = categorias.map(c => 
                 `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg text-sm group border border-gray-100 hover:border-pink-200 transition mb-1">
-                    <span class="font-bold text-gray-700">${c.name}</span>
+                    <span class="font-bold text-gray-700">${escapeHtml(c.name)}</span>
                     <div class="flex gap-2 opacity-60 group-hover:opacity-100 transition">
-                        <button onclick="editarCategoria('${c.id}', '${c.name}')" class="text-blue-400 hover:text-blue-600 bg-white p-1.5 rounded shadow-sm"><i class="fas fa-pen"></i></button>
+                        <button onclick="editarCategoria('${c.id}', '${escapeHtml(c.name)}')" class="text-blue-400 hover:text-blue-600 bg-white p-1.5 rounded shadow-sm"><i class="fas fa-pen"></i></button>
                         <button onclick="rmCategoria('${c.id}')" class="text-red-400 hover:text-red-600 bg-white p-1.5 rounded shadow-sm"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>`
@@ -532,7 +543,7 @@
         function renderTaxas() {
             document.getElementById('lista-taxas').innerHTML = taxas.map(t => 
                 `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg text-sm group hover:bg-green-50 transition mb-1 border border-transparent hover:border-green-200">
-                    <span class="font-medium text-gray-600">${t.neighborhood}</span>
+                    <span class="font-medium text-gray-600">${escapeHtml(t.neighborhood)}</span>
                     <span class="font-black text-gray-800 bg-white px-2 py-1 rounded border border-gray-200">R$ ${t.price.toFixed(2)} 
                         <button onclick="rmTaxa(${t.id})" class="ml-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-trash"></i></button>
                     </span>
@@ -556,7 +567,7 @@
                 const fim = c.valid_until ? new Date(c.valid_until).toLocaleDateString() : 'Sempre';
                 return `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg text-sm group border-l-4 border-purple-500 mb-1 hover:shadow-sm transition">
                     <div>
-                        <div class="font-black text-purple-700 text-base tracking-wide">${c.code} <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-[10px] ml-1 font-bold">${c.discount_percent}% OFF</span></div>
+                        <div class="font-black text-purple-700 text-base tracking-wide">${escapeHtml(c.code)} <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-[10px] ml-1 font-bold">${c.discount_percent}% OFF</span></div>
                         <div class="text-[10px] text-gray-400 mt-1 font-bold uppercase"><i class="far fa-clock mr-1"></i> ${inicio} -> ${fim}</div>
                     </div>
                     <button onclick="rmCupom(${c.id})" class="text-red-400 hover:text-red-600 bg-white p-2 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition"><i class="fas fa-trash"></i></button>
@@ -591,7 +602,7 @@
         function renderBloqueios() {
             document.getElementById('lista-bloqueios').innerHTML = diasBloqueados.map(d => 
                 `<span class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm border border-red-100">
-                    ${d.split('-').reverse().join('/')} 
+                    ${escapeHtml(d.split('-').reverse().join('/'))} 
                     <button onclick="rmBloqueio('${d}')" class="hover:text-red-800 bg-white rounded-full w-4 h-4 flex items-center justify-center shadow-sm">x</button>
                 </span>`
             ).join('');
@@ -622,7 +633,7 @@
             lista.innerHTML = '';
             
             // Popula o select de categorias no modal
-            document.getElementById('prod-cat').innerHTML = categorias.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            document.getElementById('prod-cat').innerHTML = categorias.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 
             // Função helper para criar card de produto
             const createProductCard = (p) => {
@@ -641,7 +652,7 @@
                     </div>
                     <div class="flex-grow overflow-hidden">
                         <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-gray-800 text-sm leading-tight truncate pr-2">${p.name}</h3>
+                            <h3 class="font-bold text-gray-800 text-sm leading-tight truncate pr-2">${escapeHtml(p.name)}</h3>
                             <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition duration-200 absolute top-2 right-2 bg-white/90 p-1 rounded-lg shadow-sm backdrop-blur-sm">
                                 <button onclick="editarProduto('${p.id}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded transition"><i class="fas fa-pen"></i></button>
                                 <button onclick="duplicarProduto('${p.id}')" class="text-purple-500 hover:bg-purple-50 p-2 rounded transition"><i class="fas fa-copy"></i></button>
@@ -669,7 +680,7 @@
                     lista.innerHTML += `
                         <div class="col-span-full mt-8 mb-4 flex items-center gap-4">
                             <div class="h-1 bg-gray-200 flex-grow rounded-full"></div>
-                            <h3 class="font-black text-gray-400 uppercase tracking-widest text-sm bg-white px-4 py-1 rounded-full shadow-sm border border-gray-100">${cat.name}</h3>
+                            <h3 class="font-black text-gray-400 uppercase tracking-widest text-sm bg-white px-4 py-1 rounded-full shadow-sm border border-gray-100">${escapeHtml(cat.name)}</h3>
                             <div class="h-1 bg-gray-200 flex-grow rounded-full"></div>
                         </div>`;
                     
@@ -748,8 +759,12 @@
             // Variações (Renderiza as linhas salvas)
             const container = document.getElementById('variants-container');
             container.innerHTML = '';
-            if(p.variants && Array.isArray(p.variants)) {
-                p.variants.forEach(v => addVariantRow(v.qtd, v.price));
+            // FIX: Parsing robusto para variações (string ou json)
+            let variants = p.variants;
+            if(typeof variants === 'string') variants = JSON.parse(variants);
+
+            if(variants && Array.isArray(variants)) {
+                variants.forEach(v => addVariantRow(v.qtd, v.price));
             }
 
             // UI
@@ -814,7 +829,7 @@
                     name: document.getElementById('prod-nome').value, 
                     description: document.getElementById('prod-desc').value, 
                     price: parseFloat(document.getElementById('prod-preco').value) || 0, 
-                    // CORREÇÃO CRUCIAL: NÃO USAR parseInt. Deixa passar texto (UUID) ou número.
+                    // CORREÇÃO CRUCIAL: Salva como texto puro, sem parseInt, para aceitar UUID
                     category_id: document.getElementById('prod-cat').value, 
                     image_url: finalUrl, 
                     is_active: true, 
@@ -890,18 +905,18 @@
                 <div class="py-4 flex justify-between items-center group px-4 rounded-xl transition border-b border-gray-50 ${bg}">
                     <div class="flex items-center gap-4 cursor-pointer" onclick="verHistorico('${c.id}')">
                         <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-black text-sm shadow-inner border border-gray-200">
-                            ${c.name ? c.name.substring(0,2).toUpperCase() : '??'}
+                            ${c.name ? escapeHtml(c.name.substring(0,2).toUpperCase()) : '??'}
                         </div>
                         <div>
-                            <p class="font-bold text-sm ${col}">${c.name || 'Sem Nome'} ${c.is_blocked ? '<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full ml-1">BLOQUEADO</span>' : ''}</p>
-                            <p class="text-xs text-gray-400 font-medium">${c.phone || 'Sem Telefone'} • ${peds.length} pedidos</p>
+                            <p class="font-bold text-sm ${col}">${escapeHtml(c.name || 'Sem Nome')} ${c.is_blocked ? '<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full ml-1">BLOQUEADO</span>' : ''}</p>
+                            <p class="text-xs text-gray-400 font-medium">${escapeHtml(c.phone || 'Sem Telefone')} • ${peds.length} pedidos</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition">
                         <a href="https://wa.me/55${c.phone ? c.phone.replace(/\D/g,'') : ''}" target="_blank" class="w-9 h-9 rounded-lg bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition shadow-sm" title="WhatsApp">
                             <i class="fab fa-whatsapp"></i>
                         </a>
-                        <button onclick="editarCliente('${c.id}', '${c.name}', '${c.phone}')" class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition shadow-sm" title="Editar">
+                        <button onclick="editarCliente('${c.id}', '${escapeHtml(c.name)}', '${escapeHtml(c.phone)}')" class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition shadow-sm" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button onclick="toggleBloqueio('${c.id}', ${c.is_blocked})" class="w-9 h-9 rounded-lg ${c.is_blocked ? 'bg-gray-200 text-gray-500' : 'bg-red-100 text-red-600'} hover:bg-red-600 hover:text-white transition shadow-sm flex items-center justify-center" title="${c.is_blocked ? 'Desbloquear' : 'Bloquear'}">
@@ -955,8 +970,8 @@
                             <span class="text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100">R$ ${x.total_amount.toFixed(2)}</span>
                         </div>
                         <div class="text-xs font-bold text-gray-600 flex gap-2 mb-2">
-                            <span class="bg-white px-2 py-0.5 rounded border">${x.delivery_type.toUpperCase()}</span>
-                            <span class="bg-white px-2 py-0.5 rounded border">${x.payment_method.toUpperCase()}</span>
+                            <span class="bg-white px-2 py-0.5 rounded border">${escapeHtml(x.delivery_type.toUpperCase())}</span>
+                            <span class="bg-white px-2 py-0.5 rounded border">${escapeHtml(x.payment_method.toUpperCase())}</span>
                         </div>
                         <div class="text-xs text-gray-500 bg-white p-2 rounded border border-gray-100">
                             ${Object.entries(x.items).map(([k,v]) => `${v}x (Item ID: ${k})`).join(', ')}

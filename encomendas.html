@@ -40,7 +40,7 @@
 
     <div id="barra-pedido" class="fixed bottom-0 inset-x-0 bg-white dark:bg-gray-800 p-4 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] z-40 rounded-t-3xl hidden flex justify-between items-center transition-all duration-300 translate-y-full border-t border-gray-100 dark:border-gray-700 pb-8">
         <div class="flex items-center gap-3">
-            <button onclick="limparCarrinho()" class="w-10 h-10 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center hover:bg-red-200 transition active:scale-90" title="Limpar Carrinho">
+            <button onclick="limparCarrinho()" class="w-10 h-10 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center hover:bg-red-200 transition active:scale-90 shadow-sm" title="Esvaziar Carrinho">
                 <i class="fas fa-trash-alt text-sm"></i>
             </button>
             <div>
@@ -154,13 +154,18 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO ---
+        // --- SEGURANÇA E CONFIG ---
         const CHAVE_PIX_ENC = "84987371966"; 
         const WHATSAPP_LOJA = "5584987371966"; 
         
         document.getElementById('chave-pix-display').innerText = CHAVE_PIX_ENC;
 
-        // Recupera tema do index.html
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Recupera tema
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
@@ -174,10 +179,10 @@
             // 1. Agenda
             const { data: config } = await _supabase.from('store_config').select('schedule_config').single();
             if(config && config.schedule_config) {
-                document.getElementById('aviso-agenda').innerHTML = `<i class="fas fa-clock mr-1"></i> Horários: <strong>${config.schedule_config.horarios_permitidos || 'Consulte'}</strong>`;
+                document.getElementById('aviso-agenda').innerHTML = `<i class="fas fa-clock mr-1"></i> Horários: <strong>${escapeHtml(config.schedule_config.horarios_permitidos || 'Consulte')}</strong>`;
             }
 
-            // 2. Produtos (Encomenda + Ativos)
+            // 2. Produtos
             const { data: prods } = await _supabase.from('products').select('*').eq('is_active', true).eq('for_encomenda', true);
             produtosDb = prods || [];
             
@@ -187,7 +192,7 @@
             
             const selBairro = document.getElementById('sel-bairro-encomenda');
             taxasDb.forEach(t => {
-                selBairro.innerHTML += `<option value="${t.price}">${t.neighborhood} (+ R$ ${t.price.toFixed(2)})</option>`;
+                selBairro.innerHTML += `<option value="${t.price}">${escapeHtml(t.neighborhood)} (+ R$ ${t.price.toFixed(2)})</option>`;
             });
 
             // 4. Renderização
@@ -199,7 +204,7 @@
             produtosDb.forEach(p => {
                 const img = (!p.image_url || p.image_url.length < 10) ? placeholder : p.image_url;
                 
-                // DETECTA VARIAÇÕES (COMBOS)
+                // DETECTA VARIAÇÕES
                 let variants = [];
                 if (p.variants) {
                     variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
@@ -210,10 +215,9 @@
                 let controlesHtml = '';
 
                 if(hasVariants) {
-                    // SELETOR DE COMBO (CORREÇÃO APLICADA)
                     let optionsHtml = '';
                     variants.forEach((v, idx) => {
-                        optionsHtml += `<option value="${idx}">${v.qtd} un - R$ ${Number(v.price).toFixed(2)}</option>`;
+                        optionsHtml += `<option value="${idx}">${escapeHtml(v.qtd)} un - R$ ${Number(v.price).toFixed(2)}</option>`;
                     });
 
                     controlesHtml = `
@@ -227,7 +231,6 @@
                         </div>
                     `;
                 } else {
-                    // PRODUTO SIMPLES
                     controlesHtml = `
                         <div class="flex justify-between items-center mt-3">
                             <span class="text-orange-600 dark:text-orange-500 font-black text-lg">R$ ${p.price.toFixed(2)}</span>
@@ -247,8 +250,8 @@
                     </div>
                     <div class="flex-grow flex flex-col justify-between">
                         <div>
-                            <h3 class="font-bold text-sm text-gray-800 dark:text-white leading-tight">${p.name}</h3>
-                            <p class="text-[10px] text-gray-400 line-clamp-2 mt-1">${p.description || ''}</p>
+                            <h3 class="font-bold text-sm text-gray-800 dark:text-white leading-tight">${escapeHtml(p.name)}</h3>
+                            <p class="text-[10px] text-gray-400 line-clamp-2 mt-1">${escapeHtml(p.description || '')}</p>
                         </div>
                         ${controlesHtml}
                     </div>
@@ -257,7 +260,7 @@
             });
         }
 
-        // --- LÓGICA DE CARRINHO CORRIGIDA ---
+        // --- CARRINHO ---
 
         function addVariant(prodId) {
             const select = document.getElementById(`sel-${prodId}`);
@@ -274,7 +277,6 @@
             carrinho[idStr] += val;
             if(carrinho[idStr]<=0) delete carrinho[idStr];
             
-            // Atualiza contador visual apenas se for simples (sem __)
             if(!idStr.includes('__')) {
                 const el = document.getElementById(`qtd-${idStr}`);
                 if(el) el.innerText = carrinho[idStr] || 0;
@@ -284,24 +286,19 @@
         }
 
         function removerItemCarrinho(key) {
-            if(confirm("Remover este item?")) {
-                delete carrinho[key];
-                
-                // Se for simples, zera o contador na lista
-                if(!key.includes('__')) {
-                    const el = document.getElementById(`qtd-${key}`);
-                    if(el) el.innerText = 0;
-                }
-                
-                atualizarBarra();
-                renderizarResumoCarrinho(); // Atualiza a lista dentro do modal
-                verificarSinal(); // Recalcula valores do checkout
+            delete carrinho[key];
+            if(!key.includes('__')) {
+                const el = document.getElementById(`qtd-${key}`);
+                if(el) el.innerText = 0;
             }
+            atualizarBarra();
+            renderizarResumoCarrinho(); 
+            verificarSinal(); 
+            mostrarToast("Item removido");
         }
 
         function limparCarrinho() {
             if(Object.keys(carrinho).length === 0) return;
-            
             carrinho = {};
             document.querySelectorAll('[id^="qtd-"]').forEach(el => el.innerText = '0');
             atualizarBarra();
@@ -320,9 +317,9 @@
                     let variants = p.variants;
                     if(typeof variants === 'string') variants = JSON.parse(variants);
 
-                    let preco = p.price; // Base
+                    let preco = p.price; 
                     if(variantIdx !== undefined && variants && variants[variantIdx]) {
-                        preco = Number(variants[variantIdx].price); // Preço do Combo
+                        preco = Number(variants[variantIdx].price);
                     }
                     total += preco * qtd;
                 }
@@ -332,12 +329,12 @@
             total > 0 ? bar.classList.remove('translate-y-full', 'hidden') : bar.classList.add('translate-y-full');
         }
 
-        // --- CHECKOUT COM DESCRIÇÃO DETALHADA ---
+        // --- CHECKOUT ---
 
         function abrirCheckoutEncomenda() {
             mudarTipoEntrega('retirada'); 
             document.getElementById('modal-encomenda').classList.remove('hidden');
-            renderizarResumoCarrinho(); // Gera a lista detalhada
+            renderizarResumoCarrinho();
             verificarSinal();
         }
 
@@ -353,15 +350,14 @@
                 const p = produtosDb.find(x => String(x.id) === String(prodId));
 
                 if(p) {
-                    let nomeItem = p.name;
+                    let nomeItem = escapeHtml(p.name);
                     let precoUnit = p.price;
                     
-                    // Verifica Variação
                     let variants = p.variants;
                     if(typeof variants === 'string') variants = JSON.parse(variants);
 
                     if(variantIdx !== undefined && variants && variants[variantIdx]) {
-                        nomeItem += ` <strong class="text-orange-500">(${variants[variantIdx].qtd} un)</strong>`;
+                        nomeItem += ` <strong class="text-orange-500">(${escapeHtml(variants[variantIdx].qtd)} un)</strong>`;
                         precoUnit = Number(variants[variantIdx].price);
                     }
 
@@ -402,8 +398,6 @@
             }
             verificarSinal();
         }
-
-        function copiarPixEnc(){ navigator.clipboard.writeText(CHAVE_PIX_ENC); mostrarToast("Chave copiada!"); }
 
         function previewFile() {
             const input = document.getElementById('foto-comprovante');
@@ -501,7 +495,6 @@
                 
                 const { error: uploadError } = await _supabase.storage.from('imagens').upload(`comprovantes/${fileName}`, file);
                 
-                // Fallback se der erro no upload (não trava o pedido)
                 let proofUrl = "Erro no upload";
                 if (!uploadError) {
                     const { data: publicData } = _supabase.storage.from('imagens').getPublicUrl(`comprovantes/${fileName}`);
@@ -514,7 +507,7 @@
                 const valorPago = document.getElementById('valor-pago-input').value;
                 const totalGeral = document.getElementById('resumo-total').innerText;
                 
-                // Monta Mensagem WhatsApp DETALHADA
+                // Mensagem WhatsApp
                 let msg = `*NOVA ENCOMENDA AGENDADA* 📅\n`;
                 msg += `-----------------\n`;
                 
@@ -558,6 +551,17 @@
                     msg += `\n(Envio o comprovante na sequência...)`;
                 }
 
+                // Salva no Banco (com escape)
+                await _supabase.from('orders').insert([{
+                    items: carrinho,
+                    total_amount: valTotalNum,
+                    payment_method: 'pix_sinal',
+                    delivery_type: tipoEntregaAtual,
+                    proof_url: proofUrl,
+                    address: tipoEntregaAtual === 'entrega' ? escapeHtml(document.getElementById('input-rua-encomenda').value) : 'Retirada',
+                    customer_name: 'Encomenda Web'
+                }]);
+
                 window.open(`https://wa.me/${WHATSAPP_LOJA}?text=${encodeURIComponent(msg)}`, '_blank');
                 
                 btnTexto.innerText = "PEDIDO ENVIADO!";
@@ -572,6 +576,8 @@
                 btnIcon.className = "";
             }
         }
+        
+        function copiarPixEnc(){ navigator.clipboard.writeText(CHAVE_PIX_ENC); mostrarToast("Chave copiada!"); }
 
         initEncomenda();
     </script>
