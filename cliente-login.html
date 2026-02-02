@@ -13,93 +13,113 @@
     <script src="utils.js"></script>
     <script src="ui.js"></script>
     
-    <style> body { font-family: 'Segoe UI', sans-serif; background-color: #111827; color: white; } </style>
-</head>
-<body class="flex items-center justify-center min-h-screen p-4">
+    <script>
+        function aplicarTema() {
+            // Se tiver 'dark' salvo OU (não tiver nada salvo E o sistema for dark)
+            if (localStorage.getItem('tema') === 'dark' || (!('tema' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('icone-tema-login')?.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('icone-tema-login')?.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+        // Aplica imediatamente antes de carregar o resto
+        aplicarTema();
+    </script>
 
-    <div class="w-full max-w-md bg-gray-900 rounded-3xl shadow-2xl overflow-hidden border border-gray-800 relative">
+    <style> body { font-family: 'Segoe UI', sans-serif; } </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 bg-orange-50 dark:bg-gray-900 text-gray-800 dark:text-white transition-colors duration-300">
+
+    <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800 relative transition-colors duration-300">
         
-        <a href="index.html" class="absolute top-4 left-4 w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition z-10">
+        <a href="index.html" class="absolute top-4 left-4 w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-white hover:bg-orange-50 dark:hover:bg-gray-700 transition z-10 shadow-sm">
             <i class="fas fa-arrow-left"></i>
         </a>
 
-        <div class="flex text-center border-b border-gray-800 mt-12">
-            <button onclick="mudarAba('login')" id="tab-login" class="flex-1 py-4 font-bold text-orange-500 border-b-2 border-orange-500 transition-colors">ENTRAR</button>
-            <button onclick="mudarAba('cadastro')" id="tab-cadastro" class="flex-1 py-4 font-bold text-gray-500 hover:text-gray-300 transition-colors">CRIAR CONTA</button>
+        <button onclick="toggleTemaLogin()" class="absolute top-4 right-4 w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-orange-500 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition z-10 shadow-sm">
+            <i id="icone-tema-login" class="fas fa-moon"></i>
+        </button>
+
+        <div class="flex text-center border-b border-gray-100 dark:border-gray-800 mt-12">
+            <button onclick="mudarAba('login')" id="tab-login" class="flex-1 py-4 font-bold text-orange-600 border-b-2 border-orange-600 transition-colors bg-orange-50/50 dark:bg-transparent">ENTRAR</button>
+            <button onclick="mudarAba('cadastro')" id="tab-cadastro" class="flex-1 py-4 font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">CRIAR CONTA</button>
         </div>
 
         <div class="p-8">
             
             <form id="form-login" onsubmit="event.preventDefault(); fazerLogin();" class="space-y-6 animate-fade">
                 <div class="text-center mb-8">
-                    <h2 class="text-2xl font-black text-white">Bem-vindo de volta!</h2>
-                    <p class="text-sm text-gray-400">Acesse para acompanhar seus pedidos.</p>
+                    <h2 class="text-2xl font-black text-gray-800 dark:text-white">Bem-vindo de volta!</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Acesse para acompanhar seus pedidos.</p>
                 </div>
 
                 <div class="space-y-4">
-                    <div class="bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-transparent focus-within:border-orange-500 transition">
-                        <i class="fas fa-envelope text-gray-500 mr-3"></i>
-                        <input type="email" id="login-email" placeholder="Seu E-mail" required class="bg-transparent w-full outline-none text-white placeholder-gray-500 text-sm">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-gray-200 dark:border-transparent focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100 dark:focus-within:ring-transparent transition">
+                        <i class="fas fa-envelope text-gray-400 mr-3"></i>
+                        <input type="email" id="login-email" placeholder="Seu E-mail" required class="bg-transparent w-full outline-none text-gray-800 dark:text-white placeholder-gray-400 text-sm">
                     </div>
-                    <div class="bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-transparent focus-within:border-orange-500 transition">
-                        <i class="fas fa-lock text-gray-500 mr-3"></i>
-                        <input type="password" id="login-senha" placeholder="Sua Senha" required class="bg-transparent w-full outline-none text-white placeholder-gray-500 text-sm">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-gray-200 dark:border-transparent focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100 dark:focus-within:ring-transparent transition">
+                        <i class="fas fa-lock text-gray-400 mr-3"></i>
+                        <input type="password" id="login-senha" placeholder="Sua Senha" required class="bg-transparent w-full outline-none text-gray-800 dark:text-white placeholder-gray-400 text-sm">
                     </div>
                 </div>
 
-                <button type="submit" id="btn-entrar" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-900/20 transition transform active:scale-95 flex items-center justify-center gap-2">
+                <button type="submit" id="btn-entrar" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-200 dark:shadow-none transition transform active:scale-95 flex items-center justify-center gap-2">
                     ENTRAR NA CONTA
                 </button>
-                <p class="text-center text-xs text-gray-500 mt-4 cursor-pointer hover:text-orange-400" onclick="alert('Entre em contato com a loja para redefinir.')">Esqueci minha senha</p>
+                
+                <p class="text-center text-xs text-gray-500 mt-4 cursor-pointer hover:text-orange-500 transition" onclick="alert('Entre em contato com a loja para redefinir.')">Esqueci minha senha</p>
             </form>
 
             <form id="form-cadastro" onsubmit="event.preventDefault(); criarConta();" class="hidden space-y-4 animate-fade">
                 <div class="text-center mb-4">
-                    <h2 class="text-xl font-black text-white">Criar nova conta</h2>
+                    <h2 class="text-xl font-black text-gray-800 dark:text-white">Criar nova conta</h2>
                 </div>
 
                 <div class="space-y-3">
-                    <div class="bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-transparent focus-within:border-green-500 transition">
-                        <i class="fas fa-user text-gray-500 mr-3"></i>
-                        <input type="text" id="reg-nome" placeholder="Nome Completo" required class="bg-transparent w-full outline-none text-white placeholder-gray-500 text-sm">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-gray-200 dark:border-transparent focus-within:border-green-500 transition">
+                        <i class="fas fa-user text-gray-400 mr-3"></i>
+                        <input type="text" id="reg-nome" placeholder="Nome Completo" required class="bg-transparent w-full outline-none text-gray-800 dark:text-white placeholder-gray-400 text-sm">
                     </div>
-                    <div class="bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-transparent focus-within:border-green-500 transition">
-                        <i class="fas fa-envelope text-gray-500 mr-3"></i>
-                        <input type="email" id="reg-email" placeholder="E-mail" required class="bg-transparent w-full outline-none text-white placeholder-gray-500 text-sm">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-gray-200 dark:border-transparent focus-within:border-green-500 transition">
+                        <i class="fas fa-envelope text-gray-400 mr-3"></i>
+                        <input type="email" id="reg-email" placeholder="E-mail" required class="bg-transparent w-full outline-none text-gray-800 dark:text-white placeholder-gray-400 text-sm">
                     </div>
-                    <div class="bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-transparent focus-within:border-green-500 transition">
-                        <i class="fas fa-phone text-gray-500 mr-3"></i>
-                        <input type="tel" id="reg-phone" placeholder="Celular (Zap)" required class="bg-transparent w-full outline-none text-white placeholder-gray-500 text-sm">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-gray-200 dark:border-transparent focus-within:border-green-500 transition">
+                        <i class="fas fa-phone text-gray-400 mr-3"></i>
+                        <input type="tel" id="reg-phone" placeholder="Celular (Zap)" required class="bg-transparent w-full outline-none text-gray-800 dark:text-white placeholder-gray-400 text-sm">
                     </div>
                     
                     <div>
-                        <div class="bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-transparent focus-within:border-green-500 transition mb-1">
-                            <i class="fas fa-lock text-gray-500 mr-3"></i>
-                            <input type="password" id="reg-senha" placeholder="Criar Senha" required class="bg-transparent w-full outline-none text-white placeholder-gray-500 text-sm">
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-gray-200 dark:border-transparent focus-within:border-green-500 transition mb-1">
+                            <i class="fas fa-lock text-gray-400 mr-3"></i>
+                            <input type="password" id="reg-senha" placeholder="Criar Senha" required class="bg-transparent w-full outline-none text-gray-800 dark:text-white placeholder-gray-400 text-sm">
                         </div>
-                        <p class="text-[10px] text-gray-500 pl-2 flex gap-2">
-                            <span id="req-char">• Mín. 6 caracteres</span>
-                            <span id="req-num">• 1 número</span>
+                        <p class="text-[10px] text-gray-400 pl-2 flex gap-2">
+                            <span>• Mín. 6 caracteres</span>
+                            <span>• 1 número</span>
                         </p>
                     </div>
 
-                    <div class="bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-transparent focus-within:border-green-500 transition">
-                        <i class="fas fa-check-circle text-gray-500 mr-3"></i>
-                        <input type="password" id="reg-senha-conf" placeholder="Repetir Senha" required class="bg-transparent w-full outline-none text-white placeholder-gray-500 text-sm">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-gray-200 dark:border-transparent focus-within:border-green-500 transition">
+                        <i class="fas fa-check-circle text-gray-400 mr-3"></i>
+                        <input type="password" id="reg-senha-conf" placeholder="Repetir Senha" required class="bg-transparent w-full outline-none text-gray-800 dark:text-white placeholder-gray-400 text-sm">
                     </div>
                 </div>
 
-                <div class="pt-2 border-t border-gray-800">
-                    <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Endereço de Entrega</p>
+                <div class="pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <p class="text-[10px] uppercase font-bold text-gray-400 mb-2">Endereço de Entrega</p>
                     <div class="grid grid-cols-3 gap-2 mb-2">
-                        <input type="text" id="reg-rua" placeholder="Nome da Rua" required class="col-span-3 bg-gray-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-green-500 border border-transparent">
-                        <input type="text" id="reg-num" placeholder="Nº" required class="bg-gray-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-green-500 border border-transparent">
-                        <input type="text" id="reg-bairro" placeholder="Bairro" required class="col-span-2 bg-gray-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-green-500 border border-transparent">
+                        <input type="text" id="reg-rua" placeholder="Nome da Rua" required class="col-span-3 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-white outline-none focus:border-green-500 border border-gray-200 dark:border-transparent">
+                        <input type="text" id="reg-num" placeholder="Nº" required class="bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-white outline-none focus:border-green-500 border border-gray-200 dark:border-transparent">
+                        <input type="text" id="reg-bairro" placeholder="Bairro" required class="col-span-2 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-white outline-none focus:border-green-500 border border-gray-200 dark:border-transparent">
                     </div>
-                    <input type="text" id="reg-comp" placeholder="Complemento (Opcional)" class="w-full bg-gray-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-green-500 border border-transparent">
+                    <input type="text" id="reg-comp" placeholder="Complemento (Opcional)" class="w-full bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-white outline-none focus:border-green-500 border border-gray-200 dark:border-transparent">
                 </div>
 
-                <button type="submit" id="btn-cadastrar" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-900/20 transition transform active:scale-95 flex items-center justify-center gap-2 mt-4">
+                <button type="submit" id="btn-cadastrar" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-200 dark:shadow-none transition transform active:scale-95 flex items-center justify-center gap-2 mt-4">
                     CRIAR CONTA
                 </button>
             </form>
@@ -108,6 +128,24 @@
     </div>
 
     <script>
+        // Função para alternar tema manualmente
+        function toggleTemaLogin() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('tema', 'light');
+                aplicarTema();
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('tema', 'dark');
+                aplicarTema();
+            }
+        }
+
+        // Força a verificação do tema novamente após o carregamento completo da página
+        window.onload = function() {
+            aplicarTema();
+        };
+
         function mudarAba(aba) {
             const loginForm = document.getElementById('form-login');
             const cadForm = document.getElementById('form-cadastro');
@@ -117,17 +155,23 @@
             if(aba === 'login') {
                 loginForm.classList.remove('hidden');
                 cadForm.classList.add('hidden');
-                tabLogin.classList.add('text-orange-500', 'border-b-2', 'border-orange-500');
-                tabLogin.classList.remove('text-gray-500');
-                tabCad.classList.remove('text-green-500', 'border-b-2', 'border-green-500');
-                tabCad.classList.add('text-gray-500');
+                
+                tabLogin.classList.add('text-orange-600', 'border-b-2', 'border-orange-600', 'bg-orange-50/50');
+                tabLogin.classList.remove('text-gray-400');
+                if(document.documentElement.classList.contains('dark')) tabLogin.classList.remove('bg-orange-50/50');
+
+                tabCad.classList.remove('text-green-600', 'border-b-2', 'border-green-600');
+                tabCad.classList.add('text-gray-400');
             } else {
                 loginForm.classList.add('hidden');
                 cadForm.classList.remove('hidden');
-                tabCad.classList.add('text-green-500', 'border-b-2', 'border-green-500');
-                tabCad.classList.remove('text-gray-500');
-                tabLogin.classList.remove('text-orange-500', 'border-b-2', 'border-orange-500');
-                tabLogin.classList.add('text-gray-500');
+                
+                tabCad.classList.add('text-green-600', 'border-b-2', 'border-green-600');
+                tabCad.classList.remove('text-gray-400');
+                
+                tabLogin.classList.remove('text-orange-600', 'border-b-2', 'border-orange-600', 'bg-orange-50/50');
+                tabLogin.classList.add('text-gray-400');
+                if(document.documentElement.classList.contains('dark')) tabLogin.classList.remove('bg-orange-50/50');
             }
         }
 
@@ -165,12 +209,10 @@
             const bairro = document.getElementById('reg-bairro').value;
             const comp = document.getElementById('reg-comp').value;
 
-            // 1. Validações Básicas
             if (!nome || !email || !password || !phone || !rua || !bairro) {
                 return mostrarToast("Preencha todos os campos obrigatórios!", "erro");
             }
             
-            // 2. Validação de Senha (6 chars + 1 número)
             const temNumero = /\d/.test(password);
             if (password.length < 6 || !temNumero) {
                 return mostrarToast("Senha fraca: use 6 dígitos e 1 número.", "erro");

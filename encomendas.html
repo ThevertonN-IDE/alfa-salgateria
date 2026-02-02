@@ -53,8 +53,25 @@
 
             <div class="space-y-5 mb-24">
                 
+                <div class="bg-gray-800 p-1 rounded-xl border border-gray-700 flex gap-1">
+                    <button onclick="mudarTipoEntrega('retirada')" id="btn-tipo-retirada" class="flex-1 py-3 rounded-lg text-xs font-bold transition-all bg-gray-700 text-white border border-gray-600">
+                        🥡 VOU RETIRAR
+                    </button>
+                    <button onclick="mudarTipoEntrega('entrega')" id="btn-tipo-entrega" class="flex-1 py-3 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white">
+                        🛵 PARA ENTREGA
+                    </button>
+                </div>
+
+                <div id="box-endereco-entrega" class="hidden bg-gray-800 p-4 rounded-xl border border-gray-700 space-y-3 animate-fade">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase"><i class="fas fa-map-marker-alt text-orange-500 mr-1"></i> Endereço de Entrega</p>
+                    <select id="sel-bairro-encomenda" onchange="verificarSinal()" class="w-full bg-gray-900 text-white p-3 rounded-lg border border-gray-700 text-sm outline-none focus:border-orange-500">
+                        <option value="0">Selecione o Bairro...</option>
+                        </select>
+                    <input type="text" id="input-rua-encomenda" onkeyup="verificarSinal()" placeholder="Rua, Número e Ponto de Ref." class="w-full bg-gray-900 text-white p-3 rounded-lg border border-gray-700 text-sm outline-none focus:border-orange-500">
+                </div>
+
                 <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-3">Data e Hora da Entrega</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-3">Data e Hora da Festa</p>
                     <div class="flex gap-2">
                         <input type="date" id="data-festa" onchange="verificarSinal()" class="bg-gray-900 text-white p-3 rounded-lg w-full text-sm font-bold border border-gray-700 outline-none focus:border-orange-500">
                         <input type="time" id="hora-festa" onchange="verificarSinal()" class="bg-gray-900 text-white p-3 rounded-lg w-full text-sm font-bold border border-gray-700 outline-none focus:border-orange-500">
@@ -63,9 +80,21 @@
 
                 <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Sinal (50%)</p>
+                    
+                    <div class="space-y-1 mb-3 pb-3 border-b border-gray-700">
+                        <div class="flex justify-between text-xs text-gray-400">
+                            <span>Produtos:</span>
+                            <span id="resumo-produtos">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-400">
+                            <span>Taxa de Entrega:</span>
+                            <span id="resumo-taxa">R$ 0,00</span>
+                        </div>
+                    </div>
+
                     <div class="flex justify-between items-end mb-3">
-                        <div><p class="text-xs text-gray-300">Total:</p><p class="text-lg font-bold text-white" id="resumo-total">R$ 0,00</p></div>
-                        <div class="text-right"><p class="text-xs text-orange-300 font-bold">Mínimo para reservar:</p><p class="text-2xl font-black text-orange-500" id="resumo-sinal">R$ 0,00</p></div>
+                        <div><p class="text-xs text-gray-300">Total Geral:</p><p class="text-lg font-bold text-white" id="resumo-total">R$ 0,00</p></div>
+                        <div class="text-right"><p class="text-xs text-orange-300 font-bold">Sinal Mínimo:</p><p class="text-2xl font-black text-orange-500" id="resumo-sinal">R$ 0,00</p></div>
                     </div>
 
                     <div class="bg-gray-900 p-3 rounded-lg border border-gray-700 text-center mb-3">
@@ -105,19 +134,31 @@
 
     <script>
         const CHAVE_PIX_ENC = "84987371966";
-        let carrinho = {}, produtosDb = [];
+        let carrinho = {}, produtosDb = [], taxasDb = [];
+        let tipoEntregaAtual = 'retirada'; // 'retirada' ou 'entrega'
         
         async function initEncomenda() {
-            // Carrega config da agenda
+            // 1. Carrega Config Agenda
             const { data: config } = await _supabase.from('store_config').select('schedule_config').single();
             if(config && config.schedule_config) {
                 document.getElementById('aviso-agenda').innerHTML = `<i class="fas fa-clock mr-1"></i> Horários: ${config.schedule_config.horarios_permitidos || 'Consulte no WhatsApp'}`;
             }
 
-            // Carrega produtos SÓ DE ENCOMENDA (for_encomenda = true)
-            const { data } = await _supabase.from('products').select('*').eq('is_active', true).eq('for_encomenda', true);
-            produtosDb = data || [];
+            // 2. Carrega Produtos de Encomenda
+            const { data: prods } = await _supabase.from('products').select('*').eq('is_active', true).eq('for_encomenda', true);
+            produtosDb = prods || [];
             
+            // 3. Carrega Taxas de Entrega
+            const { data: taxas } = await _supabase.from('delivery_fees').select('*').order('neighborhood');
+            taxasDb = taxas || [];
+            
+            // Popula Select de Bairros
+            const selBairro = document.getElementById('sel-bairro-encomenda');
+            taxasDb.forEach(t => {
+                selBairro.innerHTML += `<option value="${t.price}">${t.neighborhood} (+ R$ ${t.price.toFixed(2)})</option>`;
+            });
+
+            // Renderiza Lista
             const container = document.getElementById('lista-produtos');
             if(produtosDb.length === 0) container.innerHTML = '<p class="text-center text-gray-500 mt-10">Nenhum item disponível para encomenda no momento.</p>';
 
@@ -161,16 +202,30 @@
             total > 0 ? bar.classList.remove('translate-y-full', 'hidden') : bar.classList.add('translate-y-full');
         }
 
+        // --- LÓGICA DO CHECKOUT DE ENCOMENDA ---
+
         function abrirCheckoutEncomenda() {
-            let total = 0;
-            for(const [id, qtd] of Object.entries(carrinho)) {
-                const p = produtosDb.find(x => String(x.id) === id);
-                if(p) total += p.price * qtd;
-            }
-            document.getElementById('resumo-total').innerText = `R$ ${total.toFixed(2)}`;
-            document.getElementById('resumo-sinal').innerText = `R$ ${(total / 2).toFixed(2)}`;
+            mudarTipoEntrega('retirada'); // Reseta para retirada ao abrir
             document.getElementById('modal-encomenda').classList.remove('hidden');
-            verificarSinal(); // Checa o estado inicial
+            verificarSinal();
+        }
+
+        function mudarTipoEntrega(tipo) {
+            tipoEntregaAtual = tipo;
+            const btnRet = document.getElementById('btn-tipo-retirada');
+            const btnEnt = document.getElementById('btn-tipo-entrega');
+            const boxEnd = document.getElementById('box-endereco-entrega');
+
+            if (tipo === 'retirada') {
+                btnRet.className = "flex-1 py-3 rounded-lg text-xs font-bold transition-all bg-gray-700 text-white border border-gray-600 shadow-md";
+                btnEnt.className = "flex-1 py-3 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white";
+                boxEnd.classList.add('hidden');
+            } else {
+                btnEnt.className = "flex-1 py-3 rounded-lg text-xs font-bold transition-all bg-orange-600 text-white border border-orange-500 shadow-md";
+                btnRet.className = "flex-1 py-3 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white";
+                boxEnd.classList.remove('hidden');
+            }
+            verificarSinal(); // Recalcula totais
         }
 
         function copiarPixEnc(){ navigator.clipboard.writeText(CHAVE_PIX_ENC); mostrarToast("Chave copiada!"); }
@@ -188,19 +243,45 @@
         }
 
         function verificarSinal() {
-            const total = parseFloat(document.getElementById('resumo-total').innerText.replace('R$ ',''));
-            const minimo = total / 2;
+            // 1. Calcula Produtos
+            let totalProdutos = 0;
+            for(const [id, qtd] of Object.entries(carrinho)) {
+                const p = produtosDb.find(x => String(x.id) === id);
+                if(p) totalProdutos += p.price * qtd;
+            }
+
+            // 2. Calcula Taxa (se for entrega)
+            let taxaEntrega = 0;
+            if (tipoEntregaAtual === 'entrega') {
+                const sel = document.getElementById('sel-bairro-encomenda');
+                taxaEntrega = parseFloat(sel.value) || 0;
+            }
+
+            // 3. Totais Finais
+            const totalGeral = totalProdutos + taxaEntrega;
+            const minimoSinal = totalGeral / 2;
+
+            // 4. Inputs do Usuário
             const valorPago = parseFloat(document.getElementById('valor-pago-input').value) || 0;
             const termoAceito = document.getElementById('check-termos').checked;
             const data = document.getElementById('data-festa').value;
             const hora = document.getElementById('hora-festa').value;
             const temArquivo = document.getElementById('foto-comprovante').files.length > 0;
-            
-            const btn = document.getElementById('btn-finalizar-encomenda');
+            const ruaPreenchida = document.getElementById('input-rua-encomenda').value.trim().length > 3;
 
+            // Atualiza UI de Valores
+            document.getElementById('resumo-produtos').innerText = `R$ ${totalProdutos.toFixed(2)}`;
+            document.getElementById('resumo-taxa').innerText = `R$ ${taxaEntrega.toFixed(2)}`;
+            document.getElementById('resumo-total').innerText = `R$ ${totalGeral.toFixed(2)}`;
+            document.getElementById('resumo-sinal').innerText = `R$ ${minimoSinal.toFixed(2)}`;
+
+            // Validação
+            const btn = document.getElementById('btn-finalizar-encomenda');
             let msgErro = "";
-            if (!data || !hora) msgErro = "ESCOLHA DATA E HORA";
-            else if (valorPago < minimo) msgErro = `FALTA R$ ${(minimo - valorPago).toFixed(2)}`;
+
+            if (tipoEntregaAtual === 'entrega' && (taxaEntrega === 0 || !ruaPreenchida)) msgErro = "INFORME O ENDEREÇO";
+            else if (!data || !hora) msgErro = "ESCOLHA DATA E HORA";
+            else if (valorPago < minimoSinal) msgErro = `SINAL MÍNIMO: R$ ${minimoSinal.toFixed(2)}`;
             else if (!temArquivo) msgErro = "ANEXE O COMPROVANTE";
             else if (!termoAceito) msgErro = "ACEITE OS TERMOS";
 
@@ -221,18 +302,38 @@
             const data = document.getElementById('data-festa').value.split('-').reverse().join('/');
             const hora = document.getElementById('hora-festa').value;
             const valorPago = document.getElementById('valor-pago-input').value;
+            const totalGeral = document.getElementById('resumo-total').innerText;
+            const taxa = document.getElementById('resumo-taxa').innerText;
             
             let msg = `*NOVA ENCOMENDA AGENDADA* 📅\n`;
-            msg += `Entrega: *${data} às ${hora}*\n`;
+            msg += `-----------------\n`;
+            
+            if(tipoEntregaAtual === 'entrega') {
+                const sel = document.getElementById('sel-bairro-encomenda');
+                const bairroNome = sel.options[sel.selectedIndex].text.split(' (+')[0];
+                const rua = document.getElementById('input-rua-encomenda').value;
+                msg += `🛵 *ENTREGA:* ${data} às ${hora}\n`;
+                msg += `📍 ${rua} - ${bairroNome}\n`;
+            } else {
+                msg += `🥡 *RETIRADA:* ${data} às ${hora}\n`;
+            }
+
             msg += `-----------------\n`;
             for(const [id, qtd] of Object.entries(carrinho)) {
                 const p = produtosDb.find(x => String(x.id) === id);
                 if(p) msg += `${qtd}x ${p.name}\n`;
             }
+            
             msg += `-----------------\n`;
-            msg += `💰 Total: ${document.getElementById('resumo-total').innerText}\n`;
+            if(tipoEntregaAtual === 'entrega') msg += `Taxa Entrega: ${taxa}\n`;
+            msg += `💰 Total Geral: ${totalGeral}\n`;
             msg += `✅ Sinal Pago: R$ ${valorPago}\n`;
-            msg += `⚠️ Restante: R$ ${(parseFloat(document.getElementById('resumo-total').innerText.replace('R$ ','')) - parseFloat(valorPago)).toFixed(2)}\n`;
+            
+            // Calculo do restante
+            const valTotalNum = parseFloat(totalGeral.replace('R$ ',''));
+            const valPagoNum = parseFloat(valorPago);
+            msg += `⚠️ Restante a Pagar: R$ ${(valTotalNum - valPagoNum).toFixed(2)}\n`;
+            
             msg += `\n(Estou enviando o comprovante nesta conversa...)`;
 
             window.open(`https://wa.me/55${CHAVE_PIX_ENC}?text=${encodeURIComponent(msg)}`, '_blank');
