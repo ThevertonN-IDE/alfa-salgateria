@@ -29,7 +29,6 @@
 <body class="bg-orange-50/50 dark:bg-gray-900 text-gray-800 dark:text-white pb-36 select-none transition-colors duration-300 flex flex-col min-h-screen">
 
     <header class="bg-orange-600 dark:bg-gray-800 pb-8 rounded-b-3xl shadow-lg sticky top-0 z-40 transition-colors duration-300">
-        
         <div class="px-4 pt-6 flex justify-between items-start text-white">
             <div class="flex items-center gap-2">
                 <div id="area-usuario" onclick="irParaLogin()" class="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-xs cursor-pointer active:scale-95 transition hover:bg-white/30 border border-transparent shadow-sm">
@@ -49,12 +48,10 @@
         </div>
 
         <div class="flex items-center justify-center gap-3 mt-1 px-4 pb-2 relative">
-            
             <div class="relative">
                 <div class="w-20 h-20 bg-white rounded-full p-1 shadow-xl flex-shrink-0 border-4 border-orange-300 dark:border-gray-700 overflow-hidden relative z-10 transition-transform hover:scale-105">
-                    <img src="https://placehold.co/100?text=Alfa" id="logo-loja" onerror="this.src='https://placehold.co/100?text=Alfa'" class="w-full h-full object-cover rounded-full" alt="Logo Alfa">
+                    <img src="https://placehold.co/100/ea580c/white?text=Alfa" id="logo-loja" onerror="this.src='https://placehold.co/100/ea580c/white?text=Alfa'" class="w-full h-full object-cover rounded-full" alt="Logo Alfa">
                 </div>
-
                 <div id="status-badge" class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 z-20 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg border-2 border-white transition-colors duration-300 bg-gray-500 text-white">
                     ...
                 </div>
@@ -95,7 +92,7 @@
             <div class="bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-soft flex flex-col items-center max-w-xs mx-auto animate-pop">
                 <div class="w-20 h-20 bg-orange-50 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4 text-orange-400 dark:text-orange-500 text-3xl animate-bounce"><i class="fas fa-search"></i></div>
                 <h3 class="text-xl font-black text-gray-800 dark:text-white uppercase tracking-tight mb-2">Poxa, não achei!</h3>
-                <p class="text-xs text-gray-400 dark:text-gray-500 leading-relaxed mb-6">Não encontramos nada com esse nome.<br>Que tal tentar outra coisa?</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500 leading-relaxed mb-6">Não encontramos nada com esse nome.</p>
                 <button onclick="limparBusca()" class="bg-orange-600 text-white px-8 py-3 rounded-xl font-bold text-xs shadow-lg shadow-orange-200 dark:shadow-none hover:bg-orange-700 active:scale-95 transition w-full">LIMPAR BUSCA</button>
             </div>
         </div>
@@ -166,11 +163,13 @@
         let carrinho={}, produtosDb=[], categoriasDb=[], taxasDb=[], estadoCheckout={tipoEntrega:'entrega',pagamento:null,cupom:null}, dadosCliente=null, isLojaAberta = true;
 
         async function init() {
+            // Inicializa Logo com Fallback
             const imgEl = document.getElementById('logo-loja');
-            // Tenta carregar logo do config
+            const fallbackLogo = "https://placehold.co/100/ea580c/white?text=Alfa";
+            imgEl.onerror = () => { imgEl.src = fallbackLogo; };
             if(typeof CONFIG !== 'undefined' && CONFIG.logo) imgEl.src = CONFIG.logo;
 
-            // ... (Auth Code - Mantido igual) ...
+            // ... (Auth Code mantido) ...
             const params = new URLSearchParams(window.location.search);
             const token_hash = params.get('token_hash');
             const type = params.get('type');
@@ -188,7 +187,7 @@
             const {data:config} = await _supabase.from('store_config').select('*').limit(1);
             if(config && config.length) {
                 document.getElementById('tempo-entrega-display').innerText = config[0].delivery_estimate || '-- min';
-                if(config[0].logo_url && config[0].logo_url.length > 10) {
+                if(config[0].logo_url && config[0].logo_url.length > 5) {
                     imgEl.src = config[0].logo_url;
                 }
                 
@@ -236,9 +235,6 @@
             taxasDb.forEach(t => sel.innerHTML += `<option value="${t.price}">${t.neighborhood} (+ R$ ${t.price})</option>`);
         }
 
-        // ==========================================
-        //  RENDERIZAÇÃO INTELIGENTE (COM COMBOS)
-        // ==========================================
         function renderizarCardapio() {
             const container = document.getElementById('conteudo-cardapio');
             container.querySelectorAll('.grupo-cat').forEach(e => e.remove());
@@ -254,32 +250,38 @@
                     itens.forEach(p => {
                         const isPromo = p.on_sale === true;
                         const precoBase = isPromo ? p.sale_price : p.price;
-                        const hasVariants = p.variants && Array.isArray(p.variants) && p.variants.length > 0;
+                        
+                        // PARSE ROBUSTO DAS VARIAÇÕES
+                        let variants = [];
+                        if (p.variants) {
+                            variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+                        }
+                        const hasVariants = Array.isArray(variants) && variants.length > 0;
+                        
                         const idStr = String(p.id);
                         const imgUrl = (!p.image_url || p.image_url.length < 10) ? placeholder : p.image_url;
                         
-                        // ÁREA DE CONTROLE (BOTÕES OU SELECT)
                         let controlesHtml = '';
                         
                         if (hasVariants) {
-                            // SE TIVER VARIAÇÕES (COMBOS): MOSTRA SELECT
+                            // Seletor de Variações
                             let optionsHtml = '';
-                            p.variants.forEach((v, idx) => {
-                                optionsHtml += `<option value="${idx}">${v.qtd} un - R$ ${v.price.toFixed(2)}</option>`;
+                            variants.forEach((v, idx) => {
+                                optionsHtml += `<option value="${idx}">${v.qtd} un - R$ ${Number(v.price).toFixed(2)}</option>`;
                             });
                             
                             controlesHtml = `
                                 <div class="w-full mt-2">
-                                    <select id="sel-${idStr}" class="w-full bg-gray-50 dark:bg-gray-700 text-xs p-2 rounded-lg border border-gray-200 dark:border-gray-600 outline-none mb-2 font-bold">
+                                    <select id="sel-${idStr}" class="w-full bg-gray-50 dark:bg-gray-700 text-xs p-2 rounded-lg border border-gray-200 dark:border-gray-600 outline-none mb-2 font-bold text-gray-700 dark:text-gray-200 cursor-pointer">
                                         ${optionsHtml}
                                     </select>
-                                    <button onclick="addVariant('${idStr}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg shadow-sm active:scale-95 transition">
-                                        ADICIONAR
+                                    <button onclick="addVariant('${idStr}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg shadow-sm active:scale-95 transition flex justify-center items-center gap-2">
+                                        <i class="fas fa-plus"></i> ADICIONAR
                                     </button>
                                 </div>
                             `;
                         } else {
-                            // PRODUTO NORMAL: MOSTRA PREÇO E CONTADOR
+                            // Produto Normal
                             controlesHtml = `
                                 <div class="flex justify-between items-end mt-2 w-full">
                                     <div class="flex flex-col">
@@ -316,31 +318,29 @@
             document.getElementById('busca-vazia').insertAdjacentHTML('beforebegin', htmlFinal);
         }
 
-        function toggleCat(id) { document.getElementById(`lista-${id}`).classList.toggle('hidden'); document.getElementById(`seta-${id}`).classList.toggle('rotate-180-force'); }
-        function filtrarBusca(termo) { termo = termo.toLowerCase(); const prods = document.querySelectorAll('.prod-item'); let encontrouAlgo = false; prods.forEach(el => { const match = el.getAttribute('data-nome').includes(termo); el.style.display = match ? 'flex' : 'none'; if(match) encontrouAlgo = true; }); document.querySelectorAll('.grupo-cat').forEach(g => { g.style.display = g.querySelectorAll('.prod-item[style="display: flex;"]').length > 0 ? 'block' : 'none'; }); const emptyState = document.getElementById('busca-vazia'); const conteudo = document.getElementById('conteudo-cardapio'); if(!encontrouAlgo && termo.length > 0) { emptyState.classList.remove('hidden'); emptyState.classList.add('flex'); conteudo.style.overflow = 'hidden'; setTimeout(() => emptyState.classList.remove('opacity-0'), 50); } else { emptyState.classList.add('opacity-0'); conteudo.style.overflow = 'auto'; setTimeout(() => { emptyState.classList.add('hidden'); emptyState.classList.remove('flex'); }, 300); } }
-        function limparBusca() { document.getElementById('input-busca').value = ''; filtrarBusca(''); }
-        
-        // --- ADICIONAR VARIAÇÃO (COMBO) ---
+        // --- FUNÇÕES DE CARRINHO (CORRIGIDAS PARA LER VARIAÇÕES CERTAS) ---
+
         function addVariant(prodId) {
             const select = document.getElementById(`sel-${prodId}`);
             const variantIdx = select.value;
-            const key = `${prodId}__${variantIdx}`; // ID COMPOSTO
-            
+            const key = `${prodId}__${variantIdx}`; 
             addQtd(key, 1);
-            mostrarToast("Adicionado ao carrinho!");
+            mostrarToast("Adicionado!");
         }
 
-        // --- ADICIONAR NORMAL ---
         function addQtd(id, val) { 
             const idStr = String(id); 
             if(!carrinho[idStr]) carrinho[idStr]=0; 
             carrinho[idStr]+=val; 
-            if(carrinho[idStr]<=0){carrinho[idStr]=0; delete carrinho[idStr];} 
+            if(carrinho[idStr]<=0) delete carrinho[idStr];
             
-            // Atualiza contador se existir (só existe em produtos normais)
-            const el = document.getElementById(`qtd-${idStr}`); 
-            if(el) el.innerText=carrinho[idStr]||0; 
+            // Só atualiza contador visual se não for combo (sem __)
+            if(!idStr.includes('__')) {
+                const el = document.getElementById(`qtd-${idStr}`); 
+                if(el) el.innerText=carrinho[idStr]||0; 
+            }
             
+            // Animação botão
             const btn=document.getElementById('btn-ver-carrinho'); 
             btn.classList.remove('btn-carrinho-anim'); void btn.offsetWidth; btn.classList.add('btn-carrinho-anim'); 
             
@@ -354,17 +354,22 @@
             for(const[key, q] of Object.entries(carrinho)){ 
                 const parts = key.split('__');
                 const prodId = parts[0];
-                const variantIdx = parts[1]; // Pode ser undefined se for normal
+                const variantIdx = parts[1]; // Pode ser string "0", "1"...
 
                 const p = produtosDb.find(x => String(x.id) === String(prodId));
                 if(p){ 
-                    if(variantIdx !== undefined && p.variants && p.variants[variantIdx]) {
-                        // É VARIAÇÃO
-                        total += p.variants[variantIdx].price * q;
-                    } else {
-                        // É NORMAL
-                        total += (p.on_sale ? p.sale_price : p.price) * q;
+                    // Parse seguro das variantes novamente
+                    let variants = p.variants;
+                    if(typeof variants === 'string') variants = JSON.parse(variants);
+
+                    let precoUnit = p.on_sale ? p.sale_price : p.price;
+                    
+                    if(variantIdx !== undefined && variants && variants[variantIdx]) {
+                        // É VARIAÇÃO - USA PREÇO DO COMBO
+                        precoUnit = Number(variants[variantIdx].price);
                     }
+                    
+                    total += precoUnit * q;
                     qtd += q; 
                 } 
             } 
@@ -382,7 +387,6 @@
                     atualizarBarra(); 
                     setTimeout(()=>{
                         for(const[key,qtd]of Object.entries(carrinho)){
-                            // Só atualiza contadores visuais de produtos normais
                             if(!key.includes('__')) {
                                 const el=document.getElementById(`qtd-${key}`);
                                 if(el) el.innerText=qtd;
@@ -396,7 +400,7 @@
         async function abrirCheckout(){ 
             if(!isLojaAberta) return mostrarToast("Loja Fechada!", "erro");
             const {data:{session}} = await _supabase.auth.getSession();
-            if(!session) { mostrarToast("Faça login para pedir!", "erro"); setTimeout(() => window.location.href = 'cliente-login.html', 1500); return; }
+            if(!session) { mostrarToast("Faça login!", "erro"); setTimeout(() => window.location.href = 'cliente-login.html', 1500); return; }
             
             const lista = document.getElementById('lista-checkout'); 
             lista.innerHTML=''; 
@@ -408,25 +412,30 @@
 
                 const p = produtosDb.find(x => String(x.id) === String(prodId));
                 if(p){
+                    // Parse seguro
+                    let variants = p.variants;
+                    if(typeof variants === 'string') variants = JSON.parse(variants);
+
                     let nomeItem = p.name;
                     let precoUnit = p.on_sale ? p.sale_price : p.price;
 
-                    if(variantIdx !== undefined && p.variants && p.variants[variantIdx]) {
-                        nomeItem += ` (${p.variants[variantIdx].qtd} un)`;
-                        precoUnit = p.variants[variantIdx].price;
+                    // Se for variação, ajusta nome e preço
+                    if(variantIdx !== undefined && variants && variants[variantIdx]) {
+                        nomeItem += ` <strong>(${variants[variantIdx].qtd} un)</strong>`;
+                        precoUnit = Number(variants[variantIdx].price);
                     }
 
                     lista.innerHTML += `
                         <div class="flex justify-between text-xs dark:text-gray-300 mb-2 border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0">
-                            <div class="flex gap-3">
-                                <div class="flex flex-col items-center gap-1">
-                                    <button onclick="addQtd('${key}', 1)" class="w-5 h-5 bg-green-100 text-green-600 rounded flex items-center justify-center text-[10px] font-bold hover:bg-green-200">+</button>
+                            <div class="flex gap-3 items-center">
+                                <div class="flex flex-col items-center gap-1 bg-gray-50 dark:bg-gray-800 p-1 rounded-lg">
+                                    <button onclick="addQtd('${key}', 1); abrirCheckout();" class="w-5 h-5 bg-green-100 text-green-600 rounded flex items-center justify-center text-[10px] font-bold hover:bg-green-200">+</button>
                                     <span class="font-bold text-xs">${qtd}</span>
                                     <button onclick="addQtd('${key}', -1); abrirCheckout();" class="w-5 h-5 bg-gray-100 text-gray-500 rounded flex items-center justify-center text-[10px] font-bold hover:bg-gray-200">-</button>
                                 </div>
-                                <span class="pt-1">${nomeItem}</span>
+                                <span class="pt-1 text-sm">${nomeItem}</span>
                             </div>
-                            <span class="pt-1 font-bold">R$ ${(precoUnit * qtd).toFixed(2)}</span>
+                            <span class="pt-1 font-bold text-sm">R$ ${(precoUnit * qtd).toFixed(2)}</span>
                         </div>`;
                 }
             } 
@@ -445,8 +454,15 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    if(parts[1] !== undefined && p.variants && p.variants[parts[1]]) sub += p.variants[parts[1]].price * qtd;
-                    else sub += (p.on_sale ? p.sale_price : p.price) * qtd;
+                    // Parse seguro
+                    let variants = p.variants;
+                    if(typeof variants === 'string') variants = JSON.parse(variants);
+
+                    let preco = p.on_sale ? p.sale_price : p.price;
+                    if(parts[1] !== undefined && variants && variants[parts[1]]) {
+                        preco = Number(variants[parts[1]].price);
+                    }
+                    sub += preco * qtd;
                 }
             } 
             let ent=estadoCheckout.tipoEntrega==='entrega'?parseFloat(document.getElementById('select-bairro').value)||0:0; 
@@ -458,7 +474,7 @@
             document.getElementById('val-total').innerText=`R$ ${tot.toFixed(2)}`; 
         }
 
-        function copiarPix(){const t=document.getElementById('pix-copia-cola');t.select();document.execCommand('copy');mostrarToast("Copiado! Confirme o pagamento."); document.getElementById('area-confirmacao-pix').classList.remove('hidden');}
+        function copiarPix(){const t=document.getElementById('pix-copia-cola');t.select();document.execCommand('copy');mostrarToast("Copiado!"); document.getElementById('area-confirmacao-pix').classList.remove('hidden');}
         function copiarPixFixo(){navigator.clipboard.writeText(CHAVE_PIX_OFICIAL); mostrarToast("Chave Pix Copiada!");}
         function verificarCheckPix() { const btn=document.getElementById('btn-finalizar'), isPix=estadoCheckout.pagamento==='pix', check=document.getElementById('check-pagou-pix'); if(isPix){ if(check.checked){ btn.disabled=false; btn.classList.remove('bg-gray-400','cursor-not-allowed'); btn.classList.add('bg-green-600'); btn.innerText="ENVIAR PEDIDO"; }else{ btn.disabled=true; btn.classList.add('bg-gray-400','cursor-not-allowed'); btn.classList.remove('bg-green-600'); btn.innerText="AGUARDANDO PAGAMENTO..."; } }else{ btn.disabled=false; btn.classList.remove('bg-gray-400','cursor-not-allowed'); btn.classList.add('bg-green-600'); btn.innerHTML=`ENVIAR PEDIDO <i class="fab fa-whatsapp"></i>`; document.getElementById('area-confirmacao-pix').classList.add('hidden'); } }
         
@@ -479,8 +495,14 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    if(parts[1] !== undefined && p.variants && p.variants[parts[1]]) msg += `${qtd}x ${p.name} (${p.variants[parts[1]].qtd} un)\n`;
-                    else msg += `${qtd}x ${p.name}\n`;
+                    let variants = p.variants;
+                    if(typeof variants === 'string') variants = JSON.parse(variants);
+
+                    if(parts[1] !== undefined && variants && variants[parts[1]]) {
+                        msg += `${qtd}x ${p.name} (${variants[parts[1]].qtd} un)\n`;
+                    } else {
+                        msg += `${qtd}x ${p.name}\n`;
+                    }
                 }
             }
 
