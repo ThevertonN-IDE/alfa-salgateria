@@ -1,0 +1,12 @@
+{
+  "name": "alfa-salgateria",
+  "version": "1.0.0",
+  "description": "Sistema de Cardápio e Pedidos",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Theverton",
+  "license": "ISC"
+}
