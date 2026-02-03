@@ -15,7 +15,6 @@
     
     <script>
         function aplicarTema() {
-            // Se tiver 'dark' salvo OU (não tiver nada salvo E o sistema for dark)
             if (localStorage.getItem('tema') === 'dark' || (!('tema' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
                 document.getElementById('icone-tema-login')?.classList.replace('fa-moon', 'fa-sun');
@@ -24,11 +23,14 @@
                 document.getElementById('icone-tema-login')?.classList.replace('fa-sun', 'fa-moon');
             }
         }
-        // Aplica imediatamente antes de carregar o resto
         aplicarTema();
     </script>
 
-    <style> body { font-family: 'Segoe UI', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Segoe UI', sans-serif; } 
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .animate-scale { animation: scaleIn 0.2s ease-out forwards; }
+    </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 bg-orange-50 dark:bg-gray-900 text-gray-800 dark:text-white transition-colors duration-300">
 
@@ -70,7 +72,9 @@
                     ENTRAR NA CONTA
                 </button>
                 
-                <p class="text-center text-xs text-gray-500 mt-4 cursor-pointer hover:text-orange-500 transition" onclick="alert('Entre em contato com a loja para redefinir.')">Esqueci minha senha</p>
+                <button type="button" onclick="abrirModalRecuperar()" class="w-full text-center text-xs text-gray-500 mt-4 cursor-pointer hover:text-orange-500 transition underline">
+                    Esqueci minha senha / Definir senha
+                </button>
             </form>
 
             <form id="form-cadastro" onsubmit="event.preventDefault(); criarConta();" class="hidden space-y-4 animate-fade">
@@ -95,12 +99,16 @@
                     <div>
                         <div class="bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-gray-200 dark:border-transparent focus-within:border-green-500 transition mb-1">
                             <i class="fas fa-lock text-gray-400 mr-3"></i>
-                            <input type="password" id="reg-senha" placeholder="Criar Senha" required class="bg-transparent w-full outline-none text-gray-800 dark:text-white placeholder-gray-400 text-sm">
+                            <input type="password" id="reg-senha" placeholder="Criar Senha" required onkeyup="validarSenhaTempoReal(this.value)" class="bg-transparent w-full outline-none text-gray-800 dark:text-white placeholder-gray-400 text-sm">
                         </div>
-                        <p class="text-[10px] text-gray-400 pl-2 flex gap-2">
-                            <span>• Mín. 6 caracteres</span>
-                            <span>• 1 número</span>
-                        </p>
+                        <div class="flex gap-4 pl-2">
+                            <p id="req-len" class="text-[10px] text-gray-400 transition-colors flex items-center gap-1">
+                                <i class="fas fa-circle text-[4px]"></i> Mín. 6 caracteres
+                            </p>
+                            <p id="req-num" class="text-[10px] text-gray-400 transition-colors flex items-center gap-1">
+                                <i class="fas fa-circle text-[4px]"></i> 1 número
+                            </p>
+                        </div>
                     </div>
 
                     <div class="bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center px-4 py-3 border border-gray-200 dark:border-transparent focus-within:border-green-500 transition">
@@ -127,8 +135,30 @@
         </div>
     </div>
 
+    <div id="modal-recuperar" class="fixed inset-0 bg-black/60 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-xs text-center animate-scale relative border border-gray-100 dark:border-gray-700 shadow-2xl">
+            
+            <div class="w-14 h-14 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-500">
+                <i class="fas fa-key text-xl"></i>
+            </div>
+            
+            <h3 class="text-lg font-black text-gray-800 dark:text-white mb-2">Redefinir Senha?</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium leading-relaxed">
+                Enviaremos um link para o seu e-mail para você criar uma nova senha.
+            </p>
+            
+            <div class="flex gap-3">
+                <button onclick="fecharModalRecuperar()" class="flex-1 py-3 rounded-xl font-bold text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition active:scale-95">
+                    CANCELAR
+                </button>
+                <button onclick="confirmarRecuperacao()" class="flex-1 py-3 rounded-xl font-bold text-xs bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-200/50 dark:shadow-none transition active:scale-95">
+                    SIM, ENVIAR
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Função para alternar tema manualmente
         function toggleTemaLogin() {
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
@@ -141,10 +171,7 @@
             }
         }
 
-        // Força a verificação do tema novamente após o carregamento completo da página
-        window.onload = function() {
-            aplicarTema();
-        };
+        window.onload = function() { aplicarTema(); };
 
         function mudarAba(aba) {
             const loginForm = document.getElementById('form-login');
@@ -172,6 +199,34 @@
                 tabLogin.classList.remove('text-orange-600', 'border-b-2', 'border-orange-600', 'bg-orange-50/50');
                 tabLogin.classList.add('text-gray-400');
                 if(document.documentElement.classList.contains('dark')) tabLogin.classList.remove('bg-orange-50/50');
+            }
+        }
+
+        // --- VALIDAÇÃO DE SENHA EM TEMPO REAL ---
+        function validarSenhaTempoReal(senha) {
+            const reqLen = document.getElementById('req-len');
+            const reqNum = document.getElementById('req-num');
+
+            // Valida Comprimento
+            if (senha.length >= 6) {
+                reqLen.classList.remove('text-gray-400');
+                reqLen.classList.add('text-green-500', 'font-bold');
+                reqLen.innerHTML = '<i class="fas fa-check text-xs"></i> Mín. 6 caracteres';
+            } else {
+                reqLen.classList.add('text-gray-400');
+                reqLen.classList.remove('text-green-500', 'font-bold');
+                reqLen.innerHTML = '<i class="fas fa-circle text-[4px]"></i> Mín. 6 caracteres';
+            }
+
+            // Valida Número
+            if (/\d/.test(senha)) {
+                reqNum.classList.remove('text-gray-400');
+                reqNum.classList.add('text-green-500', 'font-bold');
+                reqNum.innerHTML = '<i class="fas fa-check text-xs"></i> 1 número';
+            } else {
+                reqNum.classList.add('text-gray-400');
+                reqNum.classList.remove('text-green-500', 'font-bold');
+                reqNum.innerHTML = '<i class="fas fa-circle text-[4px]"></i> 1 número';
             }
         }
 
@@ -215,7 +270,7 @@
             
             const temNumero = /\d/.test(password);
             if (password.length < 6 || !temNumero) {
-                return mostrarToast("Senha fraca: use 6 dígitos e 1 número.", "erro");
+                return mostrarToast("Senha fraca. Veja os requisitos.", "erro");
             }
 
             if (password !== passwordConf) return mostrarToast("As senhas não conferem!", "erro");
@@ -260,6 +315,44 @@
                         setTimeout(() => window.location.href = 'index.html', 1500);
                     }
                 }
+            }
+        }
+
+        // --- LÓGICA DO MODAL DE RECUPERAÇÃO ---
+        function abrirModalRecuperar() {
+            const email = document.getElementById('login-email').value.trim();
+            if(!email) {
+                const inputEmail = document.getElementById('login-email').parentElement;
+                inputEmail.classList.add('border-red-500', 'animate-pulse');
+                setTimeout(() => inputEmail.classList.remove('border-red-500', 'animate-pulse'), 500);
+                return mostrarToast("Digite seu e-mail no campo acima!", "erro");
+            }
+            
+            const modal = document.getElementById('modal-recuperar');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function fecharModalRecuperar() {
+            const modal = document.getElementById('modal-recuperar');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function confirmarRecuperacao() {
+            fecharModalRecuperar();
+            const email = document.getElementById('login-email').value.trim();
+            
+            mostrarToast("Enviando solicitação...", "info");
+            
+            const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/reset-password.html',
+            });
+
+            if (error) {
+                mostrarToast("Erro: " + error.message, "erro");
+            } else {
+                mostrarToast("E-mail de redefinição enviado!", "sucesso");
             }
         }
     </script>

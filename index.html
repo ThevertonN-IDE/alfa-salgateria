@@ -52,7 +52,7 @@
         <div class="flex items-center justify-center gap-3 mt-1 px-4 pb-2 relative">
             <div class="relative">
                 <div class="w-20 h-20 bg-white rounded-full p-1 shadow-xl flex-shrink-0 border-4 border-orange-300 dark:border-gray-700 overflow-hidden relative z-10 transition-transform hover:scale-105">
-                    <img src="https://placehold.co/100/ea580c/white?text=Alfa" id="logo-loja" onerror="this.src='https://placehold.co/100/ea580c/white?text=Alfa'" class="w-full h-full object-cover rounded-full" alt="Logo Alfa">
+                    <img src="data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%23ea580c%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2250%22%20fill%3D%22white%22%20font-family%3D%22sans-serif%22%20font-weight%3D%22bold%22%20font-size%3D%2225%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3EALFA%3C%2Ftext%3E%3C%2Fsvg%3E" id="logo-loja" class="w-full h-full object-cover rounded-full" alt="Logo Alfa">
                 </div>
                 <div id="status-badge" class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 z-20 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg border-2 border-white transition-colors duration-300 bg-gray-500 text-white">
                     ...
@@ -175,6 +175,7 @@
                 <div class="flex justify-between text-green-500"><span>Desconto</span> <span id="val-desconto" class="font-bold">- R$ 0,00</span></div>
                 <div class="border-t border-dashed border-gray-300 dark:border-gray-600 my-2 pt-2 flex justify-between text-xl font-black text-gray-800 dark:text-white"><span>TOTAL</span> <span id="val-total">R$ 0,00</span></div>
             </div>
+            
             <button id="btn-finalizar" onclick="finalizarPedido()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-green-200 dark:shadow-none fixed bottom-5 left-5 right-5 max-w-[calc(100%-2.5rem)] mx-auto active:scale-95 transition-transform hover:bg-green-700 flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed">ENVIAR PEDIDO <i class="fab fa-whatsapp"></i></button>
         </div>
     </div>
@@ -183,67 +184,27 @@
         const CHAVE_PIX_OFICIAL = "84987371966"; 
         document.getElementById('chave-pix-texto').innerText = CHAVE_PIX_OFICIAL;
 
-        // SEGURANÇA: Função para escapar HTML (Anti-XSS)
         function escapeHtml(text) {
             if (!text) return text;
-            return text.toString()
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         let carrinho={}, produtosDb=[], categoriasDb=[], taxasDb=[], estadoCheckout={tipoEntrega:'entrega',pagamento:null,cupom:null}, dadosCliente=null, isLojaAberta = true;
 
         async function init() {
             try {
-                // FALLBACK IMEDIATO DO LOGO PARA EVITAR PISCAR
                 const imgEl = document.getElementById('logo-loja');
-                const fallbackLogo = "https://placehold.co/100/ea580c/white?text=Alfa";
-                imgEl.onerror = () => { imgEl.src = fallbackLogo; };
-
-                // AUTH
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('token_hash')) {
-                    mostrarToast("Validando...", "info");
-                    await _supabase.auth.verifyOtp({ token_hash: params.get('token_hash'), type: params.get('type') });
-                    window.history.replaceState(null, null, window.location.pathname);
-                    setTimeout(() => window.location.href = 'perfil.html', 1000);
-                    return;
-                }
-
-                const {data:{session}} = await _supabase.auth.getSession();
-                
-                // LÓGICA DE CORES DO USUÁRIO (VERDE OU ROXO)
-                if(session){
-                    const areaUser = document.getElementById('area-usuario');
-                    areaUser.classList.remove('bg-white/20'); // Tira o padrão
-                    areaUser.classList.add('border-transparent');
-                    areaUser.onclick = null; 
-                    document.getElementById('btn-perfil').classList.remove('hidden');
-                    
-                    const {data} = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
-                    if(data){
-                        dadosCliente = data;
-                        document.getElementById('nome-cliente').innerText = `Olá, ${escapeHtml(data.name.split(' ')[0])}`;
-                        
-                        // COR DO BOTÃO: ADMIN = ROXO, CLIENTE = VERDE
-                        if (data.is_admin) {
-                            areaUser.classList.add('bg-purple-600', 'text-white');
-                        } else {
-                            areaUser.classList.add('bg-green-600', 'text-white');
-                        }
-                    }
-                }
-
-                // CARREGAMENTO DE DADOS (COM TRY/CATCH PARA NÃO TRAVAR O LOADING)
                 const {data:config} = await _supabase.from('store_config').select('*').limit(1);
+                
                 if(config && config.length) {
-                    document.getElementById('tempo-entrega-display').innerText = config[0].delivery_estimate || '-- min';
-                    if(config[0].logo_url && config[0].logo_url.length > 5) imgEl.src = config[0].logo_url;
-                    
-                    isLojaAberta = config[0].is_open;
+                    const cfg = config[0];
+                    document.getElementById('tempo-entrega-display').innerText = cfg.delivery_estimate || '-- min';
+                    if(cfg.logo_url && cfg.logo_url.length > 5) {
+                        const tempImg = new Image();
+                        tempImg.src = cfg.logo_url;
+                        tempImg.onload = () => { imgEl.src = cfg.logo_url; };
+                    }
+                    isLojaAberta = cfg.is_open;
                     const badge = document.getElementById('status-badge');
                     if(isLojaAberta) {
                         badge.innerText = "ABERTO"; badge.classList.remove('bg-red-600'); badge.classList.add('bg-green-500', 'status-pulse');
@@ -256,14 +217,42 @@
                     }
                 }
 
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('token_hash')) {
+                    mostrarToast("Validando...", "info");
+                    await _supabase.auth.verifyOtp({ token_hash: params.get('token_hash'), type: params.get('type') });
+                    window.history.replaceState(null, null, window.location.pathname);
+                    setTimeout(() => window.location.href = 'perfil.html', 1000);
+                    return;
+                }
+
+                const {data:{session}} = await _supabase.auth.getSession();
+                if(session){
+                    const areaUser = document.getElementById('area-usuario');
+                    areaUser.classList.remove('bg-white/20');
+                    areaUser.classList.add('border-transparent');
+                    areaUser.onclick = null; 
+                    document.getElementById('btn-perfil').classList.remove('hidden');
+                    
+                    const {data} = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
+                    if(data){
+                        dadosCliente = data;
+                        document.getElementById('nome-cliente').innerText = `Olá, ${escapeHtml(data.name.split(' ')[0])}`;
+                        if (data.is_admin) {
+                            areaUser.classList.add('bg-purple-600', 'text-white');
+                        } else {
+                            areaUser.classList.add('bg-green-600', 'text-white');
+                        }
+                    }
+                }
+
                 await Promise.all([carregarDados(), carregarTaxas()]);
                 recuperarCarrinho();
 
             } catch (error) {
-                console.error("Erro na inicialização:", error);
-                // Destrava o skeleton se der erro
+                console.error("Init Error:", error);
                 document.getElementById('skeleton').classList.add('hidden');
-                mostrarToast("Erro ao conectar. Verifique internet.", "erro");
+                mostrarToast("Erro de conexão.", "erro");
             }
         }
 
@@ -284,74 +273,30 @@
         function renderizarCardapio() {
             const container = document.getElementById('conteudo-cardapio');
             container.querySelectorAll('.grupo-cat').forEach(e => e.remove());
-            const placeholder = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2250%22%20font-family%3D%22sans-serif%22%20font-size%3D%2214%22%20font-weight%3D%22bold%22%20fill%3D%22%239ca3af%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3ESem%20Foto%3C%2Ftext%3E%3C%2Fsvg%3E";
+            const placeholder = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2250%22%20fill%3D%22white%22%20font-family%3D%22sans-serif%22%20font-weight%3D%22bold%22%20font-size%3D%2225%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3ESem%20Foto%3C%2Ftext%3E%3C%2Fsvg%3E";
             
             let htmlFinal = '';
             categoriasDb.forEach(cat => {
                 const itens = produtosDb.filter(p => String(p.category_id) === String(cat.id) && p.for_delivery !== false);
-                
                 if(itens.length > 0) {
                     let html = `<div class="grupo-cat mb-6 scroll-mt-28" id="cat-${cat.id}"><div onclick="toggleCat('${cat.id}')" class="sticky-cat flex justify-between items-center cursor-pointer mb-3 p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 shadow-sm border border-orange-100 dark:border-gray-700 transition active:scale-[0.98]"><h2 class="text-orange-600 dark:text-orange-500 font-black uppercase text-xs tracking-wider flex items-center gap-2"><i class="fas fa-utensils bg-orange-100 dark:bg-gray-700 p-1.5 rounded-lg"></i> ${escapeHtml(cat.name)} <span class="bg-orange-50 dark:bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full text-[10px] font-bold ml-auto">${itens.length}</span></h2><i id="seta-${cat.id}" class="fas fa-chevron-down text-orange-300 text-xs transition-transform duration-300"></i></div><div id="lista-${cat.id}" class="space-y-3 px-1">`;
-                    
                     itens.forEach(p => {
                         const isPromo = p.on_sale === true;
                         const precoBase = isPromo ? p.sale_price : p.price;
-                        
                         let variants = [];
-                        if (p.variants) {
-                            variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
-                        }
+                        if (p.variants) { variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants; }
                         const hasVariants = Array.isArray(variants) && variants.length > 0;
                         const idStr = String(p.id);
                         const imgUrl = (!p.image_url || p.image_url.length < 10) ? placeholder : p.image_url;
-                        
                         let controlesHtml = '';
-                        
                         if (hasVariants) {
                             let optionsHtml = '';
-                            variants.forEach((v, idx) => {
-                                optionsHtml += `<option value="${idx}">${escapeHtml(v.qtd)} un - R$ ${Number(v.price).toFixed(2)}</option>`;
-                            });
-                            
-                            controlesHtml = `
-                                <div class="w-full mt-2">
-                                    <select id="sel-${idStr}" class="w-full bg-gray-50 dark:bg-gray-700 text-xs p-2.5 rounded-xl border border-gray-200 dark:border-gray-600 outline-none mb-2 font-bold text-gray-700 dark:text-gray-200 cursor-pointer">
-                                        ${optionsHtml}
-                                    </select>
-                                    <button onclick="addVariant('${idStr}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm active:scale-95 transition flex justify-center items-center gap-2">
-                                        <i class="fas fa-plus"></i> ADICIONAR
-                                    </button>
-                                </div>
-                            `;
+                            variants.forEach((v, idx) => { optionsHtml += `<option value="${idx}">${escapeHtml(v.qtd)} un - R$ ${Number(v.price).toFixed(2)}</option>`; });
+                            controlesHtml = `<div class="w-full mt-2"><select id="sel-${idStr}" class="w-full bg-gray-50 dark:bg-gray-700 text-xs p-2.5 rounded-xl border border-gray-200 dark:border-gray-600 outline-none mb-2 font-bold text-gray-700 dark:text-gray-200 cursor-pointer">${optionsHtml}</select><button onclick="addVariant('${idStr}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm active:scale-95 transition flex justify-center items-center gap-2"><i class="fas fa-plus"></i> ADICIONAR</button></div>`;
                         } else {
-                            controlesHtml = `
-                                <div class="flex justify-between items-end mt-2 w-full">
-                                    <div class="flex flex-col">
-                                        ${isPromo ? `<span class="text-[10px] text-gray-400 line-through">R$ ${p.price.toFixed(2)}</span>` : ''}
-                                        <span class="text-orange-600 dark:text-orange-500 font-black text-base">R$ ${precoBase.toFixed(2).replace('.',',')}</span>
-                                    </div>
-                                    <div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-700 rounded-xl p-1 shadow-inner">
-                                        <button onclick="addQtd('${idStr}',-1)" class="w-7 h-7 bg-white dark:bg-gray-600 rounded-lg text-gray-400 dark:text-white font-bold shadow-sm text-xs active:scale-90 transition">-</button>
-                                        <span id="qtd-${idStr}" class="contador-num text-xs font-bold">0</span>
-                                        <button onclick="addQtd('${idStr}',1)" class="w-7 h-7 bg-white dark:bg-gray-600 rounded-lg text-green-600 font-bold shadow-sm text-xs active:scale-90 transition">+</button>
-                                    </div>
-                                </div>
-                            `;
+                            controlesHtml = `<div class="flex justify-between items-end mt-2 w-full"><div class="flex flex-col">${isPromo ? `<span class="text-[10px] text-gray-400 line-through">R$ ${p.price.toFixed(2)}</span>` : ''}<span class="text-orange-600 dark:text-orange-500 font-black text-base">R$ ${precoBase.toFixed(2).replace('.',',')}</span></div><div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-700 rounded-xl p-1 shadow-inner"><button onclick="addQtd('${idStr}',-1)" class="w-7 h-7 bg-white dark:bg-gray-600 rounded-lg text-gray-400 dark:text-white font-bold shadow-sm text-xs active:scale-90 transition">-</button><span id="qtd-${idStr}" class="contador-num text-xs font-bold">0</span><button onclick="addQtd('${idStr}',1)" class="w-7 h-7 bg-white dark:bg-gray-600 rounded-lg text-green-600 font-bold shadow-sm text-xs active:scale-90 transition">+</button></div></div>`;
                         }
-
-                        html += `<div class="prod-item bg-white dark:bg-gray-800 p-3 rounded-[1.5rem] flex gap-3 shadow-soft border border-transparent dark:border-gray-700 transition-all hover:shadow-md" data-nome="${escapeHtml(p.name.toLowerCase())}">
-                            <div class="w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-2xl flex-shrink-0 overflow-hidden relative group">
-                                <img src="${imgUrl}" onerror="this.onerror=null;this.src='${placeholder}';" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                                ${isPromo ? '<span class="absolute top-0 left-0 bg-red-600 text-white text-[8px] font-bold px-2 py-1 rounded-br-xl shadow-md">OFERTA</span>' : ''}
-                            </div>
-                            <div class="flex-grow py-1 flex flex-col justify-between">
-                                <div>
-                                    <h3 class="font-bold text-gray-800 dark:text-white leading-tight text-sm">${escapeHtml(p.name)}</h3>
-                                    <p class="text-[10px] text-gray-400 line-clamp-2 mt-1 font-medium leading-relaxed">${escapeHtml(p.description||'Delicioso e feito na hora.')}</p>
-                                </div>
-                                ${controlesHtml}
-                            </div>
-                        </div>`;
+                        html += `<div class="prod-item bg-white dark:bg-gray-800 p-3 rounded-[1.5rem] flex gap-3 shadow-soft border border-transparent dark:border-gray-700 transition-all hover:shadow-md" data-nome="${escapeHtml(p.name.toLowerCase())}"><div class="w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-2xl flex-shrink-0 overflow-hidden relative group"><img src="${imgUrl}" onerror="this.onerror=null;this.src='${placeholder}';" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">${isPromo ? '<span class="absolute top-0 left-0 bg-red-600 text-white text-[8px] font-bold px-2 py-1 rounded-br-xl shadow-md">OFERTA</span>' : ''}</div><div class="flex-grow py-1 flex flex-col justify-between"><div><h3 class="font-bold text-gray-800 dark:text-white leading-tight text-sm">${escapeHtml(p.name)}</h3><p class="text-[10px] text-gray-400 line-clamp-2 mt-1 font-medium leading-relaxed">${escapeHtml(p.description||'Delicioso e feito na hora.')}</p></div>${controlesHtml}</div></div>`;
                     });
                     html += `</div></div>`;
                     htmlFinal += html;
@@ -461,6 +406,39 @@
             renderizarListaCheckout();
             calcularTotalCheckout(); 
             document.getElementById('modal-checkout').classList.remove('hidden'); 
+
+            // --- AUTO-PREENCHIMENTO DE ENDEREÇO ---
+            if(dadosCliente && dadosCliente.address) {
+                const fullAddr = dadosCliente.address; // Ex: "Rua das Flores, 123 - Centro (Casa)"
+                
+                // 1. Tentar achar o Bairro no Select
+                const selectBairro = document.getElementById('select-bairro');
+                
+                for(let i=0; i<selectBairro.options.length; i++) {
+                    const textoOpcao = selectBairro.options[i].text.split(' (+')[0]; // Pega só o nome do bairro
+                    if(fullAddr.toLowerCase().includes(textoOpcao.toLowerCase())) {
+                        selectBairro.selectedIndex = i;
+                        break;
+                    }
+                }
+
+                // 2. Separar Rua e Número
+                const partes = fullAddr.split(',');
+                if(partes.length >= 2) {
+                    document.getElementById('input-rua').value = partes[0].trim();
+                    // O número geralmente vem após a primeira vírgula, antes do hífen
+                    const resto = partes[1].trim(); 
+                    const numero = resto.split('-')[0].trim();
+                    document.getElementById('input-numero').value = numero;
+                } else {
+                    // Fallback: se não tiver vírgula, joga tudo na rua
+                    if(!document.getElementById('input-rua').value) {
+                        document.getElementById('input-rua').value = fullAddr;
+                    }
+                }
+                
+                calcularTotalCheckout();
+            }
         }
 
         function renderizarListaCheckout() {
@@ -472,13 +450,12 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-
                     let nomeItem = escapeHtml(p.name);
                     let precoUnit = p.on_sale ? p.sale_price : p.price;
 
                     if(parts[1] !== undefined) {
+                        let variants = p.variants;
+                        if(typeof variants === 'string') variants = JSON.parse(variants);
                         const variantIdx = parts[1];
                         if(variants && variants[variantIdx]) {
                             nomeItem += ` <strong class="text-orange-500">(${escapeHtml(variants[variantIdx].qtd)} un)</strong>`;
@@ -516,10 +493,8 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    // Parse seguro
                     let variants = p.variants;
                     if(typeof variants === 'string') variants = JSON.parse(variants);
-
                     let preco = p.on_sale ? p.sale_price : p.price;
                     if(parts[1] !== undefined && variants && variants[parts[1]]) {
                         preco = Number(variants[parts[1]].price);
@@ -547,7 +522,6 @@
             const {data:{session}} = await _supabase.auth.getSession();
             if(!session) return mostrarToast("Sessão expirou. Login necessário.", "erro");
             
-            // VALIDAÇÃO RIGOROSA DO ENDEREÇO
             if(estadoCheckout.tipoEntrega==='entrega') { 
                 const bairro = document.getElementById('select-bairro').value; 
                 const rua = document.getElementById('input-rua').value.trim();
@@ -556,7 +530,6 @@
 
                 if(!bairro || bairro === "0" || !rua || !num || !ref) return mostrarToast("Preencha Rua, Nº e Ponto de Referência!", "erro"); 
                 
-                // Monta endereço completo para salvar
                 var enderecoCompleto = `${rua}, Nº ${num} - Ref: ${ref}`;
             }
 
@@ -565,8 +538,20 @@
             if(estadoCheckout.pagamento === 'pix' && !document.getElementById('check-pagou-pix').checked) return mostrarToast("Confirme que pagou o Pix!", "erro");
 
             const totalStr=document.getElementById('val-total').innerText;
-            let msg = `*NOVO PEDIDO* 🛒\n-----------------\n`;
             
+            // --- MENSAGEM WHATSAPP OTIMIZADA E LIMPA ---
+            let msg = `🔔 *NOVO PEDIDO ONLINE*\n`;
+            msg += `📅 ${new Date().toLocaleString('pt-BR')}\n`;
+            msg += `───────────────────\n`;
+            
+            // Cliente
+            msg += `👤 *CLIENTE*\n`;
+            msg += `Nome: *${dadosCliente ? dadosCliente.name : 'Visitante'}*\n`;
+            if(dadosCliente && dadosCliente.phone) msg += `Tel: ${dadosCliente.phone}\n`;
+            msg += `───────────────────\n`;
+
+            // Itens
+            msg += `🛒 *ITENS DO PEDIDO*\n`;
             for(const [key,qtd] of Object.entries(carrinho)){
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
@@ -574,35 +559,51 @@
                     if(parts[1] !== undefined) {
                         let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
                         if(variants && variants[parts[1]]) {
-                            msg += `${qtd}x ${p.name} *(${variants[parts[1]].qtd} un)*\n`;
+                            msg += `▪️ ${qtd}x ${p.name} *(${variants[parts[1]].qtd} un)*\n`;
                         } else {
-                            msg += `${qtd}x ${p.name}\n`;
+                            msg += `▪️ ${qtd}x ${p.name}\n`;
                         }
                     } else {
-                        msg += `${qtd}x ${p.name}\n`;
+                        msg += `▪️ ${qtd}x ${p.name}\n`;
                     }
                 }
             }
+            msg += `───────────────────\n`;
 
-            msg += `-----------------\n*Entrega:* ${estadoCheckout.tipoEntrega.toUpperCase()}\n`;
-            if(estadoCheckout.tipoEntrega==='entrega'){
-                const s=document.getElementById('select-bairro');
+            // Entrega
+            msg += `🛵 *ENTREGA / RETIRADA*\n`;
+            if(estadoCheckout.tipoEntrega === 'entrega'){
+                const s = document.getElementById('select-bairro');
                 const bairroNome = s.options[s.selectedIndex].text.split(' (+')[0];
-                msg += `📍 *Endereço:* ${enderecoCompleto}\n*Bairro:* ${bairroNome}\n`;
+                const rua = document.getElementById('input-rua').value;
+                const num = document.getElementById('input-numero').value;
+                const ref = document.getElementById('input-ref').value;
+                
+                msg += `📍 Bairro: *${bairroNome}*\n`;
+                msg += `🏠 Rua: ${rua}, Nº ${num}\n`; // Correção aqui: Sem "Nº Nº"
+                msg += `📝 Ref: ${ref}\n`;
+            } else {
+                msg += `🥡 *RETIRADA NO BALCÃO*\n`;
             }
-            msg += `*Pagamento:* ${estadoCheckout.pagamento.toUpperCase()}\n`;
-            if(estadoCheckout.pagamento==='dinheiro')msg+=`Troco p/ ${document.getElementById('input-troco').value}\n`;
-            msg += `\n💰 *TOTAL: ${totalStr}*`;
-            if(dadosCliente) msg += `\n👤 Cliente: ${dadosCliente.name}`;
+            
+            msg += `───────────────────\n`;
+
+            // Pagamento e Totais
+            msg += `💰 *PAGAMENTO*\n`;
+            msg += `Forma: *${estadoCheckout.pagamento.toUpperCase()}*\n`;
+            if(estadoCheckout.pagamento === 'dinheiro') msg += `Troco para: R$ ${document.getElementById('input-troco').value}\n`;
+            
+            msg += `\n*TOTAL FINAL: ${totalStr}*`;
 
             await _supabase.from('orders').insert([{
                 user_id: session?session.user.id:null,
                 items: carrinho,
-                total_amount: parseFloat(totalStr.replace('R$ ','')),
+                total_amount: parseFloat(totalStr.replace('R$ ','').replace('.','').replace(',','.')),
                 payment_method: estadoCheckout.pagamento,
                 delivery_type: estadoCheckout.tipoEntrega,
                 address: estadoCheckout.tipoEntrega === 'entrega' ? enderecoCompleto : 'Retirada',
-                customer_name: dadosCliente?dadosCliente.name:'Visitante'
+                customer_name: dadosCliente?dadosCliente.name:'Visitante',
+                status: 'pendente'
             }]);
             
             window.open(`https://wa.me/55${CHAVE_PIX_OFICIAL}?text=${encodeURIComponent(msg)}`,'_blank');

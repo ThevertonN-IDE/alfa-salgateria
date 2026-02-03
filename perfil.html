@@ -18,11 +18,14 @@
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+        /* Animação do Modal */
+        @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .animate-scale { animation: scaleUp 0.2s ease-out forwards; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white min-h-screen pb-24 transition-colors duration-300">
 
-    <header class="bg-orange-600 h-48 rounded-b-[3rem] shadow-lg relative z-10">
+    <header class="bg-orange-600 dark:bg-gray-800 h-48 rounded-b-[3rem] shadow-lg relative z-10 transition-colors duration-300">
         <div class="px-6 pt-8 flex justify-between items-start text-white">
             <a href="index.html" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition backdrop-blur-md shadow-sm">
                 <i class="fas fa-arrow-left"></i>
@@ -38,11 +41,11 @@
 
     <main class="max-w-md mx-auto px-4 relative z-20 -mt-16">
         
-        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-6 pt-0 mb-6">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-6 pt-0 mb-6 transition-colors duration-300">
             
             <div class="flex flex-col items-center -mt-12 mb-6">
                 <div class="relative group cursor-pointer" onclick="document.getElementById('input-foto-perfil').click()">
-                    <div class="w-24 h-24 rounded-full border-4 border-white dark:border-gray-800 shadow-md bg-orange-500 flex items-center justify-center overflow-hidden">
+                    <div class="w-24 h-24 rounded-full border-4 border-white dark:border-gray-700 shadow-md bg-orange-500 flex items-center justify-center overflow-hidden transition-colors duration-300">
                         <img id="img-avatar" src="" class="w-full h-full object-cover hidden">
                         <span id="txt-iniciais" class="text-3xl font-bold text-white">?</span>
                     </div>
@@ -57,7 +60,7 @@
 
             <div class="space-y-4">
                 
-                <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-xl border border-gray-200 dark:border-gray-700 transition-colors duration-300">
                     <div class="flex justify-between items-center mb-1">
                         <label class="text-[10px] font-bold text-gray-400 uppercase">E-mail de Acesso</label>
                         <span id="badge-verificado" class="hidden text-[9px] font-bold bg-green-100 text-green-600 px-2 py-0.5 rounded-full uppercase">Verificado</span>
@@ -71,17 +74,17 @@
 
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Nome Completo</label>
-                    <input type="text" id="perfil-nome" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition">
+                    <input type="text" id="perfil-nome" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition text-gray-800 dark:text-white">
                 </div>
 
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Celular / WhatsApp</label>
-                    <input type="tel" id="perfil-phone" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition">
+                    <input type="tel" id="perfil-phone" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition text-gray-800 dark:text-white">
                 </div>
 
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Endereço Principal</label>
-                    <textarea id="perfil-endereco" rows="2" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition resize-none"></textarea>
+                    <textarea id="perfil-endereco" rows="2" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition resize-none text-gray-800 dark:text-white"></textarea>
                 </div>
 
                 <button onclick="salvarPerfil()" id="btn-salvar" class="w-full bg-green-600 text-white py-3.5 rounded-xl font-black text-sm shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition flex items-center justify-center gap-2">
@@ -118,6 +121,29 @@
         </div>
 
     </main>
+
+    <div id="modal-logout" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-[2rem] shadow-2xl p-6 w-full max-w-xs text-center animate-scale relative border border-gray-100 dark:border-gray-700">
+            
+            <div class="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 shadow-inner">
+                <i class="fas fa-sign-out-alt text-2xl"></i>
+            </div>
+            
+            <h3 class="text-xl font-black text-gray-800 dark:text-white mb-2 tracking-tight">Sair da Conta?</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium leading-relaxed">
+                Você precisará fazer login novamente para acompanhar seus pedidos e acessar seus dados.
+            </p>
+            
+            <div class="flex gap-3">
+                <button onclick="fecharModalLogout()" class="flex-1 py-3.5 rounded-xl font-bold text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition active:scale-95">
+                    CANCELAR
+                </button>
+                <button onclick="confirmarLogout()" class="flex-1 py-3.5 rounded-xl font-bold text-xs bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200/50 dark:shadow-none transition active:scale-95">
+                    SIM, SAIR
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // --- SEGURANÇA (Anti-XSS) ---
@@ -177,7 +203,7 @@
             const input = document.getElementById('perfil-email');
             input.disabled = false;
             input.focus();
-            input.classList.remove('bg-transparent', 'text-gray-600');
+            input.classList.remove('bg-transparent', 'text-gray-600', 'dark:text-gray-300');
             input.classList.add('bg-white', 'text-gray-800', 'border-orange-500');
             document.getElementById('msg-email-change').classList.remove('hidden');
             mostrarToast("Edite o e-mail e clique em Salvar", "info");
@@ -258,7 +284,7 @@
                 if(st === 'cancelado') statusClass = "bg-red-100 text-red-700 border-red-200";
 
                 lista.innerHTML += `
-                    <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition">
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-colors duration-300">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-[10px] font-bold text-gray-400">${data}</span>
                             <span class="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border ${statusClass}">${escapeHtml(p.status || 'Pendente')}</span>
@@ -292,13 +318,11 @@
                 return;
             }
 
-            // 1. Atualiza Dados do Cliente (Tabela Pública)
             const { error } = await _supabase.from('clients').update({ name: nome, phone: phone, address: address }).eq('id', userId);
 
             if(error) {
                 mostrarToast("Erro ao salvar dados", "erro");
             } else {
-                // 2. Atualiza E-mail (Auth) - Se mudou
                 if (emailNovo !== userEmailOriginal) {
                     const { error: authError } = await _supabase.auth.updateUser({ email: emailNovo });
                     if (authError) {
@@ -316,11 +340,25 @@
             btn.innerHTML = originalText;
         }
 
-        async function logout() {
-            if(confirm("Sair da conta?")) {
-                await _supabase.auth.signOut();
-                window.location.href = 'index.html';
-            }
+        // --- LÓGICA DE LOGOUT (MODAL) ---
+        function logout() {
+            // Abre o modal em vez de usar confirm()
+            const modal = document.getElementById('modal-logout');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function fecharModalLogout() {
+            const modal = document.getElementById('modal-logout');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function confirmarLogout() {
+            // Fecha modal e executa logout
+            fecharModalLogout();
+            await _supabase.auth.signOut();
+            window.location.href = 'index.html';
         }
         
         async function excluirConta() {
