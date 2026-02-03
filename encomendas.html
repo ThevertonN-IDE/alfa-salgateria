@@ -75,7 +75,12 @@
                     <select id="sel-bairro-encomenda" onchange="verificarSinal()" class="w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-orange-500 font-medium appearance-none">
                         <option value="0">Selecione o Bairro...</option>
                         </select>
-                    <input type="text" id="input-rua-encomenda" onkeyup="verificarSinal()" placeholder="Rua, Número e Ponto de Ref." class="w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-orange-500 font-medium">
+                    
+                    <div class="grid grid-cols-4 gap-2">
+                        <input type="text" id="input-rua-encomenda" onkeyup="verificarSinal()" placeholder="Logradouro (Rua/Av.)" class="col-span-3 w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-orange-500 font-medium">
+                        <input type="text" id="input-numero-encomenda" onkeyup="verificarSinal()" placeholder="Nº" class="col-span-1 w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-orange-500 font-medium text-center">
+                    </div>
+                    <input type="text" id="input-ref-encomenda" onkeyup="verificarSinal()" placeholder="Ponto de Referência (Obrigatório)" class="w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-orange-500 font-medium">
                 </div>
 
                 <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
@@ -154,18 +159,23 @@
     </div>
 
     <script>
-        // --- SEGURANÇA E CONFIG ---
+        // --- SEGURANÇA ---
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         const CHAVE_PIX_ENC = "84987371966"; 
         const WHATSAPP_LOJA = "5584987371966"; 
         
         document.getElementById('chave-pix-display').innerText = CHAVE_PIX_ENC;
 
-        function escapeHtml(text) {
-            if (!text) return text;
-            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
-        // Recupera tema
+        // Recupera tema do index.html
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
@@ -447,8 +457,12 @@
             const data = document.getElementById('data-festa').value;
             const hora = document.getElementById('hora-festa').value;
             const temArquivo = document.getElementById('foto-comprovante').files.length > 0;
-            const ruaPreenchida = document.getElementById('input-rua-encomenda').value.trim().length > 3;
-
+            
+            // VALIDAÇÃO DETALHADA DE ENDEREÇO
+            const rua = document.getElementById('input-rua-encomenda').value.trim();
+            const num = document.getElementById('input-numero-encomenda').value.trim();
+            const ref = document.getElementById('input-ref-encomenda').value.trim();
+            
             document.getElementById('resumo-produtos').innerText = `R$ ${totalProdutos.toFixed(2)}`;
             document.getElementById('resumo-taxa').innerText = `R$ ${taxaEntrega.toFixed(2)}`;
             document.getElementById('resumo-total').innerText = `R$ ${totalGeral.toFixed(2)}`;
@@ -459,7 +473,7 @@
             
             let msgErro = "";
 
-            if (tipoEntregaAtual === 'entrega' && (taxaEntrega === 0 || !ruaPreenchida)) msgErro = "INFORME O ENDEREÇO";
+            if (tipoEntregaAtual === 'entrega' && (taxaEntrega === 0 || !rua || !num || !ref)) msgErro = "PREENCHA ENDEREÇO COMPLETO";
             else if (!data || !hora) msgErro = "ESCOLHA DATA E HORA";
             else if (valorPago < minimoSinal) msgErro = `SINAL MÍNIMO: R$ ${minimoSinal.toFixed(2)}`;
             else if (!temArquivo) msgErro = "ANEXE O COMPROVANTE";
@@ -507,16 +521,21 @@
                 const valorPago = document.getElementById('valor-pago-input').value;
                 const totalGeral = document.getElementById('resumo-total').innerText;
                 
-                // Mensagem WhatsApp
+                // Endereço Completo
+                const rua = document.getElementById('input-rua-encomenda').value;
+                const num = document.getElementById('input-numero-encomenda').value;
+                const ref = document.getElementById('input-ref-encomenda').value;
+                const enderecoCompleto = `${rua}, Nº ${num} - Ref: ${ref}`;
+
+                // Monta Mensagem WhatsApp
                 let msg = `*NOVA ENCOMENDA AGENDADA* 📅\n`;
                 msg += `-----------------\n`;
                 
                 if(tipoEntregaAtual === 'entrega') {
                     const sel = document.getElementById('sel-bairro-encomenda');
                     const bairroNome = sel.options[sel.selectedIndex].text.split(' (+')[0];
-                    const rua = document.getElementById('input-rua-encomenda').value;
                     msg += `🛵 *ENTREGA:* ${dataFesta} às ${hora}\n`;
-                    msg += `📍 ${rua} - ${bairroNome}\n`;
+                    msg += `📍 *Endereço:* ${enderecoCompleto}\n*Bairro:* ${bairroNome}\n`;
                 } else {
                     msg += `🥡 *RETIRADA:* ${dataFesta} às ${hora}\n`;
                 }
@@ -558,7 +577,7 @@
                     payment_method: 'pix_sinal',
                     delivery_type: tipoEntregaAtual,
                     proof_url: proofUrl,
-                    address: tipoEntregaAtual === 'entrega' ? escapeHtml(document.getElementById('input-rua-encomenda').value) : 'Retirada',
+                    address: tipoEntregaAtual === 'entrega' ? enderecoCompleto : 'Retirada',
                     customer_name: 'Encomenda Web'
                 }]);
 

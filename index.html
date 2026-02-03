@@ -115,7 +115,7 @@
     </div>
 
     <div id="modal-checkout" class="fixed inset-0 bg-black/60 z-[60] hidden flex justify-end flex-col backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-900 w-full h-[85vh] rounded-t-[2.5rem] p-5 overflow-y-auto animate-up shadow-2xl relative">
+        <div class="bg-white dark:bg-gray-900 w-full h-[85vh] rounded-t-[2.5rem] p-6 overflow-y-auto animate-up shadow-2xl relative">
             <button onclick="fecharCheckout()" class="absolute top-5 right-5 bg-gray-100 dark:bg-gray-800 w-10 h-10 rounded-full text-gray-500 font-bold hover:bg-gray-200 transition flex items-center justify-center shadow-sm"><i class="fas fa-times"></i></button>
             
             <h2 class="text-2xl font-black text-orange-600 dark:text-orange-500 mb-6 uppercase flex items-center gap-2"><i class="fas fa-shopping-cart"></i> Carrinho</h2>
@@ -137,7 +137,12 @@
                 </div>
                 <div id="box-entrega" class="space-y-2">
                     <select id="select-bairro" onchange="calcularTotalCheckout()" class="w-full p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-transparent focus:border-orange-500 outline-none font-bold text-gray-700 dark:text-white text-sm transition appearance-none"><option value="0">Selecione Bairro...</option></select>
-                    <input type="text" id="input-endereco" placeholder="Endereço Completo (Rua, Nº, Comp.)" class="w-full p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold text-gray-700 dark:text-white text-sm transition border-2 border-transparent focus:border-orange-500">
+                    
+                    <div class="grid grid-cols-4 gap-2">
+                        <input type="text" id="input-rua" placeholder="Logradouro (Rua/Av.)" class="col-span-3 w-full p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold text-gray-700 dark:text-white text-sm transition border-2 border-transparent focus:border-orange-500">
+                        <input type="text" id="input-numero" placeholder="Nº" class="col-span-1 w-full p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold text-gray-700 dark:text-white text-sm transition border-2 border-transparent focus:border-orange-500 text-center">
+                    </div>
+                    <input type="text" id="input-ref" placeholder="Ponto de Referência (Obrigatório)" class="w-full p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none font-bold text-gray-700 dark:text-white text-sm transition border-2 border-transparent focus:border-orange-500">
                 </div>
                 <div id="aviso-retirada" class="hidden bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-xl text-yellow-700 dark:text-yellow-400 text-[10px] font-bold text-center border border-yellow-200 dark:border-yellow-800"><i class="fas fa-exclamation-triangle mr-1"></i> Retirada exige pagamento antecipado no Pix.</div>
             </div>
@@ -170,7 +175,6 @@
                 <div class="flex justify-between text-green-500"><span>Desconto</span> <span id="val-desconto" class="font-bold">- R$ 0,00</span></div>
                 <div class="border-t border-dashed border-gray-300 dark:border-gray-600 my-2 pt-2 flex justify-between text-xl font-black text-gray-800 dark:text-white"><span>TOTAL</span> <span id="val-total">R$ 0,00</span></div>
             </div>
-            
             <button id="btn-finalizar" onclick="finalizarPedido()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-green-200 dark:shadow-none fixed bottom-5 left-5 right-5 max-w-[calc(100%-2.5rem)] mx-auto active:scale-95 transition-transform hover:bg-green-700 flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed">ENVIAR PEDIDO <i class="fab fa-whatsapp"></i></button>
         </div>
     </div>
@@ -193,58 +197,73 @@
         let carrinho={}, produtosDb=[], categoriasDb=[], taxasDb=[], estadoCheckout={tipoEntrega:'entrega',pagamento:null,cupom:null}, dadosCliente=null, isLojaAberta = true;
 
         async function init() {
-            const imgEl = document.getElementById('logo-loja');
-            const fallbackLogo = "https://placehold.co/100/ea580c/white?text=Alfa";
-            imgEl.onerror = () => { imgEl.src = fallbackLogo; };
-            if(typeof CONFIG !== 'undefined' && CONFIG.logo) imgEl.src = CONFIG.logo;
+            try {
+                // FALLBACK IMEDIATO DO LOGO PARA EVITAR PISCAR
+                const imgEl = document.getElementById('logo-loja');
+                const fallbackLogo = "https://placehold.co/100/ea580c/white?text=Alfa";
+                imgEl.onerror = () => { imgEl.src = fallbackLogo; };
 
-            // Auth code...
-            const params = new URLSearchParams(window.location.search);
-            const token_hash = params.get('token_hash');
-            const type = params.get('type');
-            if (token_hash && type) {
-                mostrarToast("Validando...", "info");
-                const { error } = await _supabase.auth.verifyOtp({ token_hash, type });
-                if (!error) {
-                    mostrarToast("E-mail confirmado!");
+                // AUTH
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('token_hash')) {
+                    mostrarToast("Validando...", "info");
+                    await _supabase.auth.verifyOtp({ token_hash: params.get('token_hash'), type: params.get('type') });
                     window.history.replaceState(null, null, window.location.pathname);
-                    setTimeout(() => window.location.href = 'perfil.html', 1500);
+                    setTimeout(() => window.location.href = 'perfil.html', 1000);
                     return;
                 }
-            }
 
-            const {data:config} = await _supabase.from('store_config').select('*').limit(1);
-            if(config && config.length) {
-                document.getElementById('tempo-entrega-display').innerText = config[0].delivery_estimate || '-- min';
-                if(config[0].logo_url && config[0].logo_url.length > 5) imgEl.src = config[0].logo_url;
+                const {data:{session}} = await _supabase.auth.getSession();
                 
-                isLojaAberta = config[0].is_open;
-                const badge = document.getElementById('status-badge');
-                if(isLojaAberta) {
-                    badge.innerText = "ABERTO"; badge.classList.remove('bg-red-600'); badge.classList.add('bg-green-500', 'status-pulse');
-                } else {
-                    badge.innerText = "FECHADO"; badge.classList.remove('bg-green-500', 'status-pulse'); badge.classList.add('bg-red-600');
-                    const btn = document.getElementById('btn-ver-carrinho');
-                    btn.classList.replace('bg-green-600', 'bg-gray-500');
-                    btn.classList.add('cursor-not-allowed');
-                    btn.innerHTML = `LOJA FECHADA <i class="fas fa-lock ml-2"></i>`;
+                // LÓGICA DE CORES DO USUÁRIO (VERDE OU ROXO)
+                if(session){
+                    const areaUser = document.getElementById('area-usuario');
+                    areaUser.classList.remove('bg-white/20'); // Tira o padrão
+                    areaUser.classList.add('border-transparent');
+                    areaUser.onclick = null; 
+                    document.getElementById('btn-perfil').classList.remove('hidden');
+                    
+                    const {data} = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
+                    if(data){
+                        dadosCliente = data;
+                        document.getElementById('nome-cliente').innerText = `Olá, ${escapeHtml(data.name.split(' ')[0])}`;
+                        
+                        // COR DO BOTÃO: ADMIN = ROXO, CLIENTE = VERDE
+                        if (data.is_admin) {
+                            areaUser.classList.add('bg-purple-600', 'text-white');
+                        } else {
+                            areaUser.classList.add('bg-green-600', 'text-white');
+                        }
+                    }
                 }
-            }
 
-            await Promise.all([carregarDados(), carregarTaxas()]);
-            recuperarCarrinho();
-            
-            const {data:{session}} = await _supabase.auth.getSession();
-            if(session){
-                const areaUser = document.getElementById('area-usuario');
-                areaUser.classList.add('bg-green-600','border-transparent');
-                areaUser.onclick = null; 
-                document.getElementById('btn-perfil').classList.remove('hidden');
-                const{data}=await _supabase.from('clients').select('*').eq('id',session.user.id).single();
-                if(data){
-                    dadosCliente=data; document.getElementById('nome-cliente').innerText=`Olá, ${escapeHtml(data.name.split(' ')[0])}`;
-                    if(data.address) document.getElementById('input-endereco').value=data.address;
+                // CARREGAMENTO DE DADOS (COM TRY/CATCH PARA NÃO TRAVAR O LOADING)
+                const {data:config} = await _supabase.from('store_config').select('*').limit(1);
+                if(config && config.length) {
+                    document.getElementById('tempo-entrega-display').innerText = config[0].delivery_estimate || '-- min';
+                    if(config[0].logo_url && config[0].logo_url.length > 5) imgEl.src = config[0].logo_url;
+                    
+                    isLojaAberta = config[0].is_open;
+                    const badge = document.getElementById('status-badge');
+                    if(isLojaAberta) {
+                        badge.innerText = "ABERTO"; badge.classList.remove('bg-red-600'); badge.classList.add('bg-green-500', 'status-pulse');
+                    } else {
+                        badge.innerText = "FECHADO"; badge.classList.remove('bg-green-500', 'status-pulse'); badge.classList.add('bg-red-600');
+                        const btn = document.getElementById('btn-ver-carrinho');
+                        btn.classList.replace('bg-green-600', 'bg-gray-500');
+                        btn.classList.add('cursor-not-allowed');
+                        btn.innerHTML = `LOJA FECHADA <i class="fas fa-lock ml-2"></i>`;
+                    }
                 }
+
+                await Promise.all([carregarDados(), carregarTaxas()]);
+                recuperarCarrinho();
+
+            } catch (error) {
+                console.error("Erro na inicialização:", error);
+                // Destrava o skeleton se der erro
+                document.getElementById('skeleton').classList.add('hidden');
+                mostrarToast("Erro ao conectar. Verifique internet.", "erro");
             }
         }
 
@@ -399,17 +418,12 @@
             let total=0; let qtd=0; 
             for(const[key, q] of Object.entries(carrinho)){ 
                 const parts = key.split('__');
-                const prodId = parts[0];
-                const variantIdx = parts[1];
-
-                const p = produtosDb.find(x => String(x.id) === String(prodId));
+                const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){ 
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-
                     let preco = p.on_sale ? p.sale_price : p.price;
-                    if(variantIdx !== undefined && variants && variants[variantIdx]) {
-                        preco = Number(variants[variantIdx].price);
+                    if(parts[1] !== undefined) {
+                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+                        if(variants && variants[parts[1]]) preco = Number(variants[parts[1]].price);
                     }
                     total += preco * q;
                     qtd += q; 
@@ -520,6 +534,7 @@
             document.getElementById('val-entrega').innerText=`R$ ${ent.toFixed(2)}`; 
             document.getElementById('val-desconto').innerText=`- R$ ${desc.toFixed(2)}`; 
             document.getElementById('val-total').innerText=`R$ ${tot.toFixed(2)}`; 
+            if(tot>0 && window.gerarPix && estadoCheckout.pagamento === 'pix'){const p=window.gerarPix(tot); document.getElementById('pix-copia-cola').value=p; if(window.iniciarTimerPix) window.iniciarTimerPix('timer-pix', 30);}
         }
 
         function copiarPix(){const t=document.getElementById('pix-copia-cola');t.select();document.execCommand('copy');mostrarToast("Copiado!"); document.getElementById('area-confirmacao-pix').classList.remove('hidden');}
@@ -531,7 +546,20 @@
             if(!isLojaAberta) return mostrarToast("Loja Fechada!", "erro");
             const {data:{session}} = await _supabase.auth.getSession();
             if(!session) return mostrarToast("Sessão expirou. Login necessário.", "erro");
-            if(estadoCheckout.tipoEntrega==='entrega') { const bairro = document.getElementById('select-bairro').value; const rua = document.getElementById('input-endereco').value; if(!bairro || bairro === "0" || !rua) return mostrarToast("Informe seu Bairro e Endereço!", "erro"); }
+            
+            // VALIDAÇÃO RIGOROSA DO ENDEREÇO
+            if(estadoCheckout.tipoEntrega==='entrega') { 
+                const bairro = document.getElementById('select-bairro').value; 
+                const rua = document.getElementById('input-rua').value.trim();
+                const num = document.getElementById('input-numero').value.trim();
+                const ref = document.getElementById('input-ref').value.trim();
+
+                if(!bairro || bairro === "0" || !rua || !num || !ref) return mostrarToast("Preencha Rua, Nº e Ponto de Referência!", "erro"); 
+                
+                // Monta endereço completo para salvar
+                var enderecoCompleto = `${rua}, Nº ${num} - Ref: ${ref}`;
+            }
+
             if(!estadoCheckout.pagamento) return mostrarToast("Escolha a forma de pagamento!", "erro");
             if(estadoCheckout.pagamento==='dinheiro' && !document.getElementById('input-troco').value) return mostrarToast("Informe o troco!", "erro");
             if(estadoCheckout.pagamento === 'pix' && !document.getElementById('check-pagou-pix').checked) return mostrarToast("Confirme que pagou o Pix!", "erro");
@@ -543,12 +571,13 @@
                 const parts = key.split('__');
                 const p = produtosDb.find(x => String(x.id) === String(parts[0]));
                 if(p){
-                    // Parse seguro
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-
-                    if(parts[1] !== undefined && variants && variants[parts[1]]) {
-                        msg += `${qtd}x ${p.name} *(${variants[parts[1]].qtd} un)*\n`;
+                    if(parts[1] !== undefined) {
+                        let variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+                        if(variants && variants[parts[1]]) {
+                            msg += `${qtd}x ${p.name} *(${variants[parts[1]].qtd} un)*\n`;
+                        } else {
+                            msg += `${qtd}x ${p.name}\n`;
+                        }
                     } else {
                         msg += `${qtd}x ${p.name}\n`;
                     }
@@ -556,13 +585,26 @@
             }
 
             msg += `-----------------\n*Entrega:* ${estadoCheckout.tipoEntrega.toUpperCase()}\n`;
-            if(estadoCheckout.tipoEntrega==='entrega'){const s=document.getElementById('select-bairro');msg+=`📍 ${document.getElementById('input-endereco').value}\n(${s.options[s.selectedIndex].text})\n`;}
+            if(estadoCheckout.tipoEntrega==='entrega'){
+                const s=document.getElementById('select-bairro');
+                const bairroNome = s.options[s.selectedIndex].text.split(' (+')[0];
+                msg += `📍 *Endereço:* ${enderecoCompleto}\n*Bairro:* ${bairroNome}\n`;
+            }
             msg += `*Pagamento:* ${estadoCheckout.pagamento.toUpperCase()}\n`;
             if(estadoCheckout.pagamento==='dinheiro')msg+=`Troco p/ ${document.getElementById('input-troco').value}\n`;
             msg += `\n💰 *TOTAL: ${totalStr}*`;
             if(dadosCliente) msg += `\n👤 Cliente: ${dadosCliente.name}`;
 
-            await _supabase.from('orders').insert([{user_id:session?session.user.id:null,items:carrinho,total_amount:parseFloat(totalStr.replace('R$ ','')),payment_method:estadoCheckout.pagamento,delivery_type:estadoCheckout.tipoEntrega,address:document.getElementById('input-endereco').value,customer_name:dadosCliente?dadosCliente.name:'Visitante'}]);
+            await _supabase.from('orders').insert([{
+                user_id: session?session.user.id:null,
+                items: carrinho,
+                total_amount: parseFloat(totalStr.replace('R$ ','')),
+                payment_method: estadoCheckout.pagamento,
+                delivery_type: estadoCheckout.tipoEntrega,
+                address: estadoCheckout.tipoEntrega === 'entrega' ? enderecoCompleto : 'Retirada',
+                customer_name: dadosCliente?dadosCliente.name:'Visitante'
+            }]);
+            
             window.open(`https://wa.me/55${CHAVE_PIX_OFICIAL}?text=${encodeURIComponent(msg)}`,'_blank');
             localStorage.removeItem('carrinho_alfa'); location.reload();
         }
