@@ -172,6 +172,20 @@
             transition: all 0.2s ease-in-out;
             cursor: pointer;
         }
+
+        /* --- ANIMAÇÃO DE MINIMIZAR CATEGORIAS --- */
+        .cat-content {
+            transition: all 0.3s ease-in-out;
+            transform-origin: top;
+        }
+
+        .cat-content.collapsed {
+            display: none !important;
+        }
+
+        .collapsed-icon {
+            transform: rotate(-90deg);
+        }
     </style>
 </head>
 
@@ -482,6 +496,35 @@
                         user = u;
                         window.updateUserUI(u);
                         checkPedidos(u.id);
+
+                        // 🔔 Pede permissão para enviar Notificações no celular
+                        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                            Notification.requestPermission();
+                        }
+
+                        // 📡 RADAR EM TEMPO REAL: Escuta mudanças nos pedidos deste cliente!
+                        _supabase.channel(`cliente-orders-${u.id}`)
+                            .on('postgres_changes', {
+                                event: 'UPDATE',
+                                schema: 'public',
+                                table: 'orders',
+                                filter: `user_id=eq.${u.id}`
+                            }, payload => {
+                                const statusAntigo = payload.old.status;
+                                const statusNovo = payload.new.status;
+
+                                // Se o status mudou, disparamos a notificação!
+                                if (statusAntigo !== statusNovo) {
+                                    dispararNotificacao(statusNovo, payload.new.id);
+                                    checkPedidos(u.id); // Atualiza a bolinha vermelha
+
+                                    // Se a tela de "Meus Pedidos" estiver aberta, recarrega a lista
+                                    if (!document.getElementById('modal-meus-pedidos').classList.contains('hidden')) {
+                                        abrirMeusPedidos();
+                                    }
+                                }
+                            })
+                            .subscribe();
                     }
                 }
 
@@ -498,7 +541,65 @@
                 document.getElementById('erro-conexao').classList.add('flex');
             }
         }
+        // --- SISTEMA DE NOTIFICAÇÕES NATIVAS ---
+        function dispararNotificacao(status, orderId) {
+            let titulo = "";
+            let mensagem = "";
+            let icone = "info"; // Para o SweetAlert
 
+            const idCurto = orderId.slice(0, 4).toUpperCase();
+
+            switch (status) {
+                case 'preparo':
+                    titulo = "👨‍🍳 Pedido Aceito!";
+                    mensagem = `Seu pedido #${idCurto} já está sendo preparado pela nossa cozinha!`;
+                    icone = "success";
+                    break;
+                case 'saiu_entrega':
+                    titulo = "🛵 Saiu para Entrega!";
+                    mensagem = `O entregador já está a caminho com o seu pedido #${idCurto}. Fique atento!`;
+                    icone = "info";
+                    break;
+                case 'entregue':
+                    titulo = "✅ Pedido Entregue";
+                    mensagem = `Pedido #${idCurto} finalizado. Bom apetite e muito obrigado!`;
+                    icone = "success";
+                    break;
+                case 'cancelado':
+                    titulo = "❌ Pedido Cancelado";
+                    mensagem = `Houve um problema e o pedido #${idCurto} foi cancelado. Confira o chat.`;
+                    icone = "error";
+                    break;
+                default:
+                    return; // Ignora se for 'pendente' ou algum erro
+            }
+
+            // 1. Alerta Bonito na Tela do App (Toast)
+            Swal.fire({
+                toast: true,
+                position: 'top',
+                icon: icone,
+                title: titulo,
+                text: mensagem,
+                showConfirmButton: false,
+                timer: 6000,
+                timerProgressBar: true,
+                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#1f2937'
+            });
+
+            // 2. Notificação Nativa do Celular (Aparece mesmo se o app estiver minimizado, dependendo do sistema)
+            if (Notification.permission === "granted") {
+                // Tenta fazer o celular vibrar (Funciona no Android)
+                if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+
+                new Notification(titulo, {
+                    body: mensagem,
+                    icon: configLoja.logo_url || "https://placehold.co/192x192/ea580c/white?text=App",
+                    badge: configLoja.logo_url
+                });
+            }
+        }
         window.updateUserUI = function (u) {
             const btnLogin = document.getElementById('btn-login-sidebar');
             if (btnLogin) btnLogin.outerHTML = '';
@@ -814,7 +915,7 @@
             const l = document.getElementById('lista-pedidos');
             l.innerHTML = '<div class="text-center mt-10"><i class="fas fa-spinner fa-spin text-orange-500 text-2xl"></i></div>';
 
-            const { data } = await _supabase.from('orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+            const { data } = await _supabase.from('orders').select('*').eq('loja_id', window.LOJA_ID).eq('user_id', user.id).order('created_at', { ascending: false });
             l.innerHTML = '';
 
             if (!data || !data.length) {
@@ -859,7 +960,7 @@
         }
 
         async function checkPedidos(uid) {
-            const { count } = await _supabase.from('orders').select('*', { count: 'exact', head: true }).eq('user_id', uid).neq('status', 'entregue').neq('status', 'cancelado');
+            const { count } = await _supabase.from('orders').select('*', { count: 'exact', head: true }).eq('loja_id', window.LOJA_ID).eq('user_id', uid).neq('status', 'entregue').neq('status', 'cancelado');
             const badge = document.getElementById('badge-pedidos-topo');
             if (count > 0 && badge) {
                 badge.classList.remove('hidden');
