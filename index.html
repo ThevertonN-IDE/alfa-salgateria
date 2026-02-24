@@ -504,21 +504,21 @@
 
                         // 📡 RADAR EM TEMPO REAL: Escuta mudanças nos pedidos deste cliente!
                         _supabase.channel(`cliente-orders-${u.id}`)
-                            .on('postgres_changes', { 
-                                event: 'UPDATE', 
-                                schema: 'public', 
-                                table: 'orders', 
-                                filter: `user_id=eq.${u.id}` 
+                            .on('postgres_changes', {
+                                event: 'UPDATE',
+                                schema: 'public',
+                                table: 'orders',
+                                filter: `user_id=eq.${u.id}`
                             }, payload => {
                                 const statusNovo = payload.new.status;
 
                                 // Dispara a notificação imediatamente com o novo status
                                 dispararNotificacao(statusNovo, payload.new.id);
                                 checkPedidos(u.id);
-                                
+
                                 // Se a tela de "Meus Pedidos" estiver aberta, recarrega a lista sozinha!
                                 if (!document.getElementById('modal-meus-pedidos').classList.contains('hidden')) {
-                                    abrirMeusPedidos(); 
+                                    abrirMeusPedidos();
                                 }
                             })
                             .subscribe();
@@ -586,15 +586,26 @@
             });
 
             // 2. Notificação Nativa do Celular (Aparece mesmo se o app estiver minimizado, dependendo do sistema)
+            // 2. Notificação forçada na BARRA DO SISTEMA via Service Worker (PWA)
             if (Notification.permission === "granted") {
-                // Tenta fazer o celular vibrar (Funciona no Android)
-                if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
-
-                new Notification(titulo, {
-                    body: mensagem,
-                    icon: configLoja.logo_url || "https://placehold.co/192x192/ea580c/white?text=App",
-                    badge: configLoja.logo_url
-                });
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.ready.then(function (registration) {
+                        registration.showNotification(titulo, {
+                            body: mensagem,
+                            icon: configLoja.logo_url || "https://placehold.co/192x192/ea580c/white?text=App",
+                            badge: configLoja.logo_url || "https://placehold.co/192x192/ea580c/white?text=App",
+                            vibrate: [200, 100, 200],
+                            tag: 'pedido-' + orderId, // Agrupa notificações do mesmo pedido
+                            requireInteraction: false
+                        });
+                    });
+                } else {
+                    // Fallback para PC se o PWA não estiver rodando
+                    new Notification(titulo, {
+                        body: mensagem,
+                        icon: configLoja.logo_url || "https://placehold.co/192x192/ea580c/white?text=App"
+                    });
+                }
             }
         }
         window.updateUserUI = function (u) {
