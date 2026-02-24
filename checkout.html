@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ea580c">
+    <title>Finalizar | Alfa Salgateria</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+    <script src="data.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                // Ensinamos o Tailwind a ler a variável de cor da loja
+                extend: { colors: { primary: 'var(--cor-primaria, #ea580c)' } }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* HEADER */
+        .header-bg {
+            background-color: var(--cor-primaria, #ea580c);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .dark .header-bg {
+            background: #1f2937;
+            border-bottom: 1px solid #374151;
+            box-shadow: none;
+        }
+
+        /* FUNDO */
+        .bg-body {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .dark .bg-body {
+            background-color: #111827;
+            color: #f3f4f6;
+        }
+
+        .bg-pattern {
+            background-image: radial-gradient(var(--cor-primaria, #ea580c) 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+            opacity: 0.8;
+        }
+
+        .dark .bg-pattern {
+            background-image: none;
+        }
+
+        /* INPUTS */
+        .input-checkout {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            color: #334155;
+            outline: none;
+            transition: all 0.2s;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .input-checkout:focus {
+            border-color: var(--cor-primaria, #ea580c);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--cor-primaria, #ea580c) 15%, transparent);
+        }
+
+        .dark .input-checkout {
+            background-color: #1f2937;
+            border-color: #374151;
+            color: #ffffff;
+        }
+
+        /* SELECT ESTILIZADO */
+        .custom-select-wrapper {
+            position: relative;
+        }
+
+        .custom-select {
+            appearance: none;
+            background-image: none;
+            cursor: pointer;
+            padding-right: 40px;
+        }
+
+        .custom-select-arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--cor-primaria, #ea580c);
+        }
+
+        /* CARDS */
+        .card-bg {
+            background-color: #ffffff;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .card-bg {
+            background-color: #1f2937;
+            border-color: #374151;
+            box-shadow: none;
+        }
+
+        /* SELEÇÃO */
+        .payment-radio:checked+div {
+            border-color: var(--cor-primaria, #ea580c);
+            background-color: color-mix(in srgb, var(--cor-primaria, #ea580c) 10%, white);
+        }
+
+        .dark .payment-radio:checked+div {
+            background-color: #431407;
+            border-color: #f97316;
+        }
+
+        .payment-radio:checked+div .check-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+
+<body class="bg-body bg-pattern transition-colors duration-300 flex flex-col min-h-screen">
+
+    <header
+        class="header-bg text-white h-16 shadow-lg sticky top-0 z-50 flex items-center justify-between px-4 transition-colors">
+        <button onclick="window.location.href='index.html'"
+            class="w-10 h-10 rounded-full bg-white text-orange-600 flex items-center justify-center shadow-md active:scale-95 transition">
+            <i class="fas fa-arrow-left font-bold"></i>
+        </button>
+        <span class="font-black text-lg tracking-wide uppercase text-shadow">Finalizar</span>
+        <div class="w-10"></div>
+    </header>
+    <div id="banner-encomenda"
+        class="hidden bg-orange-100 border-b border-orange-200 px-5 py-3 flex items-center gap-3 animate-fade">
+        <div
+            class="w-10 h-10 bg-orange-500 text-white rounded-xl flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
+            <i class="far fa-calendar-check"></i>
+        </div>
+        <div>
+            <h3 class="text-xs font-black text-orange-800 uppercase tracking-widest">Sua Encomenda para</h3>
+            <p id="data-hora-encomenda" class="text-sm font-bold text-orange-600"></p>
+        </div>
+    </div>
+    <main class="flex-grow p-5 space-y-6 max-w-lg mx-auto w-full pb-64">
+
+        <section class="card-bg rounded-3xl p-5 shadow-sm">
+            <h3 class="font-black text-sm text-gray-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+                <i class="fas fa-receipt text-orange-500"></i> Resumo do Pedido
+            </h3>
+
+            <div id="lista-resumo" class="space-y-3 mb-6 text-sm font-medium"></div>
+
+            <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
+                <div class="relative mb-4">
+                    <input type="text" id="input-cupom"
+                        class="w-full pl-4 pr-24 py-3 rounded-xl text-sm font-bold bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 outline-none uppercase placeholder-gray-400 transition focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                        placeholder="CUPOM">
+                    <button onclick="aplicarCupom()"
+                        class="absolute right-1.5 top-1.5 bottom-1.5 bg-orange-500 text-white px-4 rounded-lg font-bold text-xs hover:bg-orange-600 transition shadow-sm active:scale-95 flex items-center justify-center">
+                        APLICAR
+                    </button>
+                </div>
+                <p id="msg-cupom" class="text-[11px] -mt-2 mb-3 font-bold hidden pl-1"></p>
+
+                <div class="space-y-2 pt-3 border-t border-dashed border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-between text-gray-500 text-xs font-bold">
+                        <span>Subtotal</span>
+                        <span id="resumo-subtotal">R$ 0,00</span>
+                    </div>
+                    <div class="flex justify-between text-gray-500 text-xs font-bold">
+                        <span>Entrega</span>
+                        <span id="resumo-taxa">R$ 0,00</span>
+                    </div>
+                    <div id="linha-desconto"
+                        class="flex justify-between text-green-600 text-xs font-bold hidden bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md">
+                        <span>Desconto</span>
+                        <span id="resumo-desconto">- R$ 0,00</span>
+                    </div>
+                    <div
+                        class="flex justify-between items-center text-xl font-black text-gray-900 dark:text-white pt-3 mt-2 border-t border-gray-200 dark:border-gray-700">
+                        <span>Total Final</span>
+                        <span id="subtotal-final">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-3">
+            <h3 class="font-black text-sm text-gray-400 uppercase tracking-widest ml-1">Entrega</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="cursor-pointer group">
+                    <input type="radio" name="tipo_entrega" value="entrega" class="peer sr-only payment-radio" checked
+                        onchange="toggleEntrega()">
+                    <div
+                        class="card-bg border-2 border-transparent rounded-2xl p-4 text-center transition group-active:scale-95 relative overflow-hidden">
+                        <i class="fas fa-motorcycle text-2xl mb-1 block text-orange-500"></i>
+                        <span class="font-bold text-sm text-gray-700 dark:text-white">Delivery</span>
+                        <i
+                            class="fas fa-check-circle absolute top-2 right-2 text-green-500 opacity-0 transition transform scale-0 check-icon"></i>
+                    </div>
+                </label>
+                <label class="cursor-pointer group">
+                    <input type="radio" name="tipo_entrega" value="retirada" class="peer sr-only payment-radio"
+                        onchange="toggleEntrega()">
+                    <div
+                        class="card-bg border-2 border-transparent rounded-2xl p-4 text-center transition group-active:scale-95 relative overflow-hidden">
+                        <i class="fas fa-shopping-bag text-2xl mb-1 block text-orange-500"></i>
+                        <span class="font-bold text-sm text-gray-700 dark:text-white">Retirada</span>
+                        <i
+                            class="fas fa-check-circle absolute top-2 right-2 text-green-500 opacity-0 transition transform scale-0 check-icon"></i>
+                    </div>
+                </label>
+            </div>
+        </section>
+
+        <section id="area-endereco" class="card-bg rounded-3xl p-5 shadow-sm space-y-4 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <h3 class="font-black text-xs text-orange-500 uppercase tracking-widest">Endereço</h3>
+                <button onclick="window.location.href='perfil.html'"
+                    class="text-[10px] text-gray-400 underline hover:text-orange-500 font-bold">Editar no
+                    Perfil</button>
+            </div>
+
+            <div class="grid grid-cols-[2fr_1fr] gap-3">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Rua</label>
+                    <input type="text" id="rua" class="input-checkout" placeholder="Rua">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Nº</label>
+                    <input type="text" id="numero" class="input-checkout" placeholder="123">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Bairro</label>
+                <div class="custom-select-wrapper">
+                    <select id="bairro" class="input-checkout custom-select" onchange="calcularTotais()">
+                        <option value="" disabled selected>Selecione o bairro...</option>
+                    </select>
+                    <div class="custom-select-arrow"><i class="fas fa-chevron-down"></i></div>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Referência</label>
+                <input type="text" id="referencia" class="input-checkout" placeholder="Ex: Casa de esquina">
+            </div>
+
+            <div
+                class="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl flex justify-between items-center text-xs font-bold text-orange-700 dark:text-orange-300 mt-2">
+                <span><i class="fas fa-truck mr-1"></i> Taxa de Entrega</span>
+                <span id="valor-taxa-display">R$ 0,00</span>
+            </div>
+        </section>
+
+        <section class="space-y-3">
+            <h3 class="font-black text-sm text-gray-400 uppercase tracking-widest ml-1">Pagamento</h3>
+            <div id="aviso-50-encomenda" class="hidden bg-orange-50 border border-orange-200 p-4 rounded-2xl mb-4 mt-3">
+                <p class="text-xs text-orange-800 font-black mb-1 flex items-center gap-2"><i
+                        class="fas fa-exclamation-triangle"></i> Regra de Encomenda</p>
+                <p class="text-[11px] text-orange-700 font-medium">Para confirmar sua encomenda, é obrigatório o
+                    pagamento de <b>50% de sinal (R$ <span id="valor-sinal">0,00</span>) via Pix</b> agora. O
+                    comprovante deve ser anexado abaixo.</p>
+                <p class="text-[11px] text-orange-700 font-medium mt-2 pt-2 border-t border-orange-200/50">Escolha
+                    abaixo como deseja pagar o restante (R$ <span id="valor-restante">0,00</span>) na entrega/retirada.
+                </p>
+            </div>
+            <div class="space-y-2">
+                <label class="cursor-pointer block relative">
+                    <input type="radio" name="pagamento" value="pix" class="peer sr-only payment-radio"
+                        onchange="togglePagamento()">
+                    <div
+                        class="card-bg p-4 rounded-2xl flex items-center gap-4 border-2 border-transparent transition hover:border-orange-100">
+                        <div
+                            class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-lg">
+                            <i class="fa-brands fa-pix"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-gray-800 dark:text-white">Pix (Comprovante)</p>
+                            <p class="text-[10px] text-gray-400">Aprovação imediata</p>
+                        </div>
+                        <i
+                            class="fas fa-check-circle absolute right-4 text-green-500 opacity-0 transition transform scale-0 check-icon text-xl"></i>
+                    </div>
+                </label>
+
+                <div id="detalhes-pix"
+                    class="hidden bg-white dark:bg-gray-800 p-4 rounded-2xl border border-dashed border-orange-300 space-y-3">
+                    <p class="text-xs text-center text-gray-500 font-bold">Chave Pix:</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="chave-pix-input" value="..." class="input-checkout text-center text-xs"
+                            readonly>
+                        <button onclick="copiarPix()"
+                            class="bg-orange-100 text-orange-600 px-4 rounded-xl font-bold text-xs hover:bg-orange-200 transition"><i
+                                class="far fa-copy"></i></button>
+                    </div>
+                    <div class="pt-2 border-t border-gray-100 dark:border-gray-700">
+                        <label class="block text-xs font-bold text-gray-500 mb-2">Comprovante (Obrigatório):</label>
+                        <input id="pix-comprovante" type="file"
+                            class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" />
+                    </div>
+                </div>
+
+                <label class="cursor-pointer block relative">
+                    <input type="radio" name="pagamento" value="dinheiro" class="peer sr-only payment-radio"
+                        onchange="togglePagamento()">
+                    <div
+                        class="card-bg p-4 rounded-2xl flex items-center gap-4 border-2 border-transparent transition hover:border-orange-100">
+                        <div
+                            class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-lg">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-gray-800 dark:text-white">Dinheiro</p>
+                            <p class="text-[10px] text-gray-400">Paga na entrega</p>
+                        </div>
+                        <i
+                            class="fas fa-check-circle absolute right-4 text-green-500 opacity-0 transition transform scale-0 check-icon text-xl"></i>
+                    </div>
+                </label>
+
+                <div id="detalhes-dinheiro"
+                    class="hidden bg-white dark:bg-gray-800 p-4 rounded-2xl border border-dashed border-blue-300 space-y-2">
+                    <label class="block text-xs font-bold text-gray-500">Troco para quanto?</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-gray-400 text-sm font-bold">R$</span>
+                        <input type="tel" id="input-troco" class="input-checkout pl-10" placeholder="0,00">
+                    </div>
+                </div>
+
+                <label class="cursor-pointer block relative">
+                    <input type="radio" name="pagamento" value="cartao" class="peer sr-only payment-radio"
+                        onchange="togglePagamento()">
+                    <div
+                        class="card-bg p-4 rounded-2xl flex items-center gap-4 border-2 border-transparent transition hover:border-orange-100">
+                        <div
+                            class="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-lg">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-gray-800 dark:text-white">Cartão</p>
+                            <p class="text-[10px] text-gray-400">Levamos a maquininha</p>
+                        </div>
+                        <i
+                            class="fas fa-check-circle absolute right-4 text-green-500 opacity-0 transition transform scale-0 check-icon text-xl"></i>
+                    </div>
+                </label>
+            </div>
+        </section>
+    </main>
+
+    <div
+        class="fixed bottom-0 left-0 right-0 p-5 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 shadow-[0_-4px_30px_rgba(0,0,0,0.15)] z-50">
+        <div class="flex justify-between items-center mb-3 px-1">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Final</span>
+            <span id="total-geral-bottom" class="text-2xl font-black text-green-600">R$ 0,00</span>
+        </div>
+        <button onclick="enviarPedido()"
+            class="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-base shadow-xl shadow-green-200/50 dark:shadow-none active:scale-95 transition hover:bg-green-700 flex items-center justify-center gap-2 uppercase tracking-wide">
+            Confirmar Pedido <i class="fas fa-check"></i>
+        </button>
+    </div>
+
+    <script>
+        // 1. VERIFICA SE É ENCOMENDA PELA URL
+        const isEncomenda = new URLSearchParams(window.location.search).get('tipo') === 'encomenda';
+
+        // 2. DEFINE DE QUAL CARRINHO VAI PUXAR
+        const KEY_CART = isEncomenda ? 'carrinho_encomenda_v1' : 'carrinho_alfa_v10';
+
+        let carrinho = {}, user = null, prods = [], taxas = [], configLoja = {};
+        let totalProdutos = 0, taxaAtual = 0, cupomAtual = null;
+        let dadosAgendamento = null; // Guarda a data/hora da encomenda
+
+        function aplicarTema() {
+            if (localStorage.getItem('tema') === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+        }
+        aplicarTema();
+
+        function copiarPix() {
+            const copyText = document.getElementById("chave-pix-input");
+            copyText.select();
+            document.execCommand("copy");
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Copiado!', showConfirmButton: false, timer: 1000 });
+        }
+
+        async function initCheckout() {
+            // INICIA O MOTOR CAMALEÃO E A TRAVA DA MENSALIDADE
+            if (typeof window.iniciarCamaleao === 'function') {
+                const lojaAtiva = await window.iniciarCamaleao();
+                if (!lojaAtiva) return; // Se não pagou, bloqueia!
+            }
+
+            const s = localStorage.getItem(KEY_CART);
+
+            // Se o carrinho estiver vazio, volta pra página certa
+            if (!s || s === '{}') return window.location.href = isEncomenda ? 'encomendas.html' : 'index.html';
+
+            carrinho = JSON.parse(s);
+
+            // 3. SE FOR ENCOMENDA, PUXA A DATA SALVA NA TELA ANTERIOR
+            if (isEncomenda) {
+                const agendamentoStr = localStorage.getItem('dados_agendamento');
+                if (agendamentoStr) {
+                    dadosAgendamento = JSON.parse(agendamentoStr);
+
+                    // Mostra o Banner Laranja no topo
+                    document.getElementById('banner-encomenda').classList.remove('hidden');
+
+                    // Formata a data de AAAA-MM-DD para DD/MM/AAAA
+                    const dataFormatada = dadosAgendamento.data.split('-').reverse().join('/');
+                    document.getElementById('data-hora-encomenda').innerText = `${dataFormatada} às ${dadosAgendamento.hora}`;
+                } else {
+                    // Se não tem data (entrou direto no link), devolve pra tela de encomendas
+                    return window.location.href = 'encomendas.html';
+                }
+            }
+
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) return window.location.href = 'cliente-login.html?redirect=' + encodeURIComponent(window.location.href);
+
+            const [conf, fees, usr] = await Promise.all([
+                _supabase.from('store_config').select('*').eq('loja_id', window.LOJA_ID).single(),
+                _supabase.from('delivery_fees').select('*').eq('loja_id', window.LOJA_ID).order('neighborhood'),
+                _supabase.from('clients').select('*').eq('id', session.user.id).single()
+            ]);
+
+            if (typeof CHAVE_PIX_LOJA !== 'undefined' && CHAVE_PIX_LOJA) {
+                document.getElementById('chave-pix-input').value = CHAVE_PIX_LOJA;
+            } else if (conf.data && conf.data.pix_key) {
+                document.getElementById('chave-pix-input').value = conf.data.pix_key;
+            } else {
+                document.getElementById('chave-pix-input').value = "Chave não configurada";
+            }
+
+            taxas = fees.data || [];
+            user = usr.data;
+
+            const selectBairro = document.getElementById('bairro');
+            selectBairro.innerHTML = '<option value="" disabled selected>Selecione seu bairro</option>';
+            taxas.forEach(t => {
+                const nomeBairro = t.neighborhood || t.name || 'Bairro';
+                const valorTaxa = Number(t.fee || t.price || t.value || 0);
+                const opt = document.createElement('option');
+                opt.value = nomeBairro;
+                opt.innerText = nomeBairro;
+                opt.dataset.taxa = valorTaxa;
+                selectBairro.appendChild(opt);
+            });
+
+            if (user.address) {
+                const partes = user.address.split(',');
+                if (partes.length > 1) {
+                    document.getElementById('rua').value = partes[0].trim();
+                    const resto = partes.slice(1).join(',');
+                    const partes2 = resto.split('-');
+                    if (partes2.length > 0) {
+                        document.getElementById('numero').value = partes2[0].trim();
+                        if (partes2[1]) {
+                            const bSalvo = partes2[1].trim();
+                            for (let i = 0; i < selectBairro.options.length; i++) {
+                                if (selectBairro.options[i].value === bSalvo) {
+                                    selectBairro.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        if (partes2[2]) {
+                            document.getElementById('referencia').value = partes2[2].replace(/[()]/g, '').trim();
+                        }
+                    }
+                } else {
+                    document.getElementById('rua').value = user.address;
+                }
+            }
+
+            const { data: p } = await _supabase.from('products').select('*');
+            prods = p;
+
+            renderResumo();
+            calcularTotais();
+
+            $('#input-troco').mask('#.##0,00', { reverse: true });
+        }
+
+        async function aplicarCupom() {
+            const codigo = document.getElementById('input-cupom').value.trim().toUpperCase();
+            const msgBox = document.getElementById('msg-cupom');
+            msgBox.classList.remove('hidden');
+            msgBox.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...';
+            msgBox.className = "text-[11px] mt-2 font-bold text-gray-500 pl-1";
+
+            if (!codigo) return;
+
+            try {
+                // Tenta buscar cupom (se a tabela existir)
+                const { data: coupons, error } = await _supabase.from('coupons').select('*').eq('code', codigo).eq('active', true);
+
+                if (error) {
+                    // Se der erro porque a tabela não existe, apenas ignora
+                    throw new Error("Sistema de cupons indisponível.");
+                }
+
+                if (!coupons || coupons.length === 0) throw new Error("Cupom inválido ou expirado.");
+
+                cupomAtual = coupons[0];
+
+                // Validação de uso (se a tabela orders suportar pesquisa)
+                try {
+                    const { count } = await _supabase.from('orders')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', user.id)
+                        .ilike('payment_method', `%${codigo}%`);
+
+                    if (count > 0) throw new Error("Você já usou este cupom.");
+                } catch (err) { console.log("Pulando verificação de uso de cupom"); }
+
+                msgBox.innerHTML = `<i class="fas fa-check"></i> Desconto aplicado!`;
+                msgBox.className = "text-[11px] -mt-2 mb-3 font-bold text-green-600 pl-1";
+                calcularTotais();
+
+            } catch (e) {
+                cupomAtual = null;
+                msgBox.innerText = e.message;
+                msgBox.className = "text-[11px] -mt-2 mb-3 font-bold text-red-500 pl-1";
+                calcularTotais();
+            }
+        }
+
+        function removerItem(key) {
+            delete carrinho[key];
+            localStorage.setItem(KEY_CART, JSON.stringify(carrinho));
+            if (Object.keys(carrinho).length === 0) window.location.href = 'index.html';
+            else renderResumo();
+        }
+
+        function renderResumo() {
+            const lista = document.getElementById('lista-resumo');
+            totalProdutos = 0;
+            lista.innerHTML = '';
+
+            for (const [key, qtd] of Object.entries(carrinho)) {
+                const [pid, vIdx] = key.split('__');
+                const prod = prods.find(p => String(p.id) === String(pid));
+                if (prod) {
+                    let nome = prod.name;
+                    let preco = prod.on_sale ? prod.sale_price : prod.price;
+
+                    if (vIdx !== undefined) {
+                        try {
+                            const vars = (typeof prod.variants === 'string') ? JSON.parse(prod.variants) : prod.variants;
+                            if (vars && vars[vIdx]) {
+                                preco = vars[vIdx].promo_price || vars[vIdx].price;
+                                nome += ` (${vars[vIdx].qtd})`;
+                            }
+                        } catch (e) { }
+                    }
+
+                    // CORREÇÃO DO R$ 0,00: Garante conversão para float
+                    preco = parseFloat(preco) || 0;
+                    const subtotal = preco * qtd;
+                    totalProdutos += subtotal;
+
+                    lista.innerHTML += `
+                        <div class="flex justify-between items-center bg-white dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                            <div class="flex items-center gap-3 z-10">
+                                <div class="bg-orange-100 text-orange-600 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs">${qtd}x</div>
+                                <div><p class="font-bold text-sm text-gray-800 dark:text-gray-200 leading-tight">${nome}</p><p class="text-xs opacity-60 text-gray-500 dark:text-gray-400">R$ ${subtotal.toFixed(2)}</p></div>
+                            </div>
+                            <button onclick="removerItem('${key}')" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition active:scale-90 z-10 shadow-sm"><i class="fas fa-trash-alt text-xs"></i></button>
+                        </div>
+                    `;
+                }
+            }
+            calcularTotais();
+        }
+
+        function calcularTotais() {
+            const select = document.getElementById('bairro');
+            let valTaxa = 0;
+            if (select.selectedIndex >= 0) {
+                const opt = select.options[select.selectedIndex];
+                if (opt && opt.dataset.taxa) valTaxa = parseFloat(opt.dataset.taxa);
+            }
+
+            const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value || 'entrega';
+            if (tipoEntrega === 'retirada') valTaxa = 0;
+
+            taxaAtual = isNaN(valTaxa) ? 0 : valTaxa;
+
+            let valorDesconto = 0;
+            if (cupomAtual) {
+                if (cupomAtual.type === 'percent') valorDesconto = totalProdutos * (cupomAtual.value / 100);
+                else valorDesconto = parseFloat(cupomAtual.value);
+                if (valorDesconto > totalProdutos) valorDesconto = totalProdutos;
+            }
+
+            document.getElementById('resumo-subtotal').innerText = `R$ ${totalProdutos.toFixed(2)}`;
+            document.getElementById('resumo-taxa').innerText = taxaAtual === 0 ? 'Grátis' : `R$ ${taxaAtual.toFixed(2)}`;
+            document.getElementById('valor-taxa-display').innerText = taxaAtual === 0 ? 'Grátis' : `R$ ${taxaAtual.toFixed(2)}`;
+
+            const divDesc = document.getElementById('linha-desconto');
+            if (valorDesconto > 0) {
+                divDesc.classList.remove('hidden');
+                document.getElementById('resumo-desconto').innerText = `- R$ ${valorDesconto.toFixed(2)}`;
+            } else {
+                divDesc.classList.add('hidden');
+            }
+
+            const totalFinal = Math.max(0, totalProdutos - valorDesconto + taxaAtual);
+
+            document.getElementById('subtotal-final').innerText = `R$ ${totalFinal.toFixed(2).replace('.', ',')}`;
+            document.getElementById('total-geral-bottom').innerText = `R$ ${totalFinal.toFixed(2).replace('.', ',')}`;
+
+            // --- NOVA LÓGICA DE 50% PARA ENCOMENDAS ---
+            if (isEncomenda) {
+                const avisoBox = document.getElementById('aviso-50-encomenda');
+                if (avisoBox) {
+                    avisoBox.classList.remove('hidden');
+                    const sinal = totalFinal / 2;
+                    document.getElementById('valor-sinal').innerText = sinal.toFixed(2).replace('.', ',');
+                    document.getElementById('valor-restante').innerText = sinal.toFixed(2).replace('.', ',');
+                }
+                // Força a caixa de PIX a ficar visível sempre, já que o comprovante do sinal é obrigatório
+                document.getElementById('detalhes-pix').classList.remove('hidden');
+            }
+        }
+
+        function togglePagamento() {
+            const tipo = document.querySelector('input[name="pagamento"]:checked')?.value;
+
+            // Esconde tudo primeiro
+            document.getElementById('detalhes-pix').classList.add('hidden');
+            document.getElementById('detalhes-dinheiro').classList.add('hidden');
+
+            // Mostra a caixa do Pix SE escolheu Pix OU SE for Encomenda (obrigatório pro sinal)
+            if (tipo === 'pix' || isEncomenda) {
+                document.getElementById('detalhes-pix').classList.remove('hidden');
+            }
+
+            // Mostra a caixa de troco só se escolheu Dinheiro
+            if (tipo === 'dinheiro') {
+                document.getElementById('detalhes-dinheiro').classList.remove('hidden');
+            }
+        }
+        function toggleEntrega() {
+            const tipo = document.querySelector('input[name="tipo_entrega"]:checked').value;
+            const areaEndereco = document.getElementById('area-endereco');
+
+            if (tipo === 'retirada') {
+                // Esconde a área de endereço inteira
+                areaEndereco.classList.add('hidden');
+                // Zera a taxa de entrega na visualização
+                document.getElementById('valor-taxa-display').innerText = 'Grátis';
+                document.getElementById('resumo-taxa').innerText = 'Grátis';
+            } else {
+                // Mostra a área de endereço
+                areaEndereco.classList.remove('hidden');
+            }
+
+            calcularTotais();
+        }
+        async function enviarPedido() {
+            const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked').value;
+            const formaPagamento = document.querySelector('input[name="pagamento"]:checked')?.value;
+
+            if (!formaPagamento) return Swal.fire('Pagamento', 'Selecione como vai pagar.', 'warning');
+
+            let enderecoCompleto = 'Retirada no Balcão';
+
+            let tagEncomenda = '';
+            if (isEncomenda && dadosAgendamento) {
+                const dataF = dadosAgendamento.data.split('-').reverse().join('/');
+                tagEncomenda = `[📅 ENCOMENDA: ${dataF} às ${dadosAgendamento.hora}] - `;
+            }
+
+            if (tipoEntrega === 'entrega') {
+                const rua = document.getElementById('rua').value.trim();
+                const num = document.getElementById('numero').value.trim();
+                const bairro = document.getElementById('bairro').value;
+                const ref = document.getElementById('referencia').value.trim();
+
+                if (!rua || !num || !bairro) return Swal.fire('Endereço', 'Preencha Rua, Número e Bairro.', 'warning');
+                enderecoCompleto = tagEncomenda + `${rua}, ${num} - ${bairro} ${ref ? '(' + ref + ')' : ''}`;
+            } else {
+                enderecoCompleto = tagEncomenda + 'Retirada no Balcão';
+            }
+
+            // GERA O TEXTO DE PAGAMENTO EXPLICANDO O SINAL
+            let obsPagamento = formaPagamento;
+            if (isEncomenda) {
+                obsPagamento = `Sinal 50% via Pix. Restante no ${formaPagamento.toUpperCase()}`;
+            }
+
+            if (formaPagamento === 'dinheiro') {
+                const troco = document.getElementById('input-troco').value;
+                if (!troco) return Swal.fire('Troco', 'Informe o troco (ou 0).', 'warning');
+                obsPagamento += ` (Troco para R$ ${troco})`;
+            }
+
+            let comprovanteUrl = null;
+
+            // UPLOAD DO PIX: Obrigatório se escolheu PIX (100%) OU se for Encomenda (Sinal de 50%)
+            if (formaPagamento === 'pix' || isEncomenda) {
+                const fileInput = document.getElementById('pix-comprovante');
+                if (!fileInput.files || !fileInput.files[0]) {
+                    return Swal.fire('Atenção', isEncomenda ? 'O comprovante do sinal de 50% é obrigatório.' : 'Comprovante obrigatório.', 'warning');
+                }
+
+                Swal.fire({ title: 'Enviando...', didOpen: () => Swal.showLoading() });
+                const file = fileInput.files[0];
+                const ext = file.name.split('.').pop();
+                const fileName = `comprovante_${user.id}_${Date.now()}.${ext}`;
+                const { error: upErr } = await _supabase.storage.from('imagens').upload(`comprovantes/${fileName}`, file);
+                if (upErr) return Swal.fire('Erro', 'Falha no comprovante.', 'error');
+                const { data } = _supabase.storage.from('imagens').getPublicUrl(`comprovantes/${fileName}`);
+                comprovanteUrl = data.publicUrl;
+            } else {
+                // Se for pedido normal no cartão/dinheiro
+                Swal.fire({ title: 'Enviando...', didOpen: () => Swal.showLoading() });
+            }
+
+            const itensPedido = [];
+            for (const [key, qtd] of Object.entries(carrinho)) {
+                const [pid, vIdx] = key.split('__');
+                const prod = prods.find(p => String(p.id) === String(pid));
+                if (prod) {
+                    let pPrice = prod.on_sale ? prod.sale_price : prod.price;
+                    let pName = prod.name;
+                    if (vIdx !== undefined) {
+                        try {
+                            const vars = JSON.parse(prod.variants);
+                            if (vars[vIdx]) {
+                                pPrice = vars[vIdx].promo_price || vars[vIdx].price;
+                                pName += ` (${vars[vIdx].qtd})`;
+                            }
+                        } catch (e) { }
+                    }
+                    // Força preço para número
+                    itensPedido.push({ produto: pName, qtd: Number(qtd), preco: parseFloat(pPrice) || 0 });
+                }
+            }
+
+            let valorDesconto = 0;
+            if (cupomAtual) {
+                if (cupomAtual.type === 'percent') valorDesconto = totalProdutos * (cupomAtual.value / 100);
+                else valorDesconto = parseFloat(cupomAtual.value);
+                if (valorDesconto > totalProdutos) valorDesconto = totalProdutos;
+
+                // SALVAMOS O CUPOM NO TEXTO DO PAGAMENTO PARA NÃO PRECISAR DE COLUNA NOVA
+                obsPagamento += ` | Cupom: ${cupomAtual.code} (-R$${valorDesconto.toFixed(2)})`;
+            }
+
+            const totalFinalEnvio = parseFloat((totalProdutos - valorDesconto + taxaAtual).toFixed(2));
+
+            try {
+                if (formaPagamento !== 'pix') Swal.fire({ title: 'Enviando...', didOpen: () => Swal.showLoading() });
+
+                // --- SOLUÇÃO DO ERRO ---
+                // Se a coluna receipt_url também não existir, vamos anexar o link no texto do pagamento
+                let finalPaymentMethod = obsPagamento;
+                if (comprovanteUrl) {
+                    finalPaymentMethod += ` | Link Comprovante: ${comprovanteUrl}`;
+                }
+
+                // Payload LIMPO (Sem colunas fantasmas)
+                const payload = {
+                    user_id: user.id,
+                    loja_id: window.LOJA_ID, // CARIMBO DA LOJA AQUI!
+                    items: JSON.stringify(itensPedido),
+                    total_amount: totalFinalEnvio,
+                    status: 'pendente',
+                    delivery_type: tipoEntrega,
+                    address: enderecoCompleto,
+                    payment_method: finalPaymentMethod
+                    // receipt_url: comprovanteUrl <--- COMENTADO PARA EVITAR CRASH
+                };
+
+                const { error } = await _supabase.from('orders').insert([payload]);
+
+                if (error) throw error;
+
+                localStorage.removeItem(KEY_CART);
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso!',
+                    text: 'Seu pedido foi recebido.',
+                    confirmButtonColor: '#ea580c'
+                });
+                window.location.href = 'index.html';
+
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Erro', 'Não foi possível registrar: ' + err.message, 'error');
+            }
+        }
+
+        initCheckout();
+    </script>
+</body>
+
+</html>

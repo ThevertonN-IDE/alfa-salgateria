@@ -1,1157 +1,1539 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Alfa Salgateria</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Painel Administrativo Completo V7.0 - Alfa Salgateria">
+    <meta name="theme-color" content="#ea580c">
+
+    <title>Alfa Admin | Painel de Controle Master</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="data.js"></script>
     <script src="utils.js"></script>
-    <script src="admin-ui.js"></script> 
 
     <style>
-        body { 
-            font-family: 'Segoe UI', 'Roboto', sans-serif; 
-            background-color: #f3f4f6; 
-            -webkit-font-smoothing: antialiased;
-            color: #1f2937;
-        }
-        
-        /* Estilo dos Cartões Principais */
-        .card-admin { 
-            background: white; 
-            border-radius: 1.5rem; 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025); 
-            padding: 2rem; 
-            border: 1px solid #e5e7eb; 
-            transition: all 0.3s ease;
-        }
-        
-        .card-admin:hover {
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        /* 3.1 VARIÁVEIS DE TEMA 
+           Definição das cores principais do sistema
+        */
+        :root {
+            --color-primary: #ea580c;
+            --color-primary-dark: #c2410c;
+            --color-primary-light: #ffedd5;
+
+            --color-secondary: #10b981;
+            --color-danger: #ef4444;
+            --color-info: #3b82f6;
+            --color-purple: #8b5cf6;
+
+            --color-dark: #1f2937;
+            --color-gray: #6b7280;
+            --color-light: #f3f4f6;
+            --color-surface: #ffffff;
+
+            --radius-card: 1.5rem;
+            --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
-        /* Botão Primário (Laranja Alfa) */
-        .btn-primary { 
-            background-color: #ea580c; 
-            color: white; 
-            font-weight: 800; 
-            padding: 0.75rem 1.5rem; 
-            border-radius: 1rem; 
-            transition: all 0.2s; 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 0.5rem; 
-            box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.3);
+        /* 3.2 CONFIGURAÇÃO DO CORPO 
+        */
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background-color: var(--color-light);
+            color: var(--color-dark);
+            -webkit-font-smoothing: antialiased;
+            background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 16c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zm33.414-6l5.94-5.94A2 2 0 0 0 45.94.646L40 6.586 34.06.646a2 2 0 0 0-2.828 2.828L37.172 9.414 31.232 15.354a2 2 0 0 0 2.828 2.828L40 12.242l5.94 5.94a2 2 0 0 0 2.828-2.828L42.828 9.414l5.94-5.94a2 2 0 0 0-2.828-2.828L40 6.586zM40 60c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM9.414 40l5.94-5.94a2 2 0 0 0-2.828-2.828L6.586 37.172.646 31.232a2 2 0 0 0-2.828 2.828L3.758 40l-5.94 5.94a2 2 0 0 0 2.828 2.828L6.586 42.828l5.94 5.94a2 2 0 0 0 2.828-2.828L9.414 40z' fill='%239ca3af' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-attachment: fixed;
+        }
+
+        /* 3.3 CARDS E CONTAINERS 
+        */
+        .card-admin {
+            background: #ffffff;
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            padding: 2rem;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-admin:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            border-color: #fed7aa;
+        }
+
+        /* Bordas Coloridas Laterais */
+        .border-l-purple {
+            border-left: 6px solid var(--color-purple);
+        }
+
+        .border-l-green {
+            border-left: 6px solid var(--color-secondary);
+        }
+
+        .border-l-blue {
+            border-left: 6px solid var(--color-info);
+        }
+
+        .border-l-orange {
+            border-left: 6px solid var(--color-primary);
+        }
+
+        /* 3.4 BOTÕES 
+        */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: white;
+            font-weight: 800;
+            padding: 0.85rem 1.75rem;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
             cursor: pointer;
             text-transform: uppercase;
             font-size: 0.85rem;
             letter-spacing: 0.05em;
-        }
-        
-        .btn-primary:hover { 
-            background-color: #c2410c; 
-            transform: translateY(-2px); 
-            box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.4);
-        }
-        
-        .btn-primary:active { 
-            transform: translateY(0); 
+            border: none;
         }
 
-        /* Estilo dos Checkboxes de Dias da Semana */
-        .day-check input {
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #fb923c 0%, var(--color-primary) 100%);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 16px rgba(234, 88, 12, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+            opacity: 0.9;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            background: #9ca3af;
+        }
+
+        .btn-nav {
+            padding: 0.75rem 1.25rem;
+            border-radius: 1rem;
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            background: white;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-nav:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: var(--color-primary);
+            border-color: #fed7aa;
+        }
+
+        /* 3.5 INPUTS E FORMULÁRIOS 
+        */
+        input,
+        select,
+        textarea {
+            transition: all 0.2s ease-in-out;
+            border: 2px solid #e5e7eb;
+            width: 100%;
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            font-size: 0.9rem;
+            padding: 0.75rem;
+            outline: none;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            transform: scale(1.005);
+            border-color: var(--color-primary);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.1);
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--color-gray);
+            margin-bottom: 0.35rem;
+            letter-spacing: 0.05em;
+            margin-left: 0.25rem;
+        }
+
+        /* 3.6 TOGGLES (Estilo iOS) 
+        */
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .toggle-checkbox:checked+.toggle-switch {
+            background-color: var(--color-secondary);
+        }
+
+        .toggle-checkbox:checked+.toggle-switch::after {
+            transform: translateX(24px);
+        }
+
+        /* Variante Vermelha (Oferta/Bloqueio) */
+        .toggle-switch-red {
+            background-color: #e5e7eb;
+            position: relative;
+            width: 52px;
+            height: 28px;
+            border-radius: 9999px;
+            transition: all 0.3s;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .toggle-switch-red::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-checkbox:checked+.toggle-switch-red {
+            background-color: var(--color-danger);
+        }
+
+        .toggle-checkbox:checked+.toggle-switch-red::after {
+            transform: translateX(24px);
+        }
+
+        /* 3.7 UTILITÁRIOS E SCROLLBAR 
+        */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+            border: 2px solid #f1f1f1;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
-        
-        .day-check div {
-            width: 3rem;
-            height: 3rem;
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Separador de Categoria */
+        .category-separator {
+            grid-column: 1 / -1;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 0.75rem;
-            border: 2px solid #e5e7eb;
-            background-color: #f9fafb;
-            color: #9ca3af;
-            font-weight: bold;
-            transition: all 0.2s;
+            margin: 2rem 0 1rem 0;
+            color: var(--color-primary);
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            position: relative;
         }
 
-        .day-check input:checked + div { 
-            background-color: #ea580c; 
-            color: white; 
-            border-color: #ea580c; 
-            box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.3);
-            transform: scale(1.1);
+        .category-separator::before,
+        .category-separator::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: #e5e7eb;
+            margin: 0 1rem;
+            border-radius: 99px;
         }
 
-        /* Linhas da Tabela de Variações */
+        .category-separator span {
+            background-color: var(--color-light);
+            padding: 0 1rem;
+            z-index: 10;
+        }
+
+        /* Linhas de Variação */
         .variant-row {
-            transition: background-color 0.2s;
-            border-bottom: 1px dashed #e5e7eb;
-            padding-bottom: 0.75rem;
+            animation: slideInUp 0.3s ease-out forwards;
+            background-color: #fff7ed;
+            border: 1px dashed #fdba74;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
             margin-bottom: 0.75rem;
-        }
-        
-        .variant-row:last-child { 
-            border-bottom: none; 
-        }
-        
-        .variant-row:hover { 
-            background-color: #fff7ed; 
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
-        /* Scrollbars Personalizadas */
-        .custom-scroll::-webkit-scrollbar { width: 8px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+        /* Abas do Modal */
+        .tab-btn {
+            border-bottom-width: 4px;
+            border-color: transparent;
+            color: var(--color-gray);
+            transition: all 0.2s;
+            cursor: pointer;
+            background: none;
+            font-weight: bold;
+        }
 
-        /* Animações de Modal */
-        @keyframes modalUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-up { animation: modalUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .tab-btn.active {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            background-color: #fff7ed;
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--color-dark);
+            background-color: #f9fafb;
+        }
+
+        /* 3.8 ANIMAÇÕES 
+        */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .animate-in {
+            animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
     </style>
 </head>
+
 <body class="pb-40">
 
-    <header class="bg-white sticky top-0 z-50 shadow-md border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            
-            <div class="flex items-center gap-4">
-                <div class="bg-gradient-to-br from-orange-500 to-red-600 p-3 rounded-2xl shadow-lg text-white">
-                    <i class="fas fa-user-shield text-xl"></i>
+    <header
+        class="bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-gray-100 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+
+            <div class="flex items-center gap-4 w-full md:w-auto cursor-pointer group"
+                onclick="window.location.reload()">
+                <div
+                    class="bg-gradient-to-br from-orange-500 to-red-600 p-3.5 rounded-2xl shadow-lg text-white transform group-hover:rotate-6 transition duration-300">
+                    <i class="fas fa-tools text-2xl"></i>
                 </div>
                 <div>
                     <h1 class="font-black text-2xl text-gray-800 tracking-tight leading-none">Alfa Admin</h1>
-                    <p class="text-[11px] text-gray-400 uppercase tracking-widest font-bold mt-1">Gestão de Loja v2.0</p>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mt-1">Gestão Completa V7.0
+                    </p>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-4">
-                <button id="status-loja-btn" onclick="toggleLoja()" class="flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition shadow-md border bg-gray-50 border-gray-200 text-gray-500 cursor-wait">
-                    <div class="w-3 h-3 rounded-full bg-gray-400 animate-pulse"></div> 
-                    <span>Carregando Sistema...</span>
+
+            <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+
+                <a href="admin-kanban.html"
+                    class="btn-nav group border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex-shrink-0">
+                    <i class="fas fa-columns text-lg"></i> <span class="ml-2">Pedidos</span>
+                </a>
+
+                <a href="admin-dashboard.html"
+                    class="btn-nav group border-purple-200 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white flex-shrink-0">
+                    <i class="fas fa-chart-pie text-lg"></i> <span class="ml-2">Dashboard</span>
+                </a>
+
+                <div class="h-8 w-px bg-gray-200 mx-2 hidden md:block"></div>
+
+                <button id="status-loja-btn" onclick="toggleLoja()"
+                    class="flex-shrink-0 flex items-center gap-3 px-5 py-3 rounded-xl text-xs font-bold transition shadow-sm border bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100 cursor-pointer"
+                    title="Clique para alternar">
+                    <div class="w-3 h-3 rounded-full bg-gray-400 animate-pulse"></div>
+                    <span>Carregando...</span>
                 </button>
-                
-                <a href="index.html" target="_blank" class="bg-gray-100 p-3 rounded-xl hover:bg-orange-100 text-gray-400 hover:text-orange-600 transition border border-gray-200" title="Ver Loja como Cliente">
+
+                <a href="index.html" target="_blank"
+                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-orange-100 hover:ext-primary transition"
+                    title="Ver Loja">
                     <i class="fas fa-external-link-alt text-lg"></i>
                 </a>
+
+                <button onclick="logout()"
+                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition"
+                    title="Sair">
+                    <i class="fas fa-sign-out-alt text-lg"></i>
+                </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 py-12 space-y-12">
+    <main class="max-w-7xl mx-auto px-6 py-10 space-y-12 animate-in">
 
-        <section class="card-admin flex flex-col md:flex-row items-center gap-10 border-l-8 border-purple-500 relative overflow-hidden">
+        <section class="card-admin flex flex-col md:flex-row items-center gap-8 border-l-purple">
             <div class="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
                 <i class="fas fa-palette text-9xl"></i>
             </div>
 
-            <div class="relative w-40 h-40 rounded-full border-8 border-white shadow-2xl overflow-hidden group bg-gray-50 flex-shrink-0">
-                <img id="admin-logo-preview" src="https://placehold.co/100?text=Alfa" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
-                <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 backdrop-blur-sm cursor-pointer" onclick="document.getElementById('input-logo-loja').click()">
-                    <div class="text-center text-white">
-                        <i class="fas fa-camera text-3xl mb-1"></i>
-                        <p class="text-[10px] font-bold uppercase">Alterar</p>
-                    </div>
+            <div
+                class="relative w-36 h-36 rounded-full border-4 border-white shadow-2xl overflow-hidden group bg-gray-100 flex-shrink-0">
+                <img id="admin-logo-preview" src="https://placehold.co/150?text=Logo"
+                    class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                <div class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 cursor-pointer backdrop-blur-sm"
+                    onclick="document.getElementById('input-logo-loja').click()">
+                    <i class="fas fa-camera text-2xl text-white mb-1"></i>
+                    <span class="text-[10px] text-white font-bold uppercase">Alterar</span>
                 </div>
+                <input type="file" id="input-logo-loja" class="hidden" accept="image/*" onchange="atualizarLogoLoja()">
             </div>
-            
-            <div class="flex-grow text-center md:text-left z-10">
-                <h2 class="text-2xl font-black text-gray-800 mb-2">Identidade Visual da Loja</h2>
-                <p class="text-sm text-gray-500 mb-6 font-medium max-w-lg">
-                    Esta imagem é a "cara" do seu negócio. Ela aparecerá no topo do cardápio digital e na tela de login dos clientes.
+
+            <div class="flex-grow text-center md:text-left space-y-4 z-10">
+                <h2 class="text-2xl font-black text-gray-800">Identidade da Loja</h2>
+                <p class="text-sm text-gray-500 font-medium max-w-lg mx-auto md:mx-0 leading-relaxed">
+                    Esta imagem é a "cara" do seu negócio no topo do cardápio digital.
                 </p>
-                <div class="flex gap-4 justify-center md:justify-start">
-                    <label class="btn-primary bg-purple-600 hover:bg-purple-700 shadow-purple-200 cursor-pointer">
-                        <i class="fas fa-upload"></i> Carregar Nova Logo
-                        <input type="file" id="input-logo-loja" class="hidden" accept="image/*" onchange="atualizarLogoLoja()">
-                    </label>
-                    
-                    <button onclick="removerLogoLoja()" class="px-5 py-3 rounded-xl font-bold text-xs text-red-500 hover:bg-red-50 transition border border-red-200 flex items-center gap-2">
-                        <i class="fas fa-trash"></i> Restaurar Padrão
+                <div class="flex gap-4 justify-center md:justify-start items-center flex-wrap pt-2">
+                    <button
+                        class="btn-primary bg-purple-600 hover:bg-purple-700 shadow-purple-200 cursor-pointer text-xs"
+                        onclick="document.getElementById('input-logo-loja').click()">
+                        <i class="fas fa-upload mr-2"></i> Carregar Nova Logo
                     </button>
+                    <div
+                        class="flex items-center gap-2 bg-gray-100 p-1.5 rounded-lg border border-gray-200 shadow-inner">
+                        <i class="fas fa-clock text-gray-400 ml-2"></i>
+                        <input id="config-tempo" type="text" placeholder="30-40 min"
+                            class="bg-transparent border-none text-sm font-bold w-28 focus:ring-0 text-gray-700 placeholder-gray-400">
+                        <button onclick="salvarConfigTempo()"
+                            class="bg-white text-green-600 w-8 h-8 rounded-md shadow-sm font-bold hover:text-green-700 hover:bg-green-50 transition flex items-center justify-center m-1">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section class="card-admin border-l-8 border-orange-500 relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <i class="fas fa-clock text-9xl text-orange-500"></i>
+        <section class="card-admin border-l-green relative overflow-visible">
+            <div
+                class="absolute top-[-20px] right-4 bg-green-100 text-green-700 px-4 py-1 rounded-b-xl text-xs font-bold shadow-sm border border-green-200 uppercase tracking-wider">
+                Financeiro
             </div>
-
-            <div class="flex justify-between items-start mb-10 relative z-10">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-8 relative z-10 gap-4 mt-2">
                 <div>
                     <h2 class="text-2xl font-black text-gray-800 flex items-center gap-3">
-                        <i class="fas fa-calendar-check text-orange-500"></i> Configuração de Agenda
+                        <span
+                            class="bg-green-100 text-green-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm"><i
+                                class="fas fa-qrcode text-xl"></i></span>
+                        Verificação de Pix
                     </h2>
-                    <p class="text-sm text-gray-500 mt-2">Defina os dias e horários que você aceita receber encomendas.</p>
+                    <p class="text-sm text-gray-500 mt-2 ml-1">Visualize os comprovantes enviados pelos clientes
+                        recentes.</p>
                 </div>
-                <button onclick="salvarAgenda()" class="btn-primary bg-blue-600 hover:bg-blue-700 shadow-blue-200">
-                    <i class="fas fa-save"></i> SALVAR ALTERAÇÕES
+                <button onclick="carregarComprovantes()"
+                    class="text-blue-500 font-bold hover:text-blue-700 text-sm flex items-center gap-2 bg-blue-50 px-5 py-2.5 rounded-xl transition hover:bg-blue-100 border border-blue-100">
+                    <i class="fas fa-sync-alt"></i> Atualizar Lista
+                </button>
+            </div>
+            <div id="lista-pix-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+            </div>
+        </section>
+
+        <section class="card-admin border-l-blue">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-gray-800 flex items-center gap-3">
+                        <span class="bg-blue-100 text-blue-600 w-10 h-10 rounded-lg flex items-center justify-center"><i
+                                class="fas fa-calendar-alt text-xl"></i></span>
+                        Configuração de Encomendas
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Regras de agendamento e ativação do módulo para esta loja.
+                    </p>
+                </div>
+                <button onclick="salvarAgenda()"
+                    class="btn-primary bg-blue-600 hover:bg-blue-700 shadow-blue-200 border-none">
+                    <i class="fas fa-save mr-2"></i> Salvar Regras
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
-                <div>
-                    <label class="block text-xs font-black text-gray-400 uppercase mb-4 tracking-wider">Dias de Funcionamento</label>
-                    <div class="flex gap-3 flex-wrap">
-                        <label class="day-check group"><input type="checkbox" value="dom"><div>D</div></label>
-                        <label class="day-check group"><input type="checkbox" value="seg"><div>S</div></label>
-                        <label class="day-check group"><input type="checkbox" value="ter"><div>T</div></label>
-                        <label class="day-check group"><input type="checkbox" value="qua"><div>Q</div></label>
-                        <label class="day-check group"><input type="checkbox" value="qui"><div>Q</div></label>
-                        <label class="day-check group"><input type="checkbox" value="sex"><div>S</div></label>
-                        <label class="day-check group"><input type="checkbox" value="sab"><div>S</div></label>
+            <div class="bg-blue-50/40 p-6 md:p-8 rounded-3xl border border-blue-100 space-y-6">
+                <div class="flex items-center justify-between bg-white p-5 rounded-2xl shadow-sm border border-blue-50">
+                    <div>
+                        <h4 class="font-black text-gray-800 text-sm flex items-center gap-2"><i
+                                class="fas fa-power-off text-blue-500"></i> Habilitar Encomendas</h4>
+                        <p class="text-xs text-gray-500 mt-1">Se desmarcado, oculta totalmente o sistema de encomendas
+                            no app do cliente.</p>
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-3 italic">* Selecione os dias que a loja abre.</p>
+                    <label class="toggle-wrapper group">
+                        <div class="relative">
+                            <input type="checkbox" id="modulo-encomenda-ativo" class="toggle-checkbox" checked>
+                            <div class="toggle-switch bg-gray-300"></div>
+                        </div>
+                    </label>
                 </div>
 
-                <div class="space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase mb-4 tracking-wider">Horário de Aceite (Padrão)</label>
-                        <div class="flex items-center gap-4">
-                            <div class="relative w-full">
-                                <span class="absolute left-4 top-3 text-[10px] font-bold text-gray-400">ABRE ÀS</span>
-                                <input type="time" id="agenda-inicio" class="w-full bg-white border-2 border-gray-200 p-3 pt-6 rounded-xl font-bold text-lg text-gray-800 outline-none focus:border-orange-500 transition shadow-sm">
-                            </div>
-                            <span class="text-gray-300 font-bold"><i class="fas fa-arrow-right"></i></span>
-                            <div class="relative w-full">
-                                <span class="absolute left-4 top-3 text-[10px] font-bold text-gray-400">FECHA ÀS</span>
-                                <input type="time" id="agenda-fim" class="w-full bg-white border-2 border-gray-200 p-3 pt-6 rounded-xl font-bold text-lg text-gray-800 outline-none focus:border-orange-500 transition shadow-sm">
-                            </div>
+                        <label class="input-label">Início (Horário)</label>
+                        <div class="relative group">
+                            <i
+                                class="fas fa-clock absolute left-4 top-4 text-blue-400 group-focus-within:text-blue-500 transition text-lg"></i>
+                            <input type="time" id="agenda-inicio"
+                                class="w-full pl-12 p-3.5 rounded-2xl border-2 border-white bg-white font-black text-gray-700 shadow-sm text-lg focus:border-blue-400 outline-none">
                         </div>
                     </div>
-                    
-                    <div class="bg-red-50 p-6 rounded-2xl border border-red-100">
-                        <label class="text-xs font-black text-red-500 uppercase mb-3 block tracking-wider">
-                            <i class="fas fa-ban mr-1"></i> Bloquear Data (Feriados/Folgas)
-                        </label>
-                        <div class="flex gap-3 mb-4">
-                            <input type="date" id="data-bloqueio" class="border-2 border-white bg-white/60 p-3 rounded-xl text-sm w-full font-bold text-gray-700 outline-none focus:bg-white focus:border-red-200 transition">
-                            <button onclick="addBloqueio()" class="bg-red-500 text-white px-6 rounded-xl font-bold text-xs hover:bg-red-600 shadow-md transition active:scale-95 uppercase tracking-wide">
-                                Bloquear
-                            </button>
+                    <div>
+                        <label class="input-label">Fim (Horário)</label>
+                        <div class="relative group">
+                            <i
+                                class="fas fa-clock absolute left-4 top-4 text-blue-400 group-focus-within:text-blue-500 transition text-lg"></i>
+                            <input type="time" id="agenda-fim"
+                                class="w-full pl-12 p-3.5 rounded-2xl border-2 border-white bg-white font-black text-gray-700 shadow-sm text-lg focus:border-blue-400 outline-none">
                         </div>
-                        <div id="lista-bloqueios" class="flex flex-wrap gap-2">
-                            </div>
+                    </div>
+                    <div>
+                        <label class="input-label" title="Tempo mínimo para preparar o pedido">Antecedência
+                            (Horas)</label>
+                        <div class="relative group">
+                            <i
+                                class="fas fa-hourglass-half absolute left-4 top-4 text-blue-400 group-focus-within:text-blue-500 transition text-lg"></i>
+                            <input type="number" id="agenda-antecedencia" placeholder="Ex: 2"
+                                class="w-full pl-12 p-3.5 rounded-2xl border-2 border-white bg-white font-black text-gray-700 shadow-sm text-lg focus:border-blue-400 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="input-label" title="Até quantos dias no futuro o cliente pode agendar?">Dias no
+                            Futuro</label>
+                        <div class="relative group">
+                            <i
+                                class="fas fa-calendar-day absolute left-4 top-4 text-blue-400 group-focus-within:text-blue-500 transition text-lg"></i>
+                            <input type="number" id="agenda-dias" placeholder="Ex: 30"
+                                class="w-full pl-12 p-3.5 rounded-2xl border-2 border-white bg-white font-black text-gray-700 shadow-sm text-lg focus:border-blue-400 outline-none">
+                        </div>
                     </div>
                 </div>
+
+                <div class="pt-6 border-t border-blue-100/50">
+                    <label class="input-label mb-3">Dias de Funcionamento (Encomendas)</label>
+                    <div class="flex flex-wrap gap-3">
+                        <label class="cursor-pointer relative">
+                            <input type="checkbox" value="0" class="dia-semana peer sr-only" checked>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-white border-2 border-gray-200 flex items-center justify-center font-black text-gray-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition shadow-sm hover:border-blue-300">
+                                D</div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="checkbox" value="1" class="dia-semana peer sr-only" checked>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-white border-2 border-gray-200 flex items-center justify-center font-black text-gray-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition shadow-sm hover:border-blue-300">
+                                S</div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="checkbox" value="2" class="dia-semana peer sr-only" checked>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-white border-2 border-gray-200 flex items-center justify-center font-black text-gray-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition shadow-sm hover:border-blue-300">
+                                T</div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="checkbox" value="3" class="dia-semana peer sr-only" checked>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-white border-2 border-gray-200 flex items-center justify-center font-black text-gray-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition shadow-sm hover:border-blue-300">
+                                Q</div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="checkbox" value="4" class="dia-semana peer sr-only" checked>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-white border-2 border-gray-200 flex items-center justify-center font-black text-gray-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition shadow-sm hover:border-blue-300">
+                                Q</div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="checkbox" value="5" class="dia-semana peer sr-only" checked>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-white border-2 border-gray-200 flex items-center justify-center font-black text-gray-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition shadow-sm hover:border-blue-300">
+                                S</div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="checkbox" value="6" class="dia-semana peer sr-only" checked>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-white border-2 border-gray-200 flex items-center justify-center font-black text-gray-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition shadow-sm hover:border-blue-300">
+                                S</div>
+                        </label>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-2 italic">Desmarque os dias em que você não aceita
+                        encomendas.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card-admin border-l-orange">
+            <div
+                class="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-100 pb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-gray-800 flex items-center gap-3">
+                        <span
+                            class="bg-orange-100 ext-primary w-12 h-12 rounded-xl flex items-center justify-center"><i
+                                class="fas fa-box-open text-xl"></i></span>
+                        Catálogo de Produtos
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">Gerencie itens, preços, fotos e variações.</p>
+                </div>
+                <button onclick="abrirModalProduto()"
+                    class="btn-primary shadow-xl shadow-orange-200 active:scale-95 text-sm transform hover:-translate-y-1">
+                    <i class="fas fa-plus text-lg mr-2"></i> Adicionar Produto
+                </button>
+            </div>
+            <div id="lista-admin-produtos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             </div>
         </section>
 
         <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            <div class="card-admin flex flex-col h-[500px]">
-                <h3 class="font-black text-gray-800 mb-6 flex items-center gap-3 text-lg border-b border-gray-100 pb-4">
-                    <span class="bg-pink-100 text-pink-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"><i class="fas fa-tags"></i></span> 
-                    Categorias
-                </h3>
-                <div id="lista-categorias" class="space-y-2 mb-4 overflow-y-auto pr-2 custom-scroll flex-grow">
-                    </div>
-                <div class="flex gap-2 pt-4 border-t border-gray-100 mt-auto">
-                    <input id="nova-cat" placeholder="Nova Categoria..." class="border-2 border-gray-200 bg-gray-50 p-3 rounded-xl w-full text-sm font-bold outline-none focus:border-pink-500 transition">
-                    <button onclick="addCategoria()" class="bg-pink-600 text-white px-4 rounded-xl hover:bg-pink-700 transition shadow-lg shadow-pink-200 active:scale-95">
-                        <i class="fas fa-plus"></i>
-                    </button>
+            <div class="card-admin flex flex-col h-[650px]">
+                <h3 class="font-black text-gray-800 mb-6 flex items-center gap-3 text-lg border-b pb-4"><i
+                        class="fas fa-tags text-pink-500"></i> Categorias</h3>
+                <div id="lista-categorias" class="space-y-3 mb-4 overflow-y-auto pr-2 custom-scroll flex-grow"></div>
+                <div class="flex gap-2 pt-6 border-t mt-auto bg-white sticky bottom-0">
+                    <input id="nova-cat" placeholder="Nova Categoria..." class="input-field">
+                    <button onclick="addCategoria()"
+                        class="bg-pink-600 text-white px-4 rounded-xl hover:bg-pink-700 shadow-lg active:scale-95 border-none"><i
+                            class="fas fa-plus"></i></button>
                 </div>
             </div>
 
-            <div class="card-admin flex flex-col h-[500px]">
-                <h3 class="font-black text-gray-800 mb-6 flex items-center gap-3 text-lg border-b border-gray-100 pb-4">
-                    <span class="bg-green-100 text-green-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"><i class="fas fa-map-marker-alt"></i></span> 
-                    Taxas de Bairro
-                </h3>
-                <div id="lista-taxas" class="space-y-2 mb-4 overflow-y-auto pr-2 custom-scroll flex-grow">
-                    </div>
-                <div class="flex gap-2 pt-4 border-t border-gray-100 mt-auto">
-                    <input id="novo-bairro" placeholder="Bairro" class="border-2 border-gray-200 bg-gray-50 p-3 rounded-xl w-full text-sm font-bold outline-none focus:border-green-500 transition">
-                    <input id="nova-taxa" type="number" placeholder="R$" class="border-2 border-gray-200 bg-gray-50 p-3 rounded-xl w-24 text-sm font-bold outline-none focus:border-green-500 transition text-center">
-                    <button onclick="addTaxa()" class="bg-green-600 text-white px-4 rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-200 active:scale-95">
-                        <i class="fas fa-plus"></i>
-                    </button>
+            <div class="card-admin flex flex-col h-[650px]">
+                <h3 class="font-black text-gray-800 mb-6 flex items-center gap-3 text-lg border-b pb-4"><i
+                        class="fas fa-map-marker-alt text-green-500"></i> Taxas</h3>
+                <div id="lista-taxas" class="space-y-3 mb-4 overflow-y-auto pr-2 custom-scroll flex-grow"></div>
+                <div class="flex gap-2 pt-6 border-t mt-auto bg-white sticky bottom-0">
+                    <input id="novo-bairro" placeholder="Bairro" class="input-field w-full">
+                    <input id="nova-taxa" type="number" placeholder="R$" class="input-field w-24 text-center">
+                    <button onclick="addTaxa()"
+                        class="bg-green-600 text-white px-4 rounded-xl hover:bg-green-700 shadow-lg active:scale-95 border-none"><i
+                            class="fas fa-plus"></i></button>
                 </div>
             </div>
 
-            <div class="card-admin flex flex-col h-[500px]">
-                <h3 class="font-black text-gray-800 mb-6 flex items-center gap-3 text-lg border-b border-gray-100 pb-4">
-                    <span class="bg-purple-100 text-purple-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"><i class="fas fa-ticket-alt"></i></span> 
-                    Cupons
-                </h3>
-                <div id="lista-cupons" class="space-y-2 mb-4 overflow-y-auto pr-2 custom-scroll flex-grow">
-                    </div>
-                
-                <div class="border-t border-gray-100 pt-4 space-y-3 mt-auto bg-gray-50 p-4 rounded-2xl">
+            <div class="card-admin flex flex-col h-[650px]">
+                <h3 class="font-black text-gray-800 mb-6 flex items-center gap-3 text-lg border-b pb-4"><i
+                        class="fas fa-ticket-alt text-purple-500"></i> Cupons</h3>
+                <div id="lista-cupons" class="space-y-3 mb-4 overflow-y-auto pr-2 custom-scroll flex-grow"></div>
+                <div
+                    class="border-t border-gray-100 pt-6 space-y-3 mt-auto bg-purple-50/30 p-4 rounded-2xl border border-purple-100">
                     <div class="flex gap-2">
-                        <input id="novo-cupom" placeholder="CÓDIGO" class="border border-gray-200 p-2.5 rounded-lg w-full text-sm uppercase font-black tracking-widest text-purple-700 outline-none focus:border-purple-500 transition">
-                        <input id="novo-desc" type="number" placeholder="%" class="border border-gray-200 p-2.5 rounded-lg w-16 text-sm font-bold text-center outline-none focus:border-purple-500 transition">
+                        <input id="novo-cupom" placeholder="CÓDIGO"
+                            class="border-2 border-white bg-white p-2 rounded-lg w-full text-sm uppercase font-black outline-none focus:border-purple-500 shadow-sm">
+                        <input id="novo-desc" type="number" placeholder="%"
+                            class="border-2 border-white bg-white p-2 rounded-lg w-16 text-sm font-bold text-center outline-none focus:border-purple-500 shadow-sm">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="text-[9px] text-gray-400 font-bold uppercase block mb-1">Início (Opcional)</label>
-                            <input type="datetime-local" id="cupom-inicio" class="border border-gray-200 bg-white p-1 rounded w-full text-[10px] text-gray-600">
+                            <label class="text-[9px] uppercase font-bold text-purple-800 ml-1">Válido De</label>
+                            <input type="datetime-local" id="novo-cupom-inicio"
+                                class="border-2 border-white bg-white p-1.5 rounded-lg w-full text-[10px] outline-none shadow-sm">
                         </div>
                         <div>
-                            <label class="text-[9px] text-gray-400 font-bold uppercase block mb-1">Fim (Opcional)</label>
-                            <input type="datetime-local" id="cupom-fim" class="border border-gray-200 bg-white p-1 rounded w-full text-[10px] text-gray-600">
+                            <label class="text-[9px] uppercase font-bold text-purple-800 ml-1">Válido Até</label>
+                            <input type="datetime-local" id="novo-cupom-fim"
+                                class="border-2 border-white bg-white p-1.5 rounded-lg w-full text-[10px] outline-none shadow-sm">
                         </div>
                     </div>
-                    <button onclick="addCupom()" class="bg-purple-600 text-white w-full py-3 rounded-xl hover:bg-purple-700 text-xs font-black transition shadow-md shadow-purple-200 uppercase tracking-wide active:scale-95">
-                        Criar Cupom
-                    </button>
+                    <button onclick="addCupom()"
+                        class="bg-purple-600 text-white w-full py-2.5 rounded-xl hover:bg-purple-700 text-xs font-black uppercase shadow-lg active:scale-95 border-none mt-2">Criar
+                        Cupom</button>
                 </div>
             </div>
-        </section>
-
-        <section class="card-admin">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-100 pb-6 gap-4">
-                <div>
-                    <h2 class="text-2xl font-black text-gray-800 flex items-center gap-3">
-                        <i class="fas fa-box-open text-orange-500"></i> Catálogo de Produtos
-                    </h2>
-                    <p class="text-sm text-gray-500 mt-1">Gerencie itens, preços, fotos e variações.</p>
-                </div>
-                <button onclick="abrirModalProduto()" class="btn-primary shadow-xl shadow-orange-200 active:scale-95">
-                    <i class="fas fa-plus text-lg"></i> Novo Item
-                </button>
-            </div>
-            
-            <div class="flex flex-wrap gap-4 mb-8 text-xs font-bold bg-gray-50 p-3 rounded-xl inline-flex border border-gray-200">
-                <span class="flex items-center gap-2 text-blue-700"><span class="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></span> Delivery</span>
-                <span class="flex items-center gap-2 text-purple-700"><span class="w-3 h-3 rounded-full bg-purple-500 shadow-sm"></span> Encomenda</span>
-                <span class="flex items-center gap-2 text-red-700"><span class="w-3 h-3 rounded-full bg-red-500 shadow-sm animate-pulse"></span> Em Oferta</span>
-            </div>
-
-            <div id="lista-admin-produtos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                </div>
         </section>
 
         <section class="card-admin">
             <h2 class="text-2xl font-black text-gray-800 mb-6 border-b border-gray-100 pb-4 flex items-center gap-3">
-                <i class="fas fa-users text-orange-500"></i> Gestão de Clientes
+                <span class="bg-gray-100 text-gray-600 w-10 h-10 rounded-lg flex items-center justify-center"><i
+                        class="fas fa-users"></i></span>
+                Base de Clientes
             </h2>
-            <div id="lista-clientes" class="divide-y divide-gray-100">
+            <div class="overflow-hidden rounded-xl border border-gray-100 shadow-sm">
+                <div class="bg-gray-50 px-4 py-3 flex text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <div class="w-1/2">Cliente / Contato</div>
+                    <div class="w-1/2 text-right">Status / Cadastro</div>
                 </div>
+                <div id="lista-clientes"
+                    class="divide-y divide-gray-100 max-h-[500px] overflow-y-auto custom-scroll bg-white font-medium">
+                </div>
+            </div>
         </section>
 
     </main>
 
-    <div id="modal-produto" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[60] p-4 backdrop-blur-md transition-opacity">
-        <div class="bg-white rounded-[2rem] w-full max-w-xl p-8 relative shadow-2xl animate-up max-h-[90vh] overflow-y-auto custom-scroll">
-            
-            <div class="flex justify-between items-center mb-8 border-b border-gray-100 pb-4 sticky top-0 bg-white z-10">
-                <div>
-                    <h3 class="font-black text-2xl text-gray-800" id="titulo-modal-prod">Gerenciar Produto</h3>
-                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Edição Completa</p>
-                </div>
-                <button onclick="fecharModalProduto()" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shadow-sm">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
+    <div id="modal-produto"
+        class="fixed inset-0 bg-gray-900/80 hidden items-center justify-center z-[100] p-4 backdrop-blur-sm transition-all duration-300 opacity-0 pointer-events-none"
+        style="display: flex;">
+        <div class="bg-white rounded-[2rem] w-full max-w-2xl p-8 relative shadow-2xl transform scale-95 transition-all duration-300 max-h-[95vh] overflow-y-auto custom-scroll"
+            id="modal-content-prod">
+
+            <div
+                class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100 sticky top-0 bg-white z-20">
+                <h3 class="font-black text-2xl text-gray-800" id="titulo-modal-prod">Gerenciar Produto</h3>
+                <button onclick="fecharModalProduto()"
+                    class="w-10 h-10 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-500 flex items-center justify-center text-gray-500 transition shadow-sm border-none"><i
+                        class="fas fa-times"></i></button>
             </div>
-            
-            <input type="hidden" id="prod-id">
-            <input type="hidden" id="prod-img-url-hidden"> 
+
+            <input type="hidden" id="prod-id"><input type="hidden" id="prod-img-url-hidden">
 
             <div class="space-y-6">
-                <div class="flex gap-5 items-start bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                    <div class="w-28 h-28 bg-white rounded-xl flex-shrink-0 overflow-hidden border-2 border-dashed border-gray-300 shadow-sm relative group flex items-center justify-center">
+                <div
+                    class="flex gap-6 items-start bg-gray-50 p-6 rounded-3xl border border-dashed border-gray-300 hover:border-orange-400 transition group">
+                    <div
+                        class="w-24 h-24 bg-white rounded-2xl flex-shrink-0 overflow-hidden shadow-sm relative flex items-center justify-center border border-gray-200">
                         <img id="preview-img" src="" class="w-full h-full object-cover hidden">
-                        <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-300 group-hover:text-orange-500 transition">
-                            <i class="fas fa-camera text-2xl mb-1"></i>
-                            <span class="text-[8px] font-bold uppercase">Foto</span>
+                        <div
+                            class="absolute inset-0 flex flex-col items-center justify-center text-gray-300 group-hover:text-orange-500 transition">
+                            <i class="fas fa-camera text-3xl mb-2"></i><span
+                                class="text-[9px] font-bold uppercase">Foto</span>
                         </div>
                     </div>
-                    <div class="flex-grow space-y-3">
-                        <label class="block text-xs font-black text-gray-500 uppercase tracking-wider">Selecione a Imagem</label>
-                        <input type="file" id="prod-file" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 cursor-pointer transition">
-                        <p class="text-[10px] text-gray-400 leading-tight">Formatos suportados: JPG, PNG, WEBP.</p>
+                    <div class="flex-grow space-y-3 pt-2">
+                        <label class="input-label">Imagem</label>
+                        <input type="file" id="prod-file" accept="image/*"
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 cursor-pointer">
                     </div>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="text-xs font-black text-gray-500 uppercase tracking-wider ml-1">Nome do Item</label>
-                    <input id="prod-nome" placeholder="Ex: Coxinha de Frango com Catupiry" class="w-full border-2 border-gray-200 p-3 rounded-xl font-bold text-gray-800 focus:border-orange-500 outline-none transition text-base">
-                </div>
-                
-                <div class="space-y-2">
-                    <label class="text-xs font-black text-gray-500 uppercase tracking-wider ml-1">Descrição</label>
-                    <textarea id="prod-desc" placeholder="Ingredientes, detalhes, tamanho..." rows="3" class="w-full border-2 border-gray-200 p-3 rounded-xl text-sm resize-none focus:border-orange-500 outline-none transition font-medium text-gray-600"></textarea>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-5">
-                    <div class="space-y-2">
-                        <label class="text-xs font-black text-gray-500 uppercase tracking-wider ml-1">Categoria</label>
-                        <div class="relative">
-                            <select id="prod-cat" class="w-full border-2 border-gray-200 p-3 rounded-xl bg-white h-[50px] focus:border-orange-500 outline-none appearance-none font-bold text-gray-700"></select>
-                            <i class="fas fa-chevron-down absolute right-4 top-4 text-gray-400 pointer-events-none"></i>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-black text-gray-500 uppercase tracking-wider ml-1">Preço Base (R$)</label>
-                        <input id="prod-preco" type="number" step="0.01" class="w-full border-2 border-gray-200 p-3 rounded-xl font-black text-gray-800 focus:border-orange-500 outline-none text-lg">
-                    </div>
+                <div class="space-y-4">
+                    <div><label class="input-label">Nome</label><input id="prod-nome"
+                            class="input-field text-lg font-bold"></div>
+                    <div><label class="input-label">Descrição</label><textarea id="prod-desc" rows="3"
+                            class="input-field resize-none"></textarea></div>
                 </div>
 
-                <div class="bg-red-50 p-5 rounded-2xl border-2 border-red-100 flex items-end gap-4 transition hover:border-red-200">
-                    <div class="flex-grow space-y-2">
-                        <label class="text-[10px] font-black text-red-500 uppercase block tracking-wider">Preço Promocional (R$)</label>
-                        <input id="prod-sale-price" type="number" step="0.01" placeholder="0.00" class="w-full bg-white border-2 border-red-200 p-3 rounded-xl text-lg text-red-600 font-black focus:border-red-500 outline-none">
+                <div id="base-price-container">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div><label class="input-label">Preço Base (R$)</label><input id="prod-preco" type="number"
+                                step="0.01" class="input-field pl-4 text-xl font-black"></div>
+                        <div><label class="input-label">Ordem</label><input id="prod-ordem" type="number"
+                                placeholder="999" class="input-field text-center font-bold"></div>
                     </div>
-                    <div class="pb-3">
-                        <label class="flex items-center gap-3 cursor-pointer select-none bg-white px-4 py-2 rounded-lg border border-red-200 shadow-sm">
-                            <input type="checkbox" id="check-on-sale" class="w-5 h-5 accent-red-600 rounded cursor-pointer">
-                            <span class="text-xs font-black text-red-700 uppercase">ATIVAR</span>
+
+                    <div
+                        class="bg-white border-2 border-gray-100 p-5 rounded-2xl flex flex-wrap gap-4 justify-between items-center shadow-sm mt-4">
+                        <label class="toggle-wrapper group">
+                            <div class="relative"><input type="checkbox" id="check-ativo" class="toggle-checkbox">
+                                <div class="toggle-switch"></div>
+                            </div>
+                            <span
+                                class="text-[11px] font-bold text-gray-600 uppercase group-hover:text-green-600 transition">Ativo</span>
+                        </label>
+                        <label class="toggle-wrapper group">
+                            <div class="relative"><input type="checkbox" id="check-oferta" class="toggle-checkbox"
+                                    onchange="togglePromoField()">
+                                <div class="toggle-switch-red"></div>
+                            </div>
+                            <span
+                                class="text-[11px] font-bold text-gray-600 uppercase group-hover:text-red-600 transition">Oferta</span>
+                        </label>
+                        <label class="toggle-wrapper group" title="Aparecer na tela de Encomendas">
+                            <div class="relative"><input type="checkbox" id="check-encomenda" class="toggle-checkbox">
+                                <div class="toggle-switch"></div>
+                            </div>
+                            <span
+                                class="text-[11px] font-bold text-gray-600 uppercase group-hover:text-blue-600 transition">Encomenda</span>
                         </label>
                     </div>
-                </div>
 
-                <div class="border-2 border-gray-200 rounded-2xl p-5 bg-gray-50">
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-xs font-black text-gray-600 uppercase flex items-center gap-2 tracking-wider">
-                            <i class="fas fa-layer-group"></i> Variações / Combos
-                        </h4>
-                        <button onclick="addVariantRow()" class="text-blue-600 text-xs font-bold hover:text-white hover:bg-blue-600 bg-blue-100 px-3 py-1.5 rounded-lg transition active:scale-95">
-                            + Adicionar Opção
-                        </button>
+                    <div id="box-promo" class="hidden bg-red-50 p-5 rounded-2xl border-2 border-red-100 mt-2">
+                        <label class="input-label text-red-500">Preço Promocional (De/Por)</label>
+                        <input id="prod-sale-price" type="number" step="0.01"
+                            class="input-field bg-white text-red-600 font-black text-xl">
                     </div>
-                    
-                    <div id="variants-container" class="space-y-3">
+                </div>
+
+                <div><label class="input-label">Categoria</label>
+                    <div class="relative"><select id="prod-cat"
+                            class="input-field appearance-none font-bold text-gray-700 h-[52px]"></select><i
+                            class="fas fa-chevron-down absolute right-4 top-4 text-gray-400 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div class="border-2 border-dashed border-blue-200 rounded-2xl p-6 bg-blue-50/30">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-xs font-black text-blue-800 uppercase flex items-center gap-2"><i
+                                class="fas fa-layer-group"></i> Variações & Combos</h4>
+                        <button onclick="addVariantRow()"
+                            class="bg-blue-100 text-blue-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition shadow-sm border-none flex items-center gap-2"><i
+                                class="fas fa-plus"></i> Adicionar</button>
+                    </div>
+                    <div id="variants-container" class="space-y-3"></div>
+                    <p class="text-[10px] text-gray-400 mt-4 text-center italic border-t border-blue-100 pt-2">Adicionar
+                        variações oculta o preço base.</p>
+                </div>
+
+                <button id="btn-salvar-prod" onclick="salvarProduto()"
+                    class="w-full bg-green-600 text-white py-4 rounded-xl font-black shadow-xl hover:bg-green-700 transition text-lg border-none">SALVAR</button>
+                <div class="text-center pt-2"><button onclick="deletarProduto()" id="btn-delete"
+                        class="text-red-400 text-xs font-bold hover:text-red-600 border-none bg-transparent underline hidden">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-cliente"
+        class="fixed inset-0 bg-gray-900/90 hidden items-end sm:items-center justify-center z-[100] p-0 sm:p-4 backdrop-blur-sm transition-all duration-300 opacity-0 pointer-events-none"
+        style="display: flex;">
+        <div class="bg-white rounded-t-[2rem] sm:rounded-[2rem] w-full max-w-2xl relative shadow-2xl transform translate-y-full sm:scale-95 transition-all duration-300 max-h-[90vh] overflow-hidden flex flex-col"
+            id="modal-content-cli">
+
+            <div class="bg-gray-50 p-6 sm:p-8 border-b border-gray-100 relative">
+                <button onclick="fecharModalCliente()"
+                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center text-gray-500 transition shadow-sm z-10"><i
+                        class="fas fa-times"></i></button>
+
+                <div class="flex flex-col sm:flex-row items-center gap-6">
+                    <div
+                        class="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200 border-4 border-white shadow-lg overflow-hidden flex-shrink-0 relative">
+                        <img id="cli-avatar" src="" class="w-full h-full object-cover hidden">
+                        <div id="cli-avatar-placeholder"
+                            class="w-full h-full flex items-center justify-center text-gray-400 text-4xl"><i
+                                class="fas fa-user"></i></div>
+                    </div>
+                    <div class="text-center sm:text-left flex-grow space-y-2">
+                        <h3 class="font-black text-2xl text-gray-800 leading-tight" id="cli-nome-header">Nome do Cliente
+                        </h3>
+                        <p
+                            class="text-sm text-gray-500 font-medium flex items-center justify-center sm:justify-start gap-2">
+                            <i class="fas fa-phone-alt text-gray-300"></i> <span id="cli-phone-header">--</span>
+                        </p>
+
+                        <div class="flex flex-wrap gap-3 mt-4 justify-center sm:justify-start pt-2">
+                            <a id="btn-whatsapp-cli" href="#" target="_blank"
+                                class="bg-green-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-green-600 transition flex items-center gap-2 shadow-sm shadow-green-200"><i
+                                    class="fab fa-whatsapp text-lg"></i> WhatsApp</a>
+
+                            <div
+                                class="bg-white border border-gray-200 px-4 py-2 rounded-xl flex items-center gap-3 shadow-sm select-none">
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Bloqueado?</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="cli-blocked-toggle" class="sr-only peer toggle-checkbox"
+                                        onchange="toggleClienteBloqueio()">
+                                    <div class="toggle-switch-red peer-checked:bg-red-500"></div>
+                                </label>
+                            </div>
                         </div>
-                    
-                    <p class="text-[10px] text-gray-400 mt-3 italic text-center border-t border-gray-200 pt-2">
-                        Exemplo: Coloque Qtd "25" e Preço "12.00".
-                    </p>
+                    </div>
                 </div>
-                
-                <div class="bg-gray-100 p-5 rounded-2xl flex gap-8 justify-center border border-gray-200">
-                    <label class="flex items-center gap-3 cursor-pointer select-none">
-                        <input type="checkbox" id="check-delivery" class="accent-blue-600 w-6 h-6 rounded cursor-pointer shadow-sm">
-                        <span class="text-sm font-bold text-gray-700 uppercase tracking-wide">DELIVERY</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer select-none">
-                        <input type="checkbox" id="check-encomenda" class="accent-purple-600 w-6 h-6 rounded cursor-pointer shadow-sm">
-                        <span class="text-sm font-bold text-gray-700 uppercase tracking-wide">ENCOMENDA</span>
-                    </label>
+            </div>
+
+            <div
+                class="flex border-b border-gray-100 bg-white sticky top-0 z-10 text-sm font-bold text-gray-500 uppercase tracking-wider justify-center shadow-sm">
+                <button onclick="switchTabCli('details')" id="tab-details"
+                    class="tab-btn active py-4 px-8 border-b-4 border-orange-500 ext-primary transition focus:outline-none">Detalhes</button>
+                <button onclick="switchTabCli('orders')" id="tab-orders"
+                    class="tab-btn py-4 px-8 border-b-4 border-transparent hover:text-gray-700 transition focus:outline-none">Histórico</button>
+            </div>
+
+            <div class="overflow-y-auto custom-scroll flex-grow p-6 sm:p-8 bg-gray-50/50">
+                <input type="hidden" id="cli-id-hidden">
+                <div id="cli-tab-details" class="space-y-6 animate-fade">
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                        <h4 class="font-black text-gray-800 flex items-center gap-2 mb-4 text-lg"><i
+                                class="fas fa-user-edit text-orange-500"></i> Editar Informações</h4>
+                        <div><label class="input-label">Nome Completo</label><input id="cli-nome-edit"
+                                class="input-field font-bold text-gray-700"></div>
+                        <div><label class="input-label">Telefone</label><input id="cli-phone-edit"
+                                class="input-field font-bold text-gray-700"></div>
+                        <button onclick="salvarClienteDados()"
+                            class="w-full bg-orange-100 text-orange-700 py-3.5 rounded-xl font-bold hover:bg-orange-200 transition flex items-center justify-center gap-2 mt-4"><i
+                                class="fas fa-save"></i> Salvar</button>
+                    </div>
+                    <div
+                        class="bg-white p-5 rounded-2xl border border-gray-100 text-xs text-gray-400 font-mono space-y-1">
+                        <p>ID: <span id="cli-id-display" class="select-all font-bold text-gray-600"></span></p>
+                        <p>Registrado em: <span id="cli-date-display" class="font-bold text-gray-600"></span></p>
+                    </div>
                 </div>
-                
-                <button onclick="salvarProduto()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black hover:bg-green-700 shadow-xl shadow-green-200/50 mt-4 flex items-center justify-center gap-3 transition transform active:scale-95 text-lg">
-                    <span id="btn-save-text">SALVAR PRODUTO</span>
-                    <i id="btn-save-icon" class="fas fa-check"></i>
-                </button>
-                
-                <div class="text-center pt-2">
-                    <button onclick="deletarProduto()" id="btn-delete" class="text-red-400 text-xs font-bold hover:text-red-600 transition hover:underline py-2 px-4 rounded">
-                        <i class="fas fa-trash mr-1"></i> Excluir este produto permanentemente
-                    </button>
-                </div>
+                <div id="cli-tab-orders" class="hidden space-y-4 animate-fade"></div>
             </div>
         </div>
     </div>
 
-    <div id="modal-cliente" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[60] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-6 relative shadow-2xl animate-up">
-            <h3 class="font-bold text-lg mb-4 text-gray-800">Editar Cliente</h3>
-            <input type="hidden" id="cli-id">
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase">Nome</label>
-                    <input id="cli-nome" class="w-full border-2 border-gray-200 p-3 rounded-lg text-gray-800 outline-none focus:border-blue-500 font-bold">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase">Telefone</label>
-                    <input id="cli-phone" class="w-full border-2 border-gray-200 p-3 rounded-lg text-gray-800 outline-none focus:border-blue-500 font-bold">
-                </div>
-                <button onclick="salvarCliente()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200 active:scale-95">SALVAR DADOS</button>
-                <button onclick="fecharModalCliente()" class="w-full text-gray-500 text-sm mt-2 hover:text-gray-700 font-bold">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-historico" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[60] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl w-full max-w-md h-[80vh] flex flex-col p-6 relative shadow-2xl animate-up">
-            <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                <h3 class="font-bold text-xl text-gray-800">Histórico de Pedidos</h3>
-                <button onclick="document.getElementById('modal-historico').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 transition bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div id="lista-historico-cliente" class="overflow-y-auto flex-1 space-y-4 pr-1 custom-scroll">
-                </div>
+    <div id="modal-comprovante"
+        class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[120] p-4 backdrop-blur-md cursor-pointer transition-opacity duration-300 opacity-0"
+        onclick="fecharModalPix()">
+        <div class="relative max-w-md w-full transform transition-transform duration-300 scale-95"
+            onclick="event.stopPropagation()">
+            <button onclick="fecharModalPix()"
+                class="absolute -top-12 right-0 text-white hover:text-gray-300 transition text-3xl"><i
+                    class="fas fa-times"></i></button>
+            <img id="img-comprovante-full" src=""
+                class="w-full rounded-2xl shadow-2xl border-2 border-white/20 bg-gray-800 min-h-[300px] object-contain">
+            <div class="mt-6 text-center"><a id="btn-download-pix" href="#" target="_blank" download
+                    class="inline-block bg-white text-gray-900 px-8 py-3 rounded-full font-black text-sm hover:bg-gray-200 transition shadow-lg"><i
+                        class="fas fa-download mr-2"></i> Baixar Imagem</a></div>
         </div>
     </div>
 
     <script>
-        // --- FUNÇÃO DE SEGURANÇA GLOBAL (Anti-XSS) ---
-        function escapeHtml(text) {
-            if (!text) return text;
-            return text.toString()
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
+        let produtos = [], categorias = [], configLoja = {}, taxas = [], cupons = [], clientes = [];
 
-        // Variáveis Globais
-        let produtos = [], categorias = [], clientes = [], configLoja = {}, taxas = [], cupons = [];
-        let diasBloqueados = []; // Variável crítica para a agenda
-
-        // --- INICIALIZAÇÃO DO PAINEL ---
         async function initAdmin() {
-            try {
-                if(!await checkLogin()) return;
+            // INICIA O MOTOR CAMALEÃO
+            if (typeof window.iniciarCamaleao === 'function') {
+                await window.iniciarCamaleao();
+            }
 
-                // Carregamento de dados em paralelo para performance
-                const [p, c, cl, cfg, t, cp] = await Promise.all([
-                    _supabase.from('products').select('*').order('name'),
-                    _supabase.from('categories').select('*').order('name'),
-                    _supabase.from('clients').select('*').order('created_at', {ascending: false}),
-                    _supabase.from('store_config').select('*').limit(1),
-                    _supabase.from('delivery_fees').select('*').order('price'),
-                    _supabase.from('coupons').select('*').order('code')
+            try {
+                if (typeof _supabase === 'undefined') throw new Error("Supabase não carregado.");
+                if (!await checkAuth()) return;
+
+                Swal.fire({ title: 'Carregando...', didOpen: () => Swal.showLoading(), allowOutsideClick: false, background: 'transparent', color: 'white', backdrop: 'rgba(0,0,0,0.8)' });
+
+                const [p, c, cfg, t, cp, cl] = await Promise.all([
+                    // Adicionamos .eq('loja_id', window.LOJA_ID) em quase tudo
+                    _supabase.from('products').select('*').eq('loja_id', window.LOJA_ID).order('order_index'),
+                    _supabase.from('categories').select('*').eq('loja_id', window.LOJA_ID).order('name'),
+                    _supabase.from('store_config').select('*').eq('loja_id', window.LOJA_ID).single(), // Usamos .single() porque o ID é único
+                    _supabase.from('delivery_fees').select('*').eq('loja_id', window.LOJA_ID).order('price'),
+                    _supabase.from('coupons').select('*').eq('loja_id', window.LOJA_ID).order('code'),
+                    _supabase.from('clients').select('*').order('created_at', { ascending: false }) // Clientes podem ser globais
                 ]);
 
-                if(p.error) throw new Error("Erro Produtos: " + p.error.message);
+                produtos = p.data || []; categorias = c.data || [];
+                configLoja = cfg.data || window.LOJA_CONFIG || {}; // Ajustado pois agora usamos .single()
+                taxas = t.data || []; cupons = cp.data || []; clientes = cl.data || [];
 
-                produtos = p.data || [];
-                categorias = c.data || [];
-                clientes = cl.data || [];
-                configLoja = cfg.data ? cfg.data[0] : {};
-                taxas = t.data || [];
-                cupons = cp.data || [];
+                if (!configLoja.id) {
+                    // Se não existir, cria com o ID da loja!
+                    await _supabase.from('store_config').insert([{ loja_id: window.LOJA_ID, is_open: true }]);
+                    return initAdmin();
+                }
 
-                // Configurações Iniciais da UI
-                if(configLoja.logo_url) document.getElementById('admin-logo-preview').src = configLoja.logo_url;
+                if (configLoja.logo_url) document.getElementById('admin-logo-preview').src = configLoja.logo_url;
+                if (configLoja.delivery_estimate) document.getElementById('config-tempo').value = configLoja.delivery_estimate;
 
-                // Renderização dos Componentes
+                // NOVO: Lê todas as chaves de Encomenda
+                if (configLoja.schedule_config) {
+                    document.getElementById('agenda-inicio').value = configLoja.schedule_config.inicio || "";
+                    document.getElementById('agenda-fim').value = configLoja.schedule_config.fim || "";
+                    document.getElementById('agenda-antecedencia').value = configLoja.schedule_config.antecedencia || "1";
+                    document.getElementById('agenda-dias').value = configLoja.schedule_config.dias_maximos || "30";
+                    document.getElementById('modulo-encomenda-ativo').checked = configLoja.schedule_config.ativo !== false;
+
+                    const diasAtivos = configLoja.schedule_config.dias_funcionamento || [0, 1, 2, 3, 4, 5, 6];
+                    document.querySelectorAll('.dia-semana').forEach(cb => {
+                        cb.checked = diasAtivos.includes(parseInt(cb.value));
+                    });
+                }
+
                 renderAdminProdutos();
-                renderAdminClientes();
-                setupAgendaUI(); // Configura a agenda e datas bloqueadas
-                atualizarStatusLojaUI();
+                renderCategorias();
                 renderTaxas();
                 renderCupons();
-                renderCategorias();
+                renderClientes();
+                carregarComprovantes();
+                updateStatusLojaUI();
+                Swal.close();
 
-            } catch (err) {
-                console.error(err);
-                alert("Erro Crítico ao carregar o sistema: " + err.message);
-            }
+            } catch (err) { Swal.fire("Erro", err.message, "error"); }
         }
 
-        // ==========================================
-        //  GESTÃO DA AGENDA (Lógica Corrigida)
-        // ==========================================
-        function setupAgendaUI() {
-            if(!configLoja.schedule_config) {
-                configLoja.schedule_config = { dias: [], inicio: "08:00", fim: "18:00", bloqueios: [] };
-            }
-            const cfg = configLoja.schedule_config;
-            
-            // CORREÇÃO: Garante que a variável global receba os dados do banco
-            diasBloqueados = cfg.bloqueios || [];
-            
-            // Marca os dias da semana
-            document.querySelectorAll('.day-check input').forEach(input => {
-                input.checked = cfg.dias ? cfg.dias.includes(input.value) : false;
-            });
-            
-            // Preenche horários
-            document.getElementById('agenda-inicio').value = cfg.inicio || "08:00";
-            document.getElementById('agenda-fim').value = cfg.fim || "18:00";
-            
-            // Renderiza a lista visual de bloqueios
-            renderBloqueios();
+        async function checkAuth() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'cliente-login.html'; return false; }
+            const { data: user } = await _supabase.from('clients').select('is_admin').eq('id', session.user.id).single();
+            if (!user?.is_admin) { await Swal.fire("Acesso Negado", "Área restrita.", "warning"); window.location.href = 'index.html'; return false; }
+            return true;
         }
+        function logout() { _supabase.auth.signOut(); window.location.href = 'cliente-login.html'; }
 
-        function renderBloqueios() {
-            document.getElementById('lista-bloqueios').innerHTML = diasBloqueados.map(d => 
-                `<span class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm border border-red-100">
-                    <i class="far fa-calendar-times"></i>
-                    ${escapeHtml(d.split('-').reverse().join('/'))} 
-                    <button onclick="rmBloqueio('${d}')" class="hover:text-red-800 hover:scale-110 transition ml-1">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </span>`
-            ).join('');
-        }
-
-        function addBloqueio() {
-            const d = document.getElementById('data-bloqueio').value;
-            if(d && !diasBloqueados.includes(d)) {
-                diasBloqueados.push(d);
-                renderBloqueios();
-                // Aviso visual de que precisa salvar
-                mostrarToast("Data adicionada! Clique em SALVAR.", "info");
-            }
-        }
-
-        function rmBloqueio(d) {
-            diasBloqueados = diasBloqueados.filter(x => x !== d);
-            renderBloqueios();
-        }
-
-        async function salvarAgenda() {
-            const dias = Array.from(document.querySelectorAll('.day-check input:checked')).map(i => i.value);
-            
-            const novoConfig = { 
-                dias, 
-                inicio: document.getElementById('agenda-inicio').value, 
-                fim: document.getElementById('agenda-fim').value, 
-                bloqueios: diasBloqueados, // Salva a lista atualizada
-                horarios_permitidos: `${document.getElementById('agenda-inicio').value} às ${document.getElementById('agenda-fim').value}` 
-            };
-            
-            await _supabase.from('store_config').update({ schedule_config: novoConfig }).eq('id', configLoja.id);
-            mostrarToast("Agenda e Bloqueios salvos com sucesso!", "sucesso");
-        }
-
-        // ==========================================
-        //  GESTÃO DE PRODUTOS
-        // ==========================================
+        // --- PRODUTOS POR CATEGORIA ---
         function renderAdminProdutos() {
             const lista = document.getElementById('lista-admin-produtos');
+            const select = document.getElementById('prod-cat');
             lista.innerHTML = '';
-            
-            // Popula o select do modal
-            document.getElementById('prod-cat').innerHTML = categorias.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+            select.innerHTML = '<option value="">Sem Categoria</option>';
+            categorias.forEach(c => select.innerHTML += `<option value="${c.id}">${c.name}</option>`);
 
-            const createProductCard = (p) => {
-                let badges = '';
-                if(p.for_delivery) badges += `<span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-[10px] font-bold uppercase border border-blue-100">Delivery</span>`;
-                if(p.for_encomenda) badges += `<span class="bg-purple-50 text-purple-700 px-2 py-1 rounded-md text-[10px] font-bold uppercase border border-purple-100">Enc</span>`;
-                if(p.on_sale) badges += `<span class="bg-red-50 text-red-600 px-2 py-1 rounded-md text-[10px] font-black uppercase border border-red-100 animate-pulse">OFERTA</span>`;
-                
-                const imgUrl = (!p.image_url || p.image_url.length < 5) ? 'https://placehold.co/100?text=Sem+Foto' : p.image_url;
-                const hasVariants = p.variants && Array.isArray(p.variants) && p.variants.length > 0;
+            if (produtos.length === 0) { lista.innerHTML = `<div class="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50"><i class="fas fa-box-open text-4xl text-gray-300 mb-4"></i><p class="text-gray-500 font-bold">Nenhum produto cadastrado.</p></div>`; return; }
 
-                return `
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4 hover:shadow-xl hover:-translate-y-1 transition duration-300 relative group">
-                    <div class="w-20 h-20 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100 shadow-inner">
-                        <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                    </div>
-                    <div class="flex-grow overflow-hidden">
-                        <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-gray-800 text-sm leading-tight truncate pr-2">${escapeHtml(p.name)}</h3>
-                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition duration-200 absolute top-2 right-2 bg-white/90 p-1 rounded-lg shadow-sm backdrop-blur-sm">
-                                <button onclick="editarProduto('${p.id}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded transition"><i class="fas fa-pen"></i></button>
-                                <button onclick="duplicarProduto('${p.id}')" class="text-purple-500 hover:bg-purple-50 p-2 rounded transition"><i class="fas fa-copy"></i></button>
+            // Agrupamento
+            const grouped = {};
+            categorias.forEach(c => grouped[c.id] = { name: c.name, items: [] });
+            grouped['null'] = { name: 'Sem Categoria', items: [] };
+            produtos.forEach(p => { const k = p.category_id || 'null'; if (grouped[k]) grouped[k].items.push(p); });
+
+            // Renderização
+            for (const k in grouped) {
+                if (grouped[k].items.length > 0) {
+                    lista.innerHTML += `<div class="category-separator"><span>${grouped[k].name}</span></div>`;
+                    grouped[k].items.forEach(p => {
+                        const img = (!p.image_url || p.image_url.length < 5) ? 'https://placehold.co/100?text=Sem+Foto' : p.image_url;
+                        const statusBadge = p.active ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded-md text-[10px] font-black uppercase shadow-sm border border-green-200">Ativo</span>` : `<span class="bg-red-100 text-red-700 px-2 py-1 rounded-md text-[10px] font-black uppercase shadow-sm border border-red-200">Inativo</span>`;
+                        const promoBadge = p.on_sale ? `<span class="bg-red-500 text-white px-2 py-1 rounded-md text-[10px] font-black uppercase shadow-sm animate-pulse">Promo</span>` : '';
+
+                        lista.innerHTML += `
+                        <div class="bg-white p-5 rounded-3xl border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col justify-between h-full">
+                            <div class="flex gap-4 mb-4">
+                                <div class="w-20 h-20 bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100 shadow-inner relative group-hover:border-orange-200 transition"><img src="${img}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700" loading="lazy"></div>
+                                <div class="flex-grow overflow-hidden"><h4 class="font-black text-gray-800 text-sm truncate leading-tight w-full">${p.name}</h4><div class="flex items-center gap-2 mt-2 flex-wrap"><span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-[10px] font-bold border border-gray-200">Ord: ${p.order_index}</span>${statusBadge} ${promoBadge}</div></div>
                             </div>
-                        </div>
-                        <div class="flex items-center gap-2 mt-1">
-                            <p class="text-orange-600 font-black text-base">R$ ${p.price.toFixed(2)}</p>
-                            ${p.on_sale ? `<span class="text-xs text-red-400 line-through font-bold">R$ ${p.sale_price}</span>` : ''}
-                        </div>
-                        
-                        ${hasVariants ? '<div class="mt-2"><span class="text-[9px] bg-gray-50 text-gray-500 px-2 py-1 rounded-lg font-bold border border-gray-200 block w-max"><i class="fas fa-layer-group mr-1"></i> Opções/Combos</span></div>' : ''}
-                        
-                        <div class="flex gap-1 mt-3 flex-wrap">${badges}</div>
-                    </div>
-                </div>`;
-            };
-
-            // Renderiza agrupado por categoria
-            categorias.forEach(cat => {
-                const prodsDaCat = produtos.filter(p => String(p.category_id) === String(cat.id));
-                if (prodsDaCat.length > 0) {
-                    lista.innerHTML += `
-                        <div class="col-span-full mt-8 mb-4 flex items-center gap-4">
-                            <div class="h-1 bg-gray-200 flex-grow rounded-full"></div>
-                            <h3 class="font-black text-gray-400 uppercase tracking-widest text-sm bg-white px-4 py-1 rounded-full shadow-sm border border-gray-100">${escapeHtml(cat.name)}</h3>
-                            <div class="h-1 bg-gray-200 flex-grow rounded-full"></div>
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-50 mt-auto"><span class="font-black text-gray-800 text-lg">R$ ${p.price.toFixed(2).replace('.', ',')}</span><button onclick="editarProduto('${p.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-xl transition shadow-sm font-bold text-xs flex items-center gap-2"><i class="fas fa-pen"></i> Editar</button></div>
                         </div>`;
-                    prodsDaCat.forEach(p => { lista.innerHTML += createProductCard(p); });
+                    });
                 }
-            });
-            
-            // Produtos sem categoria
-            const orfaos = produtos.filter(p => !p.category_id);
-            if(orfaos.length > 0) {
-                 lista.innerHTML += `<div class="col-span-full mt-8 mb-4 flex items-center gap-4 bg-red-50 p-3 rounded-xl border border-red-100"><div class="h-1 bg-red-200 flex-grow rounded-full"></div><h3 class="font-black text-red-500 uppercase tracking-widest text-sm flex items-center gap-2"><i class="fas fa-exclamation-triangle"></i> Sem Categoria</h3><div class="h-1 bg-red-200 flex-grow rounded-full"></div></div>`;
-                 orfaos.forEach(p => { lista.innerHTML += createProductCard(p); });
             }
         }
 
-        // Funções do Modal de Produto
-        function addVariantRow(qtd='', price='') {
-            const container = document.getElementById('variants-container');
-            const div = document.createElement('div');
-            div.className = 'flex gap-3 items-center variant-row animate-fade bg-white p-2 rounded-lg shadow-sm border border-gray-100';
-            div.innerHTML = `
-                <div class="flex-grow relative">
-                    <span class="absolute left-2 top-2 text-[10px] text-gray-400 font-bold uppercase">Qtd</span>
-                    <input type="text" placeholder="Ex: 25" value="${escapeHtml(qtd)}" class="var-qtd w-full border border-gray-200 p-1 pl-2 pt-4 rounded text-sm font-bold outline-none focus:border-blue-500 transition">
-                </div>
-                <div class="w-1/3 relative">
-                    <span class="absolute left-2 top-2 text-[10px] text-gray-400 font-bold uppercase">Preço</span>
-                    <span class="absolute left-2 bottom-1.5 text-sm text-gray-500 font-bold">R$</span>
-                    <input type="number" step="0.01" placeholder="0.00" value="${price}" class="var-price w-full border border-gray-200 p-1 pl-8 pt-4 rounded text-sm font-bold outline-none focus:border-green-500 transition">
-                </div>
-                <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 w-8 h-8 rounded-full hover:bg-red-50 transition flex items-center justify-center shadow-sm border border-red-100 bg-white">
-                    <i class="fas fa-trash"></i>
-                </button>
-            `;
-            container.appendChild(div);
+        // --- CLIENTES COMPLETO ---
+        function renderClientes() {
+            const container = document.getElementById('lista-clientes');
+            if (clientes.length === 0) { container.innerHTML = '<p class="text-center text-gray-400 py-6 text-xs italic">Nenhum cliente cadastrado.</p>'; return; }
+            container.innerHTML = clientes.map(c => {
+                const statusColor = c.is_blocked ? 'text-red-500 bg-red-50' : 'text-green-500 bg-green-50';
+                return `<div class="py-4 px-4 flex justify-between items-center hover:bg-orange-50 transition cursor-pointer group" onclick="abrirModalCliente('${c.id}')"><div><p class="text-sm font-bold text-gray-800 flex items-center gap-2"><span class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs overflow-hidden shadow-sm border border-gray-300">${c.avatar_url ? `<img src="${c.avatar_url}" class="w-full h-full object-cover">` : `<i class="fas fa-user text-gray-500"></i>`}</span>${c.name || 'Sem Nome'}</p><p class="text-[11px] text-gray-400 pl-10 font-medium">${c.phone || '--'}</p></div><span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${statusColor}">${c.is_blocked ? 'BLOQUEADO' : 'ATIVO'}</span></div>`;
+            }).join('');
+        }
+
+        async function abrirModalCliente(id) {
+            const cli = clientes.find(c => c.id === id);
+            if (!cli) return;
+
+            document.getElementById('cli-id-hidden').value = cli.id;
+            document.getElementById('cli-nome-header').innerText = cli.name || 'Cliente';
+            document.getElementById('cli-phone-header').innerText = cli.phone || '--';
+
+            const av = document.getElementById('cli-avatar');
+            const avP = document.getElementById('cli-avatar-placeholder');
+
+            if (cli.avatar_url) {
+                av.src = cli.avatar_url;
+                av.classList.remove('hidden');
+                avP.classList.add('hidden');
+            } else {
+                av.classList.add('hidden');
+                avP.classList.remove('hidden');
+            }
+
+            document.getElementById('btn-whatsapp-cli').href = cli.phone ? `https://wa.me/55${cli.phone.replace(/\D/g, '')}` : '#';
+            document.getElementById('cli-blocked-toggle').checked = cli.is_blocked || false;
+            document.getElementById('cli-nome-edit').value = cli.name || '';
+            document.getElementById('cli-phone-edit').value = cli.phone || '';
+            document.getElementById('cli-id-display').innerText = cli.id;
+            document.getElementById('cli-date-display').innerText = new Date(cli.created_at).toLocaleString();
+
+            switchTabCli('details');
+            document.getElementById('cli-tab-orders').innerHTML = '<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-gray-300"></i></div>';
+
+            const m = document.getElementById('modal-cliente');
+            m.classList.remove('hidden');
+            setTimeout(() => {
+                m.classList.remove('opacity-0', 'pointer-events-none');
+                m.querySelector('#modal-content-cli').classList.remove('translate-y-full', 'sm:scale-95');
+            }, 10);
+
+            carregarPedidosCliente(cli.id);
+        }
+
+        async function carregarPedidosCliente(id) {
+            const container = document.getElementById('cli-tab-orders');
+            const { data: orders } = await _supabase.from('orders').select('*').eq('user_id', id).order('created_at', { ascending: false }).limit(15);
+
+            container.innerHTML = '';
+
+            if (!orders || !orders.length) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-sm">Sem pedidos.</p>';
+                return;
+            }
+
+            orders.forEach(o => {
+                let color = 'bg-gray-100 text-gray-600';
+                if (o.status === 'pendente') color = 'bg-yellow-100 text-yellow-700';
+                if (o.status === 'entregue') color = 'bg-green-100 text-green-700';
+
+                container.innerHTML += `
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-3">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-black text-xs text-gray-800">#${o.id.slice(0, 6).toUpperCase()}</span>
+                        <span class="${color} px-2 py-0.5 rounded-md text-[10px] font-bold uppercase">${o.status}</span>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mb-2">${new Date(o.created_at).toLocaleString()}</p>
+                    <div class="flex justify-between items-center border-t border-gray-50 pt-2">
+                        <span class="font-black text-green-600 text-sm">R$ ${o.total_amount.toFixed(2)}</span>
+                        <span class="text-[10px] text-gray-500 uppercase">${o.payment_method}</span>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function fecharModalCliente() {
+            const m = document.getElementById('modal-cliente');
+            m.querySelector('#modal-content-cli').classList.add('translate-y-full', 'sm:scale-95');
+            m.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function switchTabCli(t) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'border-orange-500', 'ext-primary'));
+            document.getElementById(`tab-${t}`).classList.add('active', 'border-orange-500', 'ext-primary');
+            document.getElementById('cli-tab-details').classList.toggle('hidden', t !== 'details');
+            document.getElementById('cli-tab-orders').classList.toggle('hidden', t !== 'orders');
+        }
+
+        async function toggleClienteBloqueio() {
+            const id = document.getElementById('cli-id-hidden').value;
+            const v = document.getElementById('cli-blocked-toggle').checked;
+            await _supabase.from('clients').update({ is_blocked: v }).eq('id', id);
+            const c = clientes.find(x => x.id === id);
+            if (c) c.is_blocked = v;
+            renderClientes();
+        }
+
+        async function salvarClienteDados() {
+            const id = document.getElementById('cli-id-hidden').value;
+            const n = document.getElementById('cli-nome-edit').value;
+            const p = document.getElementById('cli-phone-edit').value;
+            await _supabase.from('clients').update({ name: n, phone: p }).eq('id', id);
+            const c = clientes.find(x => x.id === id);
+            if (c) { c.name = n; c.phone = p; }
+            document.getElementById('cli-nome-header').innerText = n;
+            renderClientes();
+            Swal.fire('Salvo', '', 'success');
+        }
+
+        // --- PRODUTO & VARIAÇÕES (COM LOGICA DE OCULTAR PREÇO BASE) ---
+        function toggleBasePriceUI() {
+            const hasVariants = document.getElementById('variants-container').children.length > 0;
+            const baseContainer = document.getElementById('base-price-container');
+            if (hasVariants) baseContainer.classList.add('hidden');
+            else baseContainer.classList.remove('hidden');
         }
 
         function abrirModalProduto() {
-            // Limpa form
-            document.getElementById('prod-id').value = ''; 
-            document.getElementById('prod-nome').value = ''; 
-            document.getElementById('prod-desc').value = ''; 
-            document.getElementById('prod-preco').value = ''; 
-            document.getElementById('prod-sale-price').value = '';
-            document.getElementById('prod-img-url-hidden').value = ''; 
-            document.getElementById('prod-file').value = ''; 
-            
-            // Reseta visual da imagem
-            const preview = document.getElementById('preview-img');
-            preview.src = '';
-            preview.classList.add('hidden');
-            
-            // Reseta checkboxes
-            document.getElementById('check-delivery').checked = true; 
-            document.getElementById('check-encomenda').checked = false; 
-            document.getElementById('check-on-sale').checked = false;
-            
-            document.getElementById('btn-delete').classList.add('hidden'); 
+            document.querySelectorAll('#modal-produto input:not([type="checkbox"])').forEach(i => i.value = '');
+            document.querySelector('#modal-produto textarea').value = '';
+            document.getElementById('check-ativo').checked = true;
+            document.getElementById('check-oferta').checked = false;
+            document.getElementById('check-encomenda').checked = false; // <-- NOVA LINHA
+            document.getElementById('box-promo').classList.add('hidden');
+            document.getElementById('variants-container').innerHTML = '';
+            document.getElementById('prod-ordem').value = '999';
+            toggleBasePriceUI();
+            document.getElementById('preview-img').classList.add('hidden');
+            document.getElementById('btn-delete').classList.add('hidden');
             document.getElementById('titulo-modal-prod').innerText = "Novo Produto";
-            document.getElementById('variants-container').innerHTML = ''; 
-            
-            document.getElementById('modal-produto').classList.remove('hidden'); 
-            document.getElementById('modal-produto').classList.add('flex'); 
+
+            const m = document.getElementById('modal-produto');
+            m.classList.remove('hidden');
+            setTimeout(() => {
+                m.classList.remove('opacity-0', 'pointer-events-none');
+                m.querySelector('#modal-content-prod').classList.remove('scale-95');
+            }, 10);
         }
 
         function editarProduto(id) {
             const p = produtos.find(x => x.id == id);
-            
-            document.getElementById('prod-id').value = p.id; 
-            document.getElementById('prod-nome').value = p.name; 
-            document.getElementById('prod-desc').value = p.description; 
-            document.getElementById('prod-preco').value = p.price; 
+            if (!p) return;
+
+            document.getElementById('prod-id').value = p.id;
+            document.getElementById('prod-nome').value = p.name;
+            document.getElementById('prod-desc').value = p.description || '';
+            document.getElementById('prod-preco').value = p.price;
             document.getElementById('prod-cat').value = p.category_id || "";
-            document.getElementById('prod-sale-price').value = p.sale_price || ''; 
-            document.getElementById('check-on-sale').checked = p.on_sale || false;
-            document.getElementById('prod-img-url-hidden').value = p.image_url; 
-            document.getElementById('prod-file').value = ''; 
-            
-            // Atualiza preview da imagem
-            const preview = document.getElementById('preview-img');
+            document.getElementById('prod-ordem').value = p.order_index || 999;
+            document.getElementById('check-ativo').checked = p.active !== false;
+            document.getElementById('check-oferta').checked = p.on_sale || false;
+            document.getElementById('check-encomenda').checked = p.for_encomenda || false; // <-- NOVA LINHA
+            togglePromoField();
+            document.getElementById('prod-sale-price').value = p.sale_price || '';
+            document.getElementById('prod-img-url-hidden').value = p.image_url;
+
             if (p.image_url) {
-                preview.src = p.image_url;
-                preview.classList.remove('hidden');
+                document.getElementById('preview-img').src = p.image_url;
+                document.getElementById('preview-img').classList.remove('hidden');
             } else {
-                preview.classList.add('hidden');
-            }
-            
-            document.getElementById('check-delivery').checked = p.for_delivery; 
-            document.getElementById('check-encomenda').checked = p.for_encomenda; 
-            
-            // Carrega variações
-            const container = document.getElementById('variants-container');
-            container.innerHTML = '';
-            let variants = p.variants;
-            if(typeof variants === 'string') variants = JSON.parse(variants);
-            if(variants && Array.isArray(variants)) {
-                variants.forEach(v => addVariantRow(v.qtd, v.price));
+                document.getElementById('preview-img').classList.add('hidden');
             }
 
-            document.getElementById('btn-delete').classList.remove('hidden'); 
+            const vc = document.getElementById('variants-container');
+            vc.innerHTML = '';
+            let vars = [];
+            try {
+                if (p.variants) vars = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+            } catch (e) { }
+
+            if (Array.isArray(vars)) vars.forEach(v => addVariantRow(v.qtd, v.price, v.promo_price || '', v.type || 'ambos'));
+
+            toggleBasePriceUI();
+            document.getElementById('btn-delete').classList.remove('hidden');
             document.getElementById('titulo-modal-prod').innerText = "Editar Produto";
-            
-            document.getElementById('modal-produto').classList.remove('hidden'); 
-            document.getElementById('modal-produto').classList.add('flex'); 
+
+            const m = document.getElementById('modal-produto');
+            m.classList.remove('hidden');
+            setTimeout(() => {
+                m.classList.remove('opacity-0', 'pointer-events-none');
+                m.querySelector('#modal-content-prod').classList.remove('scale-95');
+            }, 10);
         }
 
         function fecharModalProduto() {
-            document.getElementById('modal-produto').classList.add('hidden');
-            document.getElementById('modal-produto').classList.remove('flex');
+            const m = document.getElementById('modal-produto');
+            m.classList.add('opacity-0', 'pointer-events-none');
+            m.querySelector('#modal-content-prod').classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function togglePromoField() {
+            document.getElementById('box-promo').classList.toggle('hidden', !document.getElementById('check-oferta').checked);
+        }
+
+        function addVariantRow(q = '', p = '', promo = '', type = 'ambos') {
+            const div = document.createElement('div');
+            // Card mais limpo e moderno com hover na borda
+            div.className = 'variant-row bg-white border border-gray-200 p-4 rounded-2xl flex flex-col md:flex-row gap-3 mb-3 items-end shadow-sm hover:border-orange-300 transition-colors duration-300';
+
+            div.innerHTML = `
+                <div class="w-full md:w-auto flex-grow">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Descrição da Opção</label>
+                    <input value="${q}" class="var-qtd w-full bg-gray-50 border border-gray-200 text-gray-800 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-orange-500 focus:bg-white transition" placeholder="Ex: 50 Unidades">
+                </div>
+                
+                <div class="w-full md:w-28">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Preço (R$)</label>
+                    <input type="number" step="0.01" value="${p}" class="var-price w-full bg-gray-50 border border-gray-200 text-gray-800 p-2.5 rounded-xl text-sm font-bold text-center outline-none focus:border-orange-500 focus:bg-white transition" placeholder="0.00">
+                </div>
+                
+                <div class="w-full md:w-28">
+                    <label class="text-[9px] font-bold text-red-400 uppercase tracking-widest mb-1.5 block ml-1">Promo</label>
+                    <input type="number" step="0.01" value="${promo}" class="var-promo w-full bg-red-50 border border-red-100 text-red-600 p-2.5 rounded-xl text-sm font-black text-center outline-none focus:border-red-400 focus:bg-white transition placeholder-red-300" placeholder="Opcional">
+                </div>
+                
+                <div class="w-full md:w-44 relative">
+                    <label class="text-[9px] font-bold text-blue-500 uppercase tracking-widest mb-1.5 block ml-1">Onde Exibir?</label>
+                    <div class="relative">
+                        <select class="var-type w-full appearance-none bg-blue-50 border border-blue-100 text-blue-700 p-2.5 pl-3 pr-8 rounded-xl text-xs font-bold outline-none focus:border-blue-400 focus:bg-white transition shadow-sm cursor-pointer">
+                            <option value="ambos" ${type === 'ambos' ? 'selected' : ''}>📱 Em Ambos</option>
+                            <option value="entrega" ${type === 'entrega' ? 'selected' : ''}>🛵 Só Cardápio</option>
+                            <option value="encomenda" ${type === 'encomenda' ? 'selected' : ''}>📅 Só Encomenda</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-400 text-[10px] pointer-events-none"></i>
+                    </div>
+                </div>
+                
+                <button onclick="this.closest('.variant-row').remove(); toggleBasePriceUI()" class="w-[42px] h-[42px] rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition flex-shrink-0 border border-red-100 hover:border-red-500" title="Remover Opção">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+            document.getElementById('variants-container').appendChild(div);
+            toggleBasePriceUI();
         }
 
         async function salvarProduto() {
-            const btn = document.querySelector('#modal-produto button.bg-green-600');
-            const originalText = document.getElementById('btn-save-text').innerText;
-            
-            try {
-                document.getElementById('btn-save-text').innerText = "ENVIANDO...";
-                document.getElementById('btn-save-icon').classList.replace('fa-check', 'fa-spinner');
-                document.getElementById('btn-save-icon').classList.add('fa-spin');
-                btn.disabled = true;
+            const btn = document.getElementById('btn-salvar-prod');
+            btn.disabled = true;
+            btn.innerHTML = 'Salvando...';
 
+            try {
                 const id = document.getElementById('prod-id').value;
                 const file = document.getElementById('prod-file').files[0];
-                let finalUrl = document.getElementById('prod-img-url-hidden').value;
+                let url = document.getElementById('prod-img-url-hidden').value;
 
                 if (file) {
-                    const fileName = `prod_${Date.now()}.${file.name.split('.').pop()}`;
-                    const { error } = await _supabase.storage.from('imagens').upload(fileName, file);
-                    if (error) throw error;
-                    const { data } = _supabase.storage.from('imagens').getPublicUrl(fileName);
-                    finalUrl = data.publicUrl;
+                    const n = `prod_${Date.now()}`;
+                    await _supabase.storage.from('imagens').upload(n, file);
+                    const { data } = _supabase.storage.from('imagens').getPublicUrl(n);
+                    url = data.publicUrl;
                 }
 
-                const variantRows = document.querySelectorAll('.variant-row');
-                const variants = Array.from(variantRows).map(row => ({
-                    qtd: row.querySelector('.var-qtd').value,
-                    price: parseFloat(row.querySelector('.var-price').value) || 0
-                })).filter(v => v.qtd && v.price > 0);
+                const vars = [];
+                document.querySelectorAll('.variant-row').forEach(r => {
+                    const q = r.querySelector('.var-qtd').value;
+                    const p = parseFloat(r.querySelector('.var-price').value);
+                    const promo = parseFloat(r.querySelector('.var-promo').value);
+                    const type = r.querySelector('.var-type').value; // <-- PEGA O VALOR DO SELECT
 
-                const dados = { 
-                    name: document.getElementById('prod-nome').value, 
-                    description: document.getElementById('prod-desc').value, 
-                    price: parseFloat(document.getElementById('prod-preco').value) || 0, 
-                    category_id: document.getElementById('prod-cat').value, 
-                    image_url: finalUrl, 
-                    is_active: true, 
-                    for_delivery: document.getElementById('check-delivery').checked, 
-                    for_encomenda: document.getElementById('check-encomenda').checked,
+                    if (q && !isNaN(p)) {
+                        vars.push({
+                            qtd: q,
+                            price: p,
+                            promo_price: !isNaN(promo) ? promo : null,
+                            type: type // <-- SALVA NO BANCO
+                        });
+                    }
+                });
+
+                const obj = {
+                    loja_id: window.LOJA_ID, // CARIMBO DA LOJA
+                    name: document.getElementById('prod-nome').value,
+                    description: document.getElementById('prod-desc').value,
+                    price: parseFloat(document.getElementById('prod-preco').value) || 0,
+                    category_id: document.getElementById('prod-cat').value || null,
+                    active: document.getElementById('check-ativo').checked,
+                    on_sale: document.getElementById('check-oferta').checked,
+                    for_encomenda: document.getElementById('check-encomenda').checked, // <-- NOVA LINHA
                     sale_price: parseFloat(document.getElementById('prod-sale-price').value) || 0,
-                    on_sale: document.getElementById('check-on-sale').checked,
-                    variants: variants 
+                    order_index: parseInt(document.getElementById('prod-ordem').value) || 999,
+                    image_url: url,
+                    variants: vars
                 };
 
-                if (id) {
-                    await _supabase.from('products').update(dados).eq('id', id);
-                } else {
-                    await _supabase.from('products').insert([dados]);
-                }
-                
-                fecharModalProduto(); 
-                initAdmin();
+                if (id) await _supabase.from('products').update(obj).eq('id', id);
+                else await _supabase.from('products').insert([obj]);
 
-            } catch (err) {
-                alert("Erro ao salvar: " + err.message);
+                fecharModalProduto();
+                initAdmin();
+                Swal.fire({ icon: 'success', title: 'Salvo!', timer: 1500, showConfirmButton: false });
+
+            } catch (e) {
+                Swal.fire("Erro", e.message, "error");
             } finally {
-                document.getElementById('btn-save-text').innerText = originalText;
-                document.getElementById('btn-save-icon').classList.replace('fa-spinner', 'fa-check');
-                document.getElementById('btn-save-icon').classList.remove('fa-spin');
                 btn.disabled = false;
+                btn.innerHTML = 'SALVAR';
             }
-        }
-        
-        async function duplicarProduto(id) { 
-            const o = produtos.find(p => p.id == id); 
-            const c = {...o}; 
-            delete c.id; 
-            c.name += " (Cópia)"; 
-            await _supabase.from('products').insert([c]); 
-            initAdmin(); 
-        }
-        
-        async function deletarProduto() { 
-            if(confirm("Tem certeza? Esta ação é irreversível.")) { 
-                await _supabase.from('products').delete().eq('id', document.getElementById('prod-id').value); 
-                fecharModalProduto(); 
-                initAdmin(); 
-            } 
         }
 
-        // ==========================================
-        //  GESTÃO DE CATEGORIAS, TAXAS E CUPONS
-        // ==========================================
-        function renderCategorias() {
-            document.getElementById('lista-categorias').innerHTML = categorias.map(c => 
-                `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg text-sm group border border-gray-100 hover:border-pink-200 transition mb-1">
-                    <span class="font-bold text-gray-700">${escapeHtml(c.name)}</span>
-                    <div class="flex gap-2 opacity-60 group-hover:opacity-100 transition">
-                        <button onclick="editarCategoria('${c.id}', '${escapeHtml(c.name)}')" class="text-blue-400 hover:text-blue-600 bg-white p-1.5 rounded shadow-sm"><i class="fas fa-pen"></i></button>
-                        <button onclick="rmCategoria('${c.id}')" class="text-red-400 hover:text-red-600 bg-white p-1.5 rounded shadow-sm"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`
-            ).join('');
-        }
-        
-        async function addCategoria() {
-            const nome = document.getElementById('nova-cat').value;
-            if(nome) {
-                await _supabase.from('categories').insert([{name: nome}]);
-                document.getElementById('nova-cat').value = '';
-                initAdmin();
-            }
-        }
-        
-        async function rmCategoria(id) { 
-            if(confirm("Apagar esta categoria?")) { 
-                await _supabase.from('categories').delete().eq('id', id); 
-                initAdmin(); 
-            } 
-        }
-        
-        async function editarCategoria(id, nomeAtual) {
-            const novoNome = prompt("Novo nome:", nomeAtual);
-            if(novoNome && novoNome !== nomeAtual) {
-                await _supabase.from('categories').update({name: novoNome}).eq('id', id);
+        async function deletarProduto() {
+            if (await Swal.fire({ title: 'Excluir?', showCancelButton: true, confirmButtonText: 'Sim' }).then(r => r.isConfirmed)) {
+                await _supabase.from('products').delete().eq('id', document.getElementById('prod-id').value);
+                fecharModalProduto();
                 initAdmin();
             }
         }
 
-        function renderTaxas() {
-            document.getElementById('lista-taxas').innerHTML = taxas.map(t => 
-                `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg text-sm group hover:bg-green-50 transition mb-1 border border-transparent hover:border-green-200">
-                    <span class="font-medium text-gray-600">${escapeHtml(t.neighborhood)}</span>
-                    <span class="font-black text-gray-800 bg-white px-2 py-1 rounded border border-gray-200">R$ ${t.price.toFixed(2)} 
-                        <button onclick="rmTaxa(${t.id})" class="ml-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-trash"></i></button>
-                    </span>
-                </div>`
-            ).join('');
-        }
-        
-        async function addTaxa() {
-            const n = document.getElementById('novo-bairro').value;
-            const p = parseFloat(document.getElementById('nova-taxa').value);
-            if(n && p) {
-                await _supabase.from('delivery_fees').insert([{neighborhood: n, price: p}]);
-                document.getElementById('novo-bairro').value = ''; 
-                document.getElementById('nova-taxa').value = '';
-                initAdmin();
-            }
-        }
-        
-        async function rmTaxa(id) { 
-            if(confirm("Apagar taxa?")) { 
-                await _supabase.from('delivery_fees').delete().eq('id', id); 
-                initAdmin(); 
-            } 
-        }
-
-        function renderCupons() {
-            document.getElementById('lista-cupons').innerHTML = cupons.map(c => 
-                `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg text-sm group border-l-4 border-purple-500 mb-1 hover:shadow-sm transition">
-                    <div>
-                        <div class="font-black text-purple-700 text-base tracking-wide">${escapeHtml(c.code)} <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-[10px] ml-1 font-bold">${c.discount_percent}% OFF</span></div>
-                    </div>
-                    <button onclick="rmCupom(${c.id})" class="text-red-400 hover:text-red-600 bg-white p-2 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition"><i class="fas fa-trash"></i></button>
-                </div>`
-            ).join('');
-        }
-        
-        async function addCupom() {
-            const c = document.getElementById('novo-cupom').value.toUpperCase();
-            const d = parseInt(document.getElementById('novo-desc').value);
-            const inicio = document.getElementById('cupom-inicio').value || null;
-            const fim = document.getElementById('cupom-fim').value || null;
-            if(c && d) {
-                await _supabase.from('coupons').insert([{ code: c, discount_percent: d, active: true, valid_from: inicio, valid_until: fim }]);
-                initAdmin();
-            }
-        }
-        
-        async function rmCupom(id) { 
-            if(confirm("Apagar cupom?")) { 
-                await _supabase.from('coupons').delete().eq('id', id); 
-                initAdmin(); 
-            } 
-        }
-
-        // ==========================================
-        //  GESTÃO DE CLIENTES
-        // ==========================================
-        async function renderAdminClientes() {
-            const div = document.getElementById('lista-clientes'); 
-            div.innerHTML = '';
-            
-            const { data: todos } = await _supabase.from('orders').select('user_id, total_amount');
-            
-            clientes.forEach(c => {
-                const peds = todos ? todos.filter(o => o.user_id === c.id) : [];
-                const bg = c.is_blocked ? 'bg-red-50 border-red-200' : 'hover:bg-orange-50 bg-white';
-                const col = c.is_blocked ? 'text-red-600' : 'text-gray-800';
-                
-                div.innerHTML += `
-                <div class="py-4 flex justify-between items-center group px-4 rounded-xl transition border-b border-gray-50 ${bg}">
-                    <div class="flex items-center gap-4 cursor-pointer" onclick="verHistorico('${c.id}')">
-                        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-black text-sm shadow-inner border border-gray-200">
-                            ${c.name ? escapeHtml(c.name.substring(0,2).toUpperCase()) : '??'}
-                        </div>
-                        <div>
-                            <p class="font-bold text-sm ${col}">${escapeHtml(c.name || 'Sem Nome')} ${c.is_blocked ? '<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full ml-1">BLOQUEADO</span>' : ''}</p>
-                            <p class="text-xs text-gray-400 font-medium">${escapeHtml(c.phone || 'Sem Telefone')} • ${peds.length} pedidos</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition">
-                        <a href="https://wa.me/55${c.phone ? c.phone.replace(/\D/g,'') : ''}" target="_blank" class="w-9 h-9 rounded-lg bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition shadow-sm" title="WhatsApp">
-                            <i class="fab fa-whatsapp"></i>
-                        </a>
-                        <button onclick="editarCliente('${c.id}', '${escapeHtml(c.name)}', '${escapeHtml(c.phone)}')" class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition shadow-sm" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button onclick="toggleBloqueio('${c.id}', ${c.is_blocked})" class="w-9 h-9 rounded-lg ${c.is_blocked ? 'bg-gray-200 text-gray-500' : 'bg-red-100 text-red-600'} hover:bg-red-600 hover:text-white transition shadow-sm flex items-center justify-center" title="${c.is_blocked ? 'Desbloquear' : 'Bloquear'}">
-                            <i class="fas ${c.is_blocked ? 'fa-unlock' : 'fa-ban'}"></i>
-                        </button>
-                    </div>
-                </div>`;
-            });
-        }
-
-        async function toggleBloqueio(id, s) { 
-            if(confirm(s ? "Desbloquear cliente?" : "Bloquear cliente?")) { 
-                await _supabase.from('clients').update({ is_blocked: !s }).eq('id', id); 
-                initAdmin(); 
-            } 
-        }
-        
-        function editarCliente(id, n, p) { 
-            document.getElementById('cli-id').value = id; 
-            document.getElementById('cli-nome').value = n||''; 
-            document.getElementById('cli-phone').value = p||''; 
-            document.getElementById('modal-cliente').classList.remove('hidden'); 
-            document.getElementById('modal-cliente').classList.add('flex'); 
-        }
-        
-        async function salvarCliente() { 
-            await _supabase.from('clients').update({ name: document.getElementById('cli-nome').value, phone: document.getElementById('cli-phone').value }).eq('id', document.getElementById('cli-id').value); 
-            fecharModalCliente(); 
-            initAdmin(); 
-        }
-        
-        function fecharModalCliente() { 
-            document.getElementById('modal-cliente').classList.add('hidden'); 
-            document.getElementById('modal-cliente').classList.remove('flex'); 
-        }
-
-        // --- HISTÓRICO DETALHADO (RESTAURADO) ---
-        async function verHistorico(id) { 
-            const m = document.getElementById('modal-historico'); 
-            const l = document.getElementById('lista-historico-cliente'); 
-            l.innerHTML = '<div class="flex justify-center p-6"><i class="fas fa-spinner fa-spin text-orange-500 text-2xl"></i></div>'; 
-            m.classList.remove('hidden'); 
-            m.classList.add('flex'); 
-            
-            const { data: pedidos } = await _supabase.from('orders').select('*').eq('user_id', id).order('created_at', {ascending: false}); 
-            
-            if(!pedidos || !pedidos.length) {
-                l.innerHTML = '<div class="text-center py-10 text-gray-400">Sem pedidos encontrados.</div>';
-                return;
-            }
-
-            l.innerHTML = pedidos.map(p => {
-                const data = new Date(p.created_at).toLocaleDateString('pt-BR');
-                const hora = new Date(p.created_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-                
-                // Reconstrói Itens
-                let itensTexto = [];
-                if(p.items) {
-                    for(const [key, qtd] of Object.entries(p.items)) {
-                        const parts = key.split('__');
-                        const prodId = parts[0];
-                        const variantIdx = parts[1];
-                        
-                        const prod = produtos.find(x => String(x.id) === String(prodId));
-                        if(prod) {
-                            let nome = escapeHtml(prod.name);
-                            if(variantIdx !== undefined) {
-                                try {
-                                    let vars = typeof prod.variants === 'string' ? JSON.parse(prod.variants) : prod.variants;
-                                    if(vars && vars[variantIdx]) nome += ` <span class="text-orange-500">(${escapeHtml(vars[variantIdx].qtd)} un)</span>`;
-                                } catch(e){}
-                            }
-                            itensTexto.push(`<li>${qtd}x ${nome}</li>`);
-                        } else {
-                            itensTexto.push(`<li>${qtd}x [Item Excluído]</li>`);
-                        }
-                    }
-                }
-
-                // Cores de Status
-                let stClass = "bg-gray-100 text-gray-500";
-                if(p.status === 'entregue') stClass = "bg-green-100 text-green-700";
-                if(p.status === 'cancelado') stClass = "bg-red-100 text-red-700";
-
-                return `
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-3">
-                    <div class="flex justify-between items-center mb-2 border-b border-gray-100 pb-2">
-                        <div>
-                            <span class="text-xs font-bold text-gray-800">Pedido #${p.id}</span>
-                            <div class="text-[10px] text-gray-400">${data} às ${hora}</div>
-                        </div>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase ${stClass}">${escapeHtml(p.status || 'Pendente')}</span>
-                    </div>
-                    <ul class="text-xs font-bold text-gray-600 space-y-1 mb-3 list-disc pl-4">
-                        ${itensTexto.join('')}
-                    </ul>
-                    <div class="flex justify-between items-center pt-2 border-t border-dashed border-gray-100">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase bg-gray-50 px-2 py-1 rounded">
-                            ${p.delivery_type === 'entrega' ? '<i class="fas fa-motorcycle"></i> Entrega' : '<i class="fas fa-shopping-bag"></i> Retirada'}
-                        </span>
-                        <span class="text-sm font-black text-green-600">R$ ${p.total_amount.toFixed(2)}</span>
-                    </div>
-                    <div class="mt-2 text-[10px] text-gray-400 truncate">
-                        <i class="fas fa-map-marker-alt"></i> ${escapeHtml(p.address || 'Sem endereço')}
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        // ==========================================
-        //  LÓGICA DE LOGO DA LOJA
-        // ==========================================
-        async function atualizarLogoLoja() {
-            const input = document.getElementById('input-logo-loja');
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                const fileName = `logo_loja_${Date.now()}.${file.name.split('.').pop()}`;
-                
-                try {
-                    mostrarToast("Enviando logo...", "info");
-                    const { error: upErr } = await _supabase.storage.from('imagens').upload(`config/${fileName}`, file);
-                    if (upErr) throw upErr;
-                    
-                    const { data } = _supabase.storage.from('imagens').getPublicUrl(`config/${fileName}`);
-                    
-                    await _supabase.from('store_config').update({ logo_url: data.publicUrl }).eq('id', configLoja.id);
-                    
-                    document.getElementById('admin-logo-preview').src = data.publicUrl;
-                    configLoja.logo_url = data.publicUrl;
-                    mostrarToast("Logo atualizada com sucesso!");
-                } catch(e) { 
-                    alert("Erro ao atualizar logo: " + e.message); 
-                }
-            }
-        }
-
-        async function removerLogoLoja() {
-            if(confirm("Deseja restaurar a logo padrão do sistema?")) {
-                await _supabase.from('store_config').update({ logo_url: null }).eq('id', configLoja.id);
-                document.getElementById('admin-logo-preview').src = "https://placehold.co/100?text=Alfa";
-                configLoja.logo_url = null;
-                mostrarToast("Logo restaurada para o padrão!");
-            }
-        }
-
-        // ==========================================
-        //  UTILITÁRIOS GERAIS
-        // ==========================================
-        function atualizarStatusLojaUI() { 
+        // --- LOJA ---
+        function updateStatusLojaUI() {
             const btn = document.getElementById('status-loja-btn');
-            if(configLoja.is_open) {
-                btn.innerHTML = `<div class="w-2.5 h-2.5 rounded-full bg-green-400 shadow-sm animate-pulse"></div> <span class="text-green-600">LOJA ABERTA</span>`; 
-                btn.className = `flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition shadow-md border border-green-200 bg-green-50`; 
+            if (configLoja.is_open) {
+                btn.className = "flex-shrink-0 flex items-center gap-3 px-5 py-3 rounded-xl text-xs font-bold transition shadow-sm border bg-green-50 border-green-200 text-green-700 hover:bg-green-100 cursor-pointer";
+                btn.innerHTML = `<div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div> <span>LOJA ABERTA</span>`;
             } else {
-                btn.innerHTML = `<i class="fas fa-lock text-red-400"></i> <span class="text-red-500">LOJA FECHADA</span>`;
-                btn.className = `flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition shadow-md border border-red-200 bg-red-50`;
+                btn.className = "flex-shrink-0 flex items-center gap-3 px-5 py-3 rounded-xl text-xs font-bold transition shadow-sm border bg-red-50 border-red-200 text-red-600 hover:bg-red-100 cursor-pointer";
+                btn.innerHTML = `<i class="fas fa-lock text-red-500"></i> <span>LOJA FECHADA</span>`;
             }
         }
-        
-        async function toggleLoja() { 
-            await _supabase.from('store_config').update({is_open: !configLoja.is_open}).eq('id', configLoja.id); 
-            initAdmin(); 
-        }
-        
-        async function checkLogin() { 
-            const { data: { session } } = await _supabase.auth.getSession(); 
-            if (!session) { window.location.href = 'cliente-login.html'; return false; } 
-            
-            const { data: cli } = await _supabase.from('clients').select('is_admin').eq('id', session.user.id).single(); 
-            if (!cli || !cli.is_admin) { alert("Acesso Restrito: Apenas Gerência."); window.location.href = 'index.html'; return false; } 
-            return true; 
+
+        async function toggleLoja() {
+            configLoja.is_open = !configLoja.is_open;
+            updateStatusLojaUI();
+            await _supabase.from('store_config').update({ is_open: configLoja.is_open }).eq('id', configLoja.id);
         }
 
-        // Inicializa o sistema
+        async function salvarConfigTempo() {
+            await _supabase.from('store_config').update({ delivery_estimate: document.getElementById('config-tempo').value }).eq('id', configLoja.id);
+            Swal.fire('Tempo salvo!', '', 'success');
+        }
+
+        async function salvarAgenda() {
+            const diasSelecionados = Array.from(document.querySelectorAll('.dia-semana:checked')).map(cb => parseInt(cb.value));
+
+            const n = {
+                ativo: document.getElementById('modulo-encomenda-ativo').checked,
+                inicio: document.getElementById('agenda-inicio').value,
+                fim: document.getElementById('agenda-fim').value,
+                antecedencia: parseInt(document.getElementById('agenda-antecedencia').value) || 1,
+                dias_maximos: parseInt(document.getElementById('agenda-dias').value) || 30,
+                dias_funcionamento: diasSelecionados
+            };
+
+            await _supabase.from('store_config').update({ schedule_config: n }).eq('id', configLoja.id);
+            Swal.fire('Regras Salvas!', 'As configurações de encomenda foram atualizadas.', 'success');
+        }
+
+        // --- FUNÇÃO PARA O ADMIN.HTML ---
+
+        async function atualizarLogoLoja() {
+            // 1. Pega o arquivo do input
+            const input = document.getElementById('input-logo-loja');
+            const file = input.files[0];
+
+            if (!file) {
+                return Swal.fire('Atenção', 'Por favor, selecione uma imagem primeiro.', 'warning');
+            }
+
+            try {
+                // Mostra carregando...
+                Swal.fire({
+                    title: 'Atualizando Logo...',
+                    text: 'Aguarde um momento.',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                // 2. CRIA UM NOME CORRETO (Com extensão .png, .jpg, etc)
+                // Isso resolve o problema da imagem aparecer como "arquivo desconhecido"
+                const extensao = file.name.split('.').pop();
+                const nomeArquivo = `logo_${Date.now()}.${extensao}`;
+                const caminhoCompleto = `config/${nomeArquivo}`;
+
+                // 3. FAZ O UPLOAD PARA A PASTA 'config'
+                const { error: uploadError } = await _supabase.storage
+                    .from('imagens')
+                    .upload(caminhoCompleto, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+                if (uploadError) throw uploadError;
+
+                // 4. GERA O LINK PÚBLICO COMPLETO
+                const { data } = _supabase.storage
+                    .from('imagens')
+                    .getPublicUrl(caminhoCompleto);
+
+                const novoLink = data.publicUrl;
+                console.log("Link gerado:", novoLink);
+
+                // 5. SALVA O LINK NO BANCO DE DADOS DA LOJA ATUAL
+                const { error: dbError } = await _supabase
+                    .from('store_config')
+                    .update({ logo_url: novoLink })
+                    .eq('loja_id', window.LOJA_ID);
+
+                if (dbError) throw dbError;
+
+                // 6. SUCESSO E RECARREGAR
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Logo Atualizada!',
+                    text: 'A nova logo já está visível no cardápio.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                window.location.reload();
+
+            } catch (error) {
+                console.error('Erro no upload:', error);
+                Swal.fire('Erro', 'Não foi possível atualizar a logo: ' + (error.message || error), 'error');
+            }
+        }
+
+        async function carregarComprovantes() {
+            const c = document.getElementById('lista-pix-container');
+            c.innerHTML = '<p class="col-span-full text-center">Buscando...</p>';
+            // ADICIONAMOS O .eq('loja_id', window.LOJA_ID) ABAIXO:
+            const { data } = await _supabase.from('orders').select('*').eq('loja_id', window.LOJA_ID).neq('proof_url', null).order('created_at', { ascending: false }).limit(9);
+            c.innerHTML = '';
+            if (!data || !data.length) c.innerHTML = '<p class="col-span-full text-center text-gray-400 py-6">Vazio.</p>';
+            if (data) {
+                data.forEach(o => c.innerHTML += `<div class="bg-white p-4 rounded-xl border shadow-sm flex justify-between items-center cursor-pointer" onclick="verPix('${o.proof_url}')"><div><p class="font-bold text-sm">${o.customer_name || 'Cliente'}</p><p class="text-xs text-green-600 font-black">R$ ${o.total_amount.toFixed(2)}</p></div><i class="fas fa-eye text-gray-400"></i></div>`);
+            }
+        }
+
+        function verPix(u) {
+            document.getElementById('img-comprovante-full').src = u;
+            document.getElementById('modal-comprovante').classList.remove('hidden');
+            document.getElementById('modal-comprovante').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('btn-download-pix').href = u;
+        }
+
+        function fecharModalPix() {
+            document.getElementById('modal-comprovante').classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => document.getElementById('modal-comprovante').classList.add('hidden'), 300);
+        }
+
+        // --- CATEGORIAS / TAXAS / CUPONS ---
+        function renderCategorias() { document.getElementById('lista-categorias').innerHTML = categorias.map(c => `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl mb-2 text-sm font-bold text-gray-700 border border-gray-100 shadow-sm hover:border-pink-200 transition group"><span class="pl-2">${c.name}</span><button onclick="rmCat('${c.id}')" class="text-gray-300 hover:text-red-500 p-2 transition"><i class="fas fa-trash"></i></button></div>`).join(''); }
+        function renderTaxas() { document.getElementById('lista-taxas').innerHTML = taxas.map(t => `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl mb-2 text-sm border border-gray-100 shadow-sm hover:border-green-200 transition"><span class="pl-2 font-medium text-gray-600">${t.neighborhood}</span><div class="flex items-center gap-3"><span class="font-black text-gray-800 bg-white px-3 py-1 rounded-lg border border-gray-200 shadow-sm">R$ ${t.price.toFixed(2)}</span><button onclick="rmTaxa(${t.id})" class="text-gray-300 hover:text-red-500 transition"><i class="fas fa-trash"></i></button></div></div>`).join(''); }
+        function renderCupons() { document.getElementById('lista-cupons').innerHTML = cupons.map(c => { let d = ''; if (c.valid_from && c.valid_until) d = `<div class="text-[9px] text-gray-400 mt-1 flex flex-col"><span class="flex items-center gap-1"><i class="fas fa-calendar-check text-purple-300"></i> ${new Date(c.valid_from).toLocaleDateString()} - ${new Date(c.valid_until).toLocaleDateString()}</span></div>`; return `<div class="flex justify-between items-start bg-gray-50 p-3 rounded-xl mb-2 text-sm border-l-4 border-purple-500 shadow-sm transition"><div><div><span class="font-black text-purple-700 text-base tracking-widest">${c.code}</span> <span class="bg-purple-100 text-purple-600 px-2 py-0.5 rounded-lg text-[10px] font-bold ml-1 border border-purple-200">${c.discount_percent}% OFF</span></div>${d}</div><button onclick="rmCupom(${c.id})" class="text-gray-300 hover:text-red-500 transition mt-1"><i class="fas fa-trash"></i></button></div>`; }).join(''); }
+        async function addCategoria() { const n = document.getElementById('nova-cat').value.trim(); if (n) { await _supabase.from('categories').insert([{ name: n, loja_id: window.LOJA_ID }]); document.getElementById('nova-cat').value = ''; initAdmin(); } }
+        async function rmCat(id) { if (confirm("Apagar?")) { await _supabase.from('categories').delete().eq('id', id); initAdmin(); } }
+        async function addTaxa() { const n = document.getElementById('novo-bairro').value.trim(); const p = parseFloat(document.getElementById('nova-taxa').value); if (n && !isNaN(p)) { await _supabase.from('delivery_fees').insert([{ neighborhood: n, price: p, loja_id: window.LOJA_ID }]); document.getElementById('novo-bairro').value = ''; document.getElementById('nova-taxa').value = ''; initAdmin(); } }
+        async function rmTaxa(id) { await _supabase.from('delivery_fees').delete().eq('id', id); initAdmin(); }
+        async function addCupom() { const c = document.getElementById('novo-cupom').value.toUpperCase(); const d = parseInt(document.getElementById('novo-desc').value); const i = document.getElementById('novo-cupom-inicio').value; const f = document.getElementById('novo-cupom-fim').value; if (c && d) { const obj = { code: c, discount_percent: d, loja_id: window.LOJA_ID }; if (i) obj.valid_from = new Date(i).toISOString(); if (f) obj.valid_until = new Date(f).toISOString(); await _supabase.from('coupons').insert([obj]); document.getElementById('novo-cupom').value = ''; document.getElementById('novo-desc').value = ''; initAdmin(); } }
+        async function rmCupom(id) { if (confirm("Apagar?")) { await _supabase.from('coupons').delete().eq('id', id); initAdmin(); } }
+
         initAdmin();
     </script>
 </body>
+
 </html>

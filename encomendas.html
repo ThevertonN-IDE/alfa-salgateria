@@ -1,604 +1,658 @@
 <!DOCTYPE html>
-<html lang="pt-br" class="transition-colors duration-300">
+<html lang="pt-br" class="">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Encomendas - Alfa Salgateria</title>
-    
+    <meta name="theme-color" content="#ea580c">
+    <title>Encomendas | Alfa Salgateria</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="data.js"></script>
-    <script src="utils.js"></script>
-    <script src="ui.js"></script>
-    
-    <style> body { font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; } </style>
-</head>
-<body class="bg-orange-50 dark:bg-gray-900 text-gray-800 dark:text-white pb-36 select-none flex flex-col min-h-screen transition-colors duration-300">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { alfa: { 500: '#ea580c', 600: '#c2410c' } },
+                    zIndex: { '100': '100', '110': '110' }
+                }
+            }
+        }
+    </script>
 
-    <header class="bg-orange-600 dark:bg-gray-800 pb-8 rounded-b-3xl shadow-lg sticky top-0 z-40 transition-colors duration-300">
-        <div class="px-4 pt-6 flex justify-between items-center text-white">
-            <a href="index.html" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition backdrop-blur-md">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <div class="text-right">
-                <h1 class="text-xl font-black uppercase tracking-wider text-orange-100">Encomendas</h1>
-                <p class="text-[10px] text-orange-200 font-bold uppercase">Agende sua festa</p>
+    <style>
+        /* --- RESET GERAL E CSS REAPROVEITADO DO INDEX --- */
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .header-bg {
+            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+        }
+
+        .dark .header-bg {
+            background: #1f2937;
+            border-bottom: 1px solid #374151;
+        }
+
+        .bg-pattern-light {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#ea580c 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+        }
+
+        .glass {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .animate-up {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .force-white-light {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+        }
+
+        .dark .force-white-light {
+            background-color: #111827 !important;
+            color: #f3f4f6 !important;
+        }
+
+        /* Estilização extra para inputs de data/hora no tema escuro */
+        /* Truque Pro para o calendário: esconde o ícone feio e deixa o campo 100% clicável */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            color: transparent;
+            background: transparent;
+            cursor: pointer;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-pattern-light text-gray-800 transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
+
+    <header class="header-bg text-white h-16 shadow-lg sticky top-0 z-50 flex items-center justify-between px-4">
+        <button onclick="window.location.href='index.html'"
+            class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/20 transition active:scale-95">
+            <i class="fas fa-arrow-left text-xl"></i>
+        </button>
+
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 bg-white rounded-full p-0.5 shadow-md overflow-hidden border-2 border-white/40 relative flex items-center justify-center text-orange-600 font-black text-[9px]">
+                ALFA
             </div>
+            <span class="font-black text-lg tracking-tight uppercase text-shadow">ENCOMENDAS</span>
         </div>
-        <div class="px-4 mt-4">
-            <div id="aviso-agenda" class="bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-orange-50 text-center font-medium backdrop-blur-sm">
-                <i class="fas fa-clock mr-1"></i> Carregando horários disponíveis...
-            </div>
-        </div>
+
+        <div class="w-10"></div>
     </header>
 
-    <main id="conteudo-encomenda" class="max-w-md mx-auto p-4 space-y-4 flex-grow w-full">
-        <div id="lista-produtos" class="space-y-4"></div>
+    <div id="status-bar"
+        class="bg-orange-100 dark:bg-orange-500/20 border-b border-orange-200 dark:border-orange-500/30 px-4 py-2 flex items-center justify-center gap-2 text-xs font-bold text-orange-600 dark:text-orange-400 shadow-sm animate-pulse">
+        <i class="fas fa-clock"></i> Carregando horários disponíveis...
+    </div>
+
+    <main class="p-5 space-y-6 flex-grow min-h-[50vh] max-w-2xl mx-auto w-full">
+
+        <div
+            class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-lg animate-up relative overflow-hidden mb-8">
+            <div
+                class="absolute -right-12 -top-12 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl pointer-events-none">
+            </div>
+
+            <div class="relative z-10">
+                <div class="flex items-center gap-4 mb-6">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 text-white flex items-center justify-center shadow-md flex-shrink-0">
+                        <i class="fas fa-calendar-check text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-black text-xl text-gray-800 dark:text-white leading-tight">Agende sua Retirada
+                        </h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">Quando a sua festa vai
+                            acontecer?</p>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-gray-50 dark:bg-gray-900/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row gap-5">
+
+                    <div class="flex-1 relative">
+                        <label
+                            class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 block ml-1">Data</label>
+                        <div class="relative group">
+                            <div
+                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-orange-500 z-0">
+                                <i
+                                    class="far fa-calendar-alt text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                            </div>
+                            <input type="date" id="data-encomenda" onchange="atualizarHorarios()"
+                                class="w-full relative bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white text-sm sm:text-base font-bold rounded-xl focus:ring-0 focus:border-orange-500 focus:bg-white dark:focus:bg-gray-800 block pl-12 pr-4 py-3.5 outline-none transition-all shadow-sm hover:border-orange-300 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="flex-1 relative">
+                        <label
+                            class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 block ml-1">Horário</label>
+                        <div class="relative group">
+                            <div
+                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-orange-500 z-10">
+                                <i
+                                    class="far fa-clock text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                            </div>
+                            <select id="hora-encomenda"
+                                class="w-full appearance-none bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white text-sm sm:text-base font-bold rounded-xl focus:ring-0 focus:border-orange-500 focus:bg-white dark:focus:bg-gray-800 block pl-12 pr-10 py-3.5 outline-none transition-all shadow-sm hover:border-orange-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                <option value="">Selecione a data...</option>
+                            </select>
+                            <div
+                                class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="lista-encomendas" class="space-y-4">
+
+            <div id="vazio-encomenda"
+                class="flex-col items-center justify-center text-center py-12 opacity-80 animate-up flex">
+                <div
+                    class="bg-gray-100 dark:bg-gray-800 w-20 h-20 rounded-full flex items-center justify-center mb-4 border border-gray-200 dark:border-gray-700 shadow-inner">
+                    <i class="fas fa-box-open text-3xl text-gray-400 dark:text-gray-500"></i>
+                </div>
+                <p class="text-lg font-black text-gray-700 dark:text-white mb-2">Nenhum item adicionado</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 max-w-[250px]">Adicione os produtos que deseja
+                    encomendar através do nosso cardápio principal.</p>
+
+                <button onclick="window.location.href='index.html'"
+                    class="mt-8 bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 font-bold text-xs uppercase tracking-wide px-6 py-3 rounded-xl border border-orange-200 dark:border-orange-500/30 hover:bg-orange-200 dark:hover:bg-orange-500/20 transition active:scale-95">
+                    Voltar ao Cardápio
+                </button>
+            </div>
+
+        </div>
+
     </main>
 
-    <div id="barra-pedido" class="fixed bottom-0 inset-x-0 bg-white dark:bg-gray-800 p-4 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] z-40 rounded-t-3xl hidden flex justify-between items-center transition-all duration-300 translate-y-full border-t border-gray-100 dark:border-gray-700 pb-8">
-        <div class="flex items-center gap-3">
-            <button onclick="limparCarrinho()" class="w-10 h-10 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center hover:bg-red-200 transition active:scale-90 shadow-sm" title="Esvaziar Carrinho">
-                <i class="fas fa-trash-alt text-sm"></i>
-            </button>
-            <div>
-                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Total Previsto</p>
-                <p id="total-barra" class="text-2xl font-black text-orange-600 dark:text-orange-500">R$ 0,00</p>
-            </div>
+    <footer
+        class="mt-auto py-8 text-center border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 glass">
+        <p class="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Alfa Salgateria ©
+            2026</p>
+        <p class="text-[10px] text-gray-300 dark:text-gray-600">v1.4.0 • Desenvolvido por Theverton</p>
+    </footer>
+    <div id="barra-encomenda"
+        class="fixed bottom-5 left-5 right-5 bg-gray-900 dark:bg-orange-600 text-white p-4 rounded-3xl shadow-2xl z-30 hidden items-center justify-between transition-transform duration-300 translate-y-32 cursor-pointer active:scale-95 max-w-2xl mx-auto"
+        onclick="abrirResumoEnc()">
+        <div class="flex flex-col pl-2">
+            <span class="text-[9px] opacity-70 uppercase tracking-widest font-bold">Total da Encomenda</span>
+            <span id="total-barra-enc" class="text-xl font-black">R$ 0,00</span>
         </div>
-        <button onclick="abrirCheckoutEncomenda()" class="bg-orange-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-orange-700 active:scale-95 transition shadow-lg shadow-orange-200 dark:shadow-none text-sm flex items-center gap-2">
-            AGENDAR <i class="fas fa-calendar-check ml-1"></i>
-        </button>
-    </div>
-
-    <div id="modal-encomenda" class="fixed inset-0 bg-black/80 z-[60] hidden flex justify-end flex-col backdrop-blur-sm transition-opacity">
-        <div class="bg-white dark:bg-gray-900 w-full h-[90vh] rounded-t-[2.5rem] p-6 overflow-y-auto animate-up shadow-2xl relative">
-            <button onclick="document.getElementById('modal-encomenda').classList.add('hidden')" class="absolute top-5 right-5 bg-gray-100 dark:bg-gray-800 w-10 h-10 rounded-full text-gray-500 font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition flex items-center justify-center shadow-sm"><i class="fas fa-times"></i></button>
-            
-            <h2 class="text-2xl font-black text-orange-600 dark:text-orange-500 mb-6 uppercase flex items-center gap-2 tracking-tight"><i class="fas fa-calendar-alt"></i> Finalizar</h2>
-
-            <div class="space-y-6 mb-24">
-                
-                <div class="bg-gray-100 dark:bg-gray-800 p-1.5 rounded-2xl flex gap-1 shadow-inner">
-                    <button onclick="mudarTipoEntrega('retirada')" id="btn-tipo-retirada" class="flex-1 py-3 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm border border-gray-200 dark:border-gray-600">
-                        🥡 VOU RETIRAR
-                    </button>
-                    <button onclick="mudarTipoEntrega('entrega')" id="btn-tipo-entrega" class="flex-1 py-3 rounded-xl text-xs font-bold transition-all text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white">
-                        🛵 PARA ENTREGA
-                    </button>
-                </div>
-
-                <div id="box-endereco-entrega" class="hidden bg-orange-50 dark:bg-gray-800 p-5 rounded-2xl border border-orange-100 dark:border-gray-700 space-y-3 animate-fade">
-                    <p class="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase"><i class="fas fa-map-marker-alt mr-1"></i> Endereço de Entrega</p>
-                    <select id="sel-bairro-encomenda" onchange="verificarSinal()" class="w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-orange-500 font-medium appearance-none">
-                        <option value="0">Selecione o Bairro...</option>
-                        </select>
-                    
-                    <div class="grid grid-cols-4 gap-2">
-                        <input type="text" id="input-rua-encomenda" onkeyup="verificarSinal()" placeholder="Logradouro (Rua/Av.)" class="col-span-3 w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-orange-500 font-medium">
-                        <input type="text" id="input-numero-encomenda" onkeyup="verificarSinal()" placeholder="Nº" class="col-span-1 w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-orange-500 font-medium text-center">
-                    </div>
-                    <input type="text" id="input-ref-encomenda" onkeyup="verificarSinal()" placeholder="Ponto de Referência (Obrigatório)" class="w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-orange-500 font-medium">
-                </div>
-
-                <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-3">Data e Hora da Festa</p>
-                    <div class="flex gap-3">
-                        <input type="date" id="data-festa" onchange="verificarSinal()" class="bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl w-full text-sm font-bold border border-gray-200 dark:border-gray-700 outline-none focus:border-orange-500 shadow-sm">
-                        <input type="time" id="hora-festa" onchange="verificarSinal()" class="bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 rounded-xl w-full text-sm font-bold border border-gray-200 dark:border-gray-700 outline-none focus:border-orange-500 shadow-sm">
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-3 flex justify-between items-center">
-                        Itens do Pedido 
-                        <span id="qtd-itens-resumo" class="bg-gray-100 dark:bg-gray-700 px-2 rounded-full text-gray-500">0</span>
-                    </p>
-                    <div id="lista-resumo-carrinho" class="space-y-3 mb-4 max-h-40 overflow-y-auto custom-scroll pr-1">
-                        </div>
-                    
-                    <div class="border-t border-dashed border-gray-200 dark:border-gray-700 pt-3 space-y-1">
-                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                            <span>Produtos:</span>
-                            <span id="resumo-produtos" class="font-bold">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                            <span>Taxa de Entrega:</span>
-                            <span id="resumo-taxa" class="font-bold">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between items-end mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                            <div><p class="text-xs text-gray-400 uppercase font-bold">Total Geral</p><p class="text-xl font-black text-gray-800 dark:text-white" id="resumo-total">R$ 0,00</p></div>
-                            <div class="text-right"><p class="text-xs text-orange-500 font-bold uppercase">Sinal Mínimo (50%)</p><p class="text-2xl font-black text-orange-600 dark:text-orange-500" id="resumo-sinal">R$ 0,00</p></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-                    <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-700 text-center mb-4">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold">Chave Pix (Celular)</p>
-                        <p class="text-lg font-black text-gray-800 dark:text-white select-all tracking-wider font-mono my-1" id="chave-pix-display">CARREGANDO...</p>
-                        <p class="text-[10px] text-gray-500 truncate">Tereza Ceciliana Guaraci Gomes</p>
-                        <button onclick="copiarPixEnc()" class="mt-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-orange-600 font-bold px-4 py-1.5 rounded-lg text-xs hover:bg-orange-50 transition shadow-sm">Copiar Chave</button>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Valor Pago Agora (Comprovante)</label>
-                        <div class="relative">
-                            <span class="absolute left-4 top-3.5 text-gray-400 font-bold text-sm">R$</span>
-                            <input type="number" id="valor-pago-input" onkeyup="verificarSinal()" placeholder="0,00" class="w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-white p-3.5 pl-10 rounded-xl border-2 border-gray-200 dark:border-gray-700 outline-none focus:border-green-500 font-black text-lg transition-colors">
-                        </div>
-                    </div>
-
-                    <label id="area-upload" class="block w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-orange-500 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-gray-700/50 transition group relative overflow-hidden">
-                        <input type="file" id="foto-comprovante" class="hidden" accept="image/*" onchange="previewFile()">
-                        <div id="upload-content">
-                            <i class="fas fa-camera text-3xl text-gray-300 dark:text-gray-600 group-hover:text-orange-500 mb-2 transition-colors"></i>
-                            <p id="msg-upload" class="text-xs font-bold text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Anexar Comprovante do PIX</p>
-                        </div>
-                        <img id="img-preview-upload" class="hidden absolute inset-0 w-full h-full object-cover opacity-80">
-                    </label>
-                </div>
-
-                <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
-                    <label class="flex gap-3 items-start cursor-pointer group">
-                        <input type="checkbox" id="check-termos" class="mt-1 w-5 h-5 accent-orange-600 rounded border-gray-300 cursor-pointer" onchange="verificarSinal()">
-                        <p class="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed text-justify group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                            Concordo com os termos de <strong>Sinal/Arras</strong>. O pagamento de 50% confirma o contrato. Em caso de desistência em menos de 24h, o sinal será retido.
-                        </p>
-                    </label>
-                </div>
-            </div>
-
-            <button id="btn-finalizar-encomenda" onclick="enviarEncomenda()" disabled class="w-full bg-gray-300 dark:bg-gray-800 text-gray-500 py-4 rounded-2xl font-black text-sm fixed bottom-5 left-5 right-5 max-w-[calc(100%-2.5rem)] mx-auto transition flex items-center justify-center gap-2 cursor-not-allowed shadow-none border border-transparent">
-                <span id="btn-texto">PREENCHA TUDO PARA CONTINUAR</span>
-                <i id="btn-icon" class=""></i>
-            </button>
+        <div class="flex items-center gap-2 font-bold text-xs bg-white/20 px-4 py-2.5 rounded-2xl backdrop-blur-sm">
+            Ver Pedido <span id="qtd-badge-enc"
+                class="bg-white text-gray-900 text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-black">0</span>
         </div>
     </div>
 
+    <div id="modal-resumo-enc"
+        class="fixed inset-0 bg-black/60 z-[100] hidden items-end transition-opacity opacity-0 backdrop-blur-sm"
+        onclick="if(event.target === this) fecharResumoEnc()">
+        <div
+            class="force-white-light w-full max-w-2xl mx-auto rounded-t-[2.5rem] p-6 animate-up max-h-[90vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="font-black text-2xl">Sua Encomenda</h3>
+                    <p id="resumo-data-hora" class="text-xs font-bold text-orange-500 mt-1 uppercase tracking-wide"></p>
+                </div>
+                <button onclick="fecharResumoEnc()"
+                    class="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 transition hover:bg-gray-200"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div id="lista-itens-resumo-enc" class="flex-grow overflow-y-auto custom-scroll space-y-4 mb-6 pr-2"></div>
+            <div class="border-t border-gray-100 dark:border-gray-700 pt-6">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-gray-500 dark:text-gray-400 font-bold">Total Estimado</span>
+                    <span id="total-resumo-enc" class="text-3xl font-black text-orange-600 dark:text-orange-500">R$
+                        0,00</span>
+                </div>
+                <div class="grid grid-cols-[1fr_2fr] gap-4">
+                    <button onclick="limparCarrinhoEnc()"
+                        class="bg-red-50 dark:bg-red-900/20 text-red-500 py-4 rounded-2xl font-bold text-sm hover:bg-red-100 transition flex items-center justify-center gap-2"><i
+                            class="fas fa-trash-alt"></i> Tudo</button>
+                    <button onclick="avancarParaCheckout()"
+                        class="bg-green-600 text-white py-4 rounded-2xl font-black text-base shadow-xl shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition uppercase tracking-wide flex items-center justify-center gap-2">Continuar
+                        <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
-        // --- SEGURANÇA ---
-        function escapeHtml(text) {
-            if (!text) return text;
-            return text.toString()
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
+        if (localStorage.getItem('tema') === 'dark') document.documentElement.classList.add('dark');
 
-        const CHAVE_PIX_ENC = "84987371966"; 
-        const WHATSAPP_LOJA = "5584987371966"; 
-        
-        document.getElementById('chave-pix-display').innerText = CHAVE_PIX_ENC;
+        let produtosEncomenda = [];
+        let carrinhoEncomenda = {};
+        let configLoja = {}; // <--- Variável nova para guardar as configs
 
-        // Recupera tema do index.html
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-
-        let carrinho = {}, produtosDb = [], taxasDb = [];
-        let tipoEntregaAtual = 'retirada'; 
-        
-        async function initEncomenda() {
-            // 1. Agenda
-            const { data: config } = await _supabase.from('store_config').select('schedule_config').single();
-            if(config && config.schedule_config) {
-                document.getElementById('aviso-agenda').innerHTML = `<i class="fas fa-clock mr-1"></i> Horários: <strong>${escapeHtml(config.schedule_config.horarios_permitidos || 'Consulte')}</strong>`;
-            }
-
-            // 2. Produtos
-            const { data: prods } = await _supabase.from('products').select('*').eq('is_active', true).eq('for_encomenda', true);
-            produtosDb = prods || [];
-            
-            // 3. Taxas
-            const { data: taxas } = await _supabase.from('delivery_fees').select('*').order('neighborhood');
-            taxasDb = taxas || [];
-            
-            const selBairro = document.getElementById('sel-bairro-encomenda');
-            taxasDb.forEach(t => {
-                selBairro.innerHTML += `<option value="${t.price}">${escapeHtml(t.neighborhood)} (+ R$ ${t.price.toFixed(2)})</option>`;
-            });
-
-            // 4. Renderização
-            const container = document.getElementById('lista-produtos');
-            if(produtosDb.length === 0) container.innerHTML = '<div class="text-center py-10"><i class="fas fa-calendar-times text-4xl text-gray-300 dark:text-gray-700 mb-2"></i><p class="text-gray-500 text-sm">Nenhum item para encomenda.</p></div>';
-
-            const placeholder = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%23f3f4f6%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2250%22%20font-family%3D%22sans-serif%22%20font-size%3D%2214%22%20font-weight%3D%22bold%22%20fill%3D%22%239ca3af%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3ESem%20Foto%3C%2Ftext%3E%3C%2Fsvg%3E";
-
-            produtosDb.forEach(p => {
-                const img = (!p.image_url || p.image_url.length < 10) ? placeholder : p.image_url;
-                
-                // DETECTA VARIAÇÕES
-                let variants = [];
-                if (p.variants) {
-                    variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
-                }
-                const hasVariants = Array.isArray(variants) && variants.length > 0;
-                const idStr = String(p.id);
-
-                let controlesHtml = '';
-
-                if(hasVariants) {
-                    let optionsHtml = '';
-                    variants.forEach((v, idx) => {
-                        optionsHtml += `<option value="${idx}">${escapeHtml(v.qtd)} un - R$ ${Number(v.price).toFixed(2)}</option>`;
-                    });
-
-                    controlesHtml = `
-                        <div class="mt-3">
-                            <select id="sel-${idStr}" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white text-xs p-2.5 rounded-xl border border-gray-200 dark:border-gray-600 outline-none mb-2 font-bold cursor-pointer">
-                                ${optionsHtml}
-                            </select>
-                            <button onclick="addVariant('${idStr}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm active:scale-95 transition flex justify-center items-center gap-2">
-                                <i class="fas fa-plus"></i> ADICIONAR COMBO
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    controlesHtml = `
-                        <div class="flex justify-between items-center mt-3">
-                            <span class="text-orange-600 dark:text-orange-500 font-black text-lg">R$ ${p.price.toFixed(2)}</span>
-                            <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-900 rounded-xl p-1 shadow-inner border border-gray-200 dark:border-gray-700">
-                                <button onclick="addEnc('${idStr}', -1)" class="w-8 h-8 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-white font-bold transition active:scale-90">-</button>
-                                <span id="qtd-${idStr}" class="text-sm font-black w-6 text-center text-gray-800 dark:text-white">0</span>
-                                <button onclick="addEnc('${idStr}', 1)" class="w-8 h-8 text-white bg-green-600 rounded-lg hover:bg-green-700 font-bold shadow-sm transition active:scale-90">+</button>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                const cardHtml = `
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl flex gap-4 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition">
-                    <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-2xl overflow-hidden flex-shrink-0 relative group">
-                        <img src="${img}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                    </div>
-                    <div class="flex-grow flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-bold text-sm text-gray-800 dark:text-white leading-tight">${escapeHtml(p.name)}</h3>
-                            <p class="text-[10px] text-gray-400 line-clamp-2 mt-1">${escapeHtml(p.description || '')}</p>
-                        </div>
-                        ${controlesHtml}
-                    </div>
-                </div>`;
-                container.innerHTML += cardHtml;
-            });
-        }
-
-        // --- CARRINHO ---
-
-        function addVariant(prodId) {
-            const select = document.getElementById(`sel-${prodId}`);
-            if(!select) return;
-            const variantIdx = select.value;
-            const key = `${prodId}__${variantIdx}`; 
-            addEnc(key, 1);
-            mostrarToast("Combo adicionado!");
-        }
-
-        function addEnc(id, val) {
-            const idStr = String(id);
-            if(!carrinho[idStr]) carrinho[idStr]=0;
-            carrinho[idStr] += val;
-            if(carrinho[idStr]<=0) delete carrinho[idStr];
-            
-            if(!idStr.includes('__')) {
-                const el = document.getElementById(`qtd-${idStr}`);
-                if(el) el.innerText = carrinho[idStr] || 0;
-            }
-            
-            atualizarBarra();
-        }
-
-        function removerItemCarrinho(key) {
-            delete carrinho[key];
-            if(!key.includes('__')) {
-                const el = document.getElementById(`qtd-${key}`);
-                if(el) el.innerText = 0;
-            }
-            atualizarBarra();
-            renderizarResumoCarrinho(); 
-            verificarSinal(); 
-            mostrarToast("Item removido");
-        }
-
-        function limparCarrinho() {
-            if(Object.keys(carrinho).length === 0) return;
-            carrinho = {};
-            document.querySelectorAll('[id^="qtd-"]').forEach(el => el.innerText = '0');
-            atualizarBarra();
-            mostrarToast("Carrinho esvaziado!", "sucesso");
-        }
-
-        function atualizarBarra() {
-            let total = 0;
-            for(const [key, qtd] of Object.entries(carrinho)) {
-                const parts = key.split('__');
-                const prodId = parts[0];
-                const variantIdx = parts[1];
-
-                const p = produtosDb.find(x => String(x.id) === String(prodId));
-                if(p) {
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-
-                    let preco = p.price; 
-                    if(variantIdx !== undefined && variants && variants[variantIdx]) {
-                        preco = Number(variants[variantIdx].price);
-                    }
-                    total += preco * qtd;
-                }
-            }
-            document.getElementById('total-barra').innerText = `R$ ${total.toFixed(2)}`;
-            const bar = document.getElementById('barra-pedido');
-            total > 0 ? bar.classList.remove('translate-y-full', 'hidden') : bar.classList.add('translate-y-full');
-        }
-
-        // --- CHECKOUT ---
-
-        function abrirCheckoutEncomenda() {
-            mudarTipoEntrega('retirada'); 
-            document.getElementById('modal-encomenda').classList.remove('hidden');
-            renderizarResumoCarrinho();
-            verificarSinal();
-        }
-
-        function renderizarResumoCarrinho() {
-            const lista = document.getElementById('lista-resumo-carrinho');
-            lista.innerHTML = '';
-            let qtdTotal = 0;
-
-            for(const [key, qtd] of Object.entries(carrinho)) {
-                const parts = key.split('__');
-                const prodId = parts[0];
-                const variantIdx = parts[1];
-                const p = produtosDb.find(x => String(x.id) === String(prodId));
-
-                if(p) {
-                    let nomeItem = escapeHtml(p.name);
-                    let precoUnit = p.price;
-                    
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-
-                    if(variantIdx !== undefined && variants && variants[variantIdx]) {
-                        nomeItem += ` <strong class="text-orange-500">(${escapeHtml(variants[variantIdx].qtd)} un)</strong>`;
-                        precoUnit = Number(variants[variantIdx].price);
-                    }
-
-                    const subtotal = precoUnit * qtd;
-                    qtdTotal += qtd;
-
-                    lista.innerHTML += `
-                        <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700">
-                            <div>
-                                <p class="text-xs font-bold text-gray-800 dark:text-white leading-tight">${qtd}x ${nomeItem}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-gray-400">Unit: R$ ${precoUnit.toFixed(2)}</p>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span class="text-xs font-black text-gray-700 dark:text-gray-300">R$ ${subtotal.toFixed(2)}</span>
-                                <button onclick="removerItemCarrinho('${key}')" class="text-red-400 hover:text-red-600 transition"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-            document.getElementById('qtd-itens-resumo').innerText = qtdTotal;
-        }
-
-        function mudarTipoEntrega(tipo) {
-            tipoEntregaAtual = tipo;
-            const btnRet = document.getElementById('btn-tipo-retirada');
-            const btnEnt = document.getElementById('btn-tipo-entrega');
-            const boxEnd = document.getElementById('box-endereco-entrega');
-
-            if (tipo === 'retirada') {
-                btnRet.className = "flex-1 py-3 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm border border-gray-200 dark:border-gray-600";
-                btnEnt.className = "flex-1 py-3 rounded-xl text-xs font-bold transition-all text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white";
-                boxEnd.classList.add('hidden');
-            } else {
-                btnEnt.className = "flex-1 py-3 rounded-xl text-xs font-bold transition-all bg-orange-600 text-white border border-orange-500 shadow-md";
-                btnRet.className = "flex-1 py-3 rounded-xl text-xs font-bold transition-all text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white";
-                boxEnd.classList.remove('hidden');
-            }
-            verificarSinal();
-        }
-
-        function previewFile() {
-            const input = document.getElementById('foto-comprovante');
-            const img = document.getElementById('img-preview-upload');
-            const content = document.getElementById('upload-content');
-            
-            if(input.files && input.files.length > 0) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    img.src = e.target.result;
-                    img.classList.remove('hidden');
-                    content.classList.add('opacity-0');
-                    document.getElementById('area-upload').classList.add('border-green-500');
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-            verificarSinal();
-        }
-
-        function verificarSinal() {
-            let totalProdutos = 0;
-            for(const [key, qtd] of Object.entries(carrinho)) {
-                const parts = key.split('__');
-                const p = produtosDb.find(x => String(x.id) === String(parts[0]));
-                if(p) {
-                    let variants = p.variants;
-                    if(typeof variants === 'string') variants = JSON.parse(variants);
-                    let preco = p.price;
-                    if(parts[1] !== undefined && variants && variants[parts[1]]) {
-                        preco = Number(variants[parts[1]].price);
-                    }
-                    totalProdutos += preco * qtd;
-                }
-            }
-
-            let taxaEntrega = 0;
-            if (tipoEntregaAtual === 'entrega') {
-                const sel = document.getElementById('sel-bairro-encomenda');
-                taxaEntrega = parseFloat(sel.value) || 0;
-            }
-
-            const totalGeral = totalProdutos + taxaEntrega;
-            const minimoSinal = totalGeral / 2;
-
-            const valorPago = parseFloat(document.getElementById('valor-pago-input').value) || 0;
-            const termoAceito = document.getElementById('check-termos').checked;
-            const data = document.getElementById('data-festa').value;
-            const hora = document.getElementById('hora-festa').value;
-            const temArquivo = document.getElementById('foto-comprovante').files.length > 0;
-            
-            // VALIDAÇÃO DETALHADA DE ENDEREÇO
-            const rua = document.getElementById('input-rua-encomenda').value.trim();
-            const num = document.getElementById('input-numero-encomenda').value.trim();
-            const ref = document.getElementById('input-ref-encomenda').value.trim();
-            
-            document.getElementById('resumo-produtos').innerText = `R$ ${totalProdutos.toFixed(2)}`;
-            document.getElementById('resumo-taxa').innerText = `R$ ${taxaEntrega.toFixed(2)}`;
-            document.getElementById('resumo-total').innerText = `R$ ${totalGeral.toFixed(2)}`;
-            document.getElementById('resumo-sinal').innerText = `R$ ${minimoSinal.toFixed(2)}`;
-
-            const btn = document.getElementById('btn-finalizar-encomenda');
-            const btnTexto = document.getElementById('btn-texto');
-            
-            let msgErro = "";
-
-            if (tipoEntregaAtual === 'entrega' && (taxaEntrega === 0 || !rua || !num || !ref)) msgErro = "PREENCHA ENDEREÇO COMPLETO";
-            else if (!data || !hora) msgErro = "ESCOLHA DATA E HORA";
-            else if (valorPago < minimoSinal) msgErro = `SINAL MÍNIMO: R$ ${minimoSinal.toFixed(2)}`;
-            else if (!temArquivo) msgErro = "ANEXE O COMPROVANTE";
-            else if (!termoAceito) msgErro = "ACEITE OS TERMOS";
-
-            if (msgErro) {
-                btnTexto.innerText = msgErro;
-                btn.classList.add('bg-gray-300', 'dark:bg-gray-800', 'text-gray-500', 'cursor-not-allowed', 'shadow-none');
-                btn.classList.remove('bg-green-600', 'text-white', 'shadow-xl', 'hover:bg-green-700');
-                btn.disabled = true;
-            } else {
-                btnTexto.innerText = "ENVIAR PEDIDO NO WHATSAPP";
-                btn.disabled = false;
-                btn.classList.remove('bg-gray-300', 'dark:bg-gray-800', 'text-gray-500', 'cursor-not-allowed', 'shadow-none');
-                btn.classList.add('bg-green-600', 'text-white', 'shadow-xl', 'hover:bg-green-700');
-            }
-        }
-
-        async function enviarEncomenda() {
-            const btn = document.getElementById('btn-finalizar-encomenda');
-            const btnTexto = document.getElementById('btn-texto');
-            const btnIcon = document.getElementById('btn-icon');
-            
-            btn.disabled = true;
-            btnTexto.innerText = "ENVIANDO COMPROVANTE...";
-            btnIcon.className = "fas fa-spinner fa-spin";
-            
+        async function carregarEncomendas() {
             try {
-                // Upload
-                const file = document.getElementById('foto-comprovante').files[0];
-                const fileExt = file.name.split('.').pop();
-                const fileName = `comprovante_${Date.now()}.${fileExt}`;
-                
-                const { error: uploadError } = await _supabase.storage.from('imagens').upload(`comprovantes/${fileName}`, file);
-                
-                let proofUrl = "Erro no upload";
-                if (!uploadError) {
-                    const { data: publicData } = _supabase.storage.from('imagens').getPublicUrl(`comprovantes/${fileName}`);
-                    proofUrl = publicData.publicUrl;
+                // Busca os produtos e as configurações da loja AO MESMO TEMPO
+                const [reqProdutos, reqConfig] = await Promise.all([
+                    _supabase.from('products').select('*').eq('active', true).order('order_index'),
+                    _supabase.from('store_config').select('*').limit(1)
+                ]);
+
+                if (reqProdutos.error) throw reqProdutos.error;
+
+                const data = reqProdutos.data;
+                configLoja = reqConfig.data?.[0] || {}; // Salva a config para usar nos horários
+
+                // TRAVA DE SEGURANÇA (CHAVE MESTRA DO SaaS)
+                if (configLoja.schedule_config && configLoja.schedule_config.ativo === false) {
+                    return Swal.fire({
+                        title: 'Pausa nas Encomendas',
+                        text: 'Nossa agenda está fechada no momento. Volte em breve!',
+                        icon: 'info',
+                        confirmButtonColor: '#ea580c',
+                        allowOutsideClick: false
+                    }).then(() => window.location.href = 'index.html');
                 }
 
-                // Dados
-                const dataFesta = document.getElementById('data-festa').value.split('-').reverse().join('/');
-                const hora = document.getElementById('hora-festa').value;
-                const valorPago = document.getElementById('valor-pago-input').value;
-                const totalGeral = document.getElementById('resumo-total').innerText;
-                
-                // Endereço Completo
-                const rua = document.getElementById('input-rua-encomenda').value;
-                const num = document.getElementById('input-numero-encomenda').value;
-                const ref = document.getElementById('input-ref-encomenda').value;
-                const enderecoCompleto = `${rua}, Nº ${num} - Ref: ${ref}`;
+                // Filtra o que vai aparecer na tela de encomendas
+                produtosEncomenda = data.filter(p => {
+                    let vars = [];
+                    try { if (p.variants) vars = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants; } catch (e) { }
 
-                // Monta Mensagem WhatsApp
-                let msg = `*NOVA ENCOMENDA AGENDADA* 📅\n`;
-                msg += `-----------------\n`;
-                
-                if(tipoEntregaAtual === 'entrega') {
-                    const sel = document.getElementById('sel-bairro-encomenda');
-                    const bairroNome = sel.options[sel.selectedIndex].text.split(' (+')[0];
-                    msg += `🛵 *ENTREGA:* ${dataFesta} às ${hora}\n`;
-                    msg += `📍 *Endereço:* ${enderecoCompleto}\n*Bairro:* ${bairroNome}\n`;
-                } else {
-                    msg += `🥡 *RETIRADA:* ${dataFesta} às ${hora}\n`;
-                }
-
-                msg += `-----------------\n`;
-                for(const [key, qtd] of Object.entries(carrinho)) {
-                    const parts = key.split('__');
-                    const p = produtosDb.find(x => String(x.id) === String(parts[0]));
-                    if(p){
-                        let variants = p.variants;
-                        if(typeof variants === 'string') variants = JSON.parse(variants);
-                        
-                        if(parts[1] !== undefined && variants && variants[parts[1]]) {
-                            msg += `${qtd}x ${p.name} *(${variants[parts[1]].qtd} un)*\n`;
-                        } else {
-                            msg += `${qtd}x ${p.name}\n`;
-                        }
+                    if (vars.length > 0) {
+                        return vars.some(v => !v.type || v.type === 'ambos' || v.type === 'encomenda');
                     }
-                }
-                
-                msg += `-----------------\n`;
-                msg += `💰 Total Geral: ${totalGeral}\n`;
-                msg += `✅ Sinal Pago: R$ ${valorPago}\n`;
-                
-                const valTotalNum = parseFloat(totalGeral.replace('R$ ',''));
-                const valPagoNum = parseFloat(valorPago);
-                msg += `⚠️ Restante a Pagar: R$ ${(valTotalNum - valPagoNum).toFixed(2)}\n`;
-                
-                if(proofUrl !== "Erro no upload") {
-                    msg += `\n📎 *Comprovante:* ${proofUrl}`;
-                } else {
-                    msg += `\n(Envio o comprovante na sequência...)`;
+                    return p.for_encomenda === true;
+                });
+
+                const statusBar = document.getElementById('status-bar');
+                if (statusBar) {
+                    statusBar.classList.remove('animate-pulse', 'bg-orange-100', 'text-orange-600', 'dark:bg-orange-500/20', 'dark:text-orange-400');
+                    statusBar.classList.add('bg-green-100', 'text-green-700', 'dark:bg-green-500/20', 'dark:text-green-400', 'border-green-200', 'dark:border-green-500/30');
+                    statusBar.innerHTML = '<i class="fas fa-check-circle"></i> Catálogo atualizado';
+                    setTimeout(() => statusBar.style.display = 'none', 2000);
                 }
 
-                // Salva no Banco (com escape)
-                await _supabase.from('orders').insert([{
-                    items: carrinho,
-                    total_amount: valTotalNum,
-                    payment_method: 'pix_sinal',
-                    delivery_type: tipoEntregaAtual,
-                    proof_url: proofUrl,
-                    address: tipoEntregaAtual === 'entrega' ? enderecoCompleto : 'Retirada',
-                    customer_name: 'Encomenda Web'
-                }]);
+                if (document.getElementById('skeleton')) {
+                    document.getElementById('skeleton').classList.add('hidden');
+                }
 
-                window.open(`https://wa.me/${WHATSAPP_LOJA}?text=${encodeURIComponent(msg)}`, '_blank');
-                
-                btnTexto.innerText = "PEDIDO ENVIADO!";
-                btnIcon.className = "fas fa-check";
-                setTimeout(() => location.reload(), 2000);
+                renderizarEncomendas();
 
-            } catch (error) {
-                console.error(error);
-                alert("Erro ao processar: " + error.message);
-                btn.disabled = false;
-                btnTexto.innerText = "TENTAR NOVAMENTE";
-                btnIcon.className = "";
+                // Ativa a trava do calendário logo após carregar tudo
+                configurarCalendario();
+
+            } catch (err) {
+                console.error("Erro ao carregar:", err);
+                Swal.fire('Erro', 'Falha ao carregar catálogo.', 'error');
             }
         }
-        
-        function copiarPixEnc(){ navigator.clipboard.writeText(CHAVE_PIX_ENC); mostrarToast("Chave copiada!"); }
 
-        initEncomenda();
+        function renderizarEncomendas() {
+            const container = document.getElementById('lista-encomendas');
+            const vazio = document.getElementById('vazio-encomenda');
+
+            if (produtosEncomenda.length === 0) {
+                vazio.classList.remove('hidden');
+                vazio.classList.add('flex');
+                return;
+            }
+
+            vazio.classList.add('hidden');
+            vazio.classList.remove('flex');
+            let html = '';
+
+            produtosEncomenda.forEach(p => {
+                const img = p.image_url || 'https://placehold.co/100?text=Foto';
+                let vars = [];
+                try { if (p.variants) vars = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants; } catch (e) { }
+
+                // Pega SÓ as variações que podem aparecer na encomenda
+                let validVars = vars.filter(v => !v.type || v.type === 'ambos' || v.type === 'encomenda');
+                const hasVar = validVars.length > 0;
+
+                let priceHTML = '', actionHTML = '', varsHTML = '';
+
+                if (hasVar) {
+                    const min = Math.min(...validVars.map(v => v.promo_price || v.price));
+                    priceHTML = `<span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">A partir de <span class="text-orange-600 dark:text-orange-500 font-black text-base">R$ ${min.toFixed(2)}</span></span>`;
+                    actionHTML = `<button onclick="toggleComboEnc('${p.id}')" id="btn-combo-${p.id}" class="bg-white dark:bg-gray-700 text-orange-600 dark:text-white px-4 py-2 rounded-xl text-xs font-bold uppercase hover:bg-orange-50 transition shadow-sm border border-orange-200 dark:border-gray-600">Ver Opções <i class="fas fa-chevron-down ml-1"></i></button>`;
+
+                    let optsHTML = validVars.map(v => {
+                        const originalIndex = vars.indexOf(v); // Guarda o ID original da variação
+                        const price = v.promo_price || v.price;
+                        const oldP = v.promo_price ? `<span class="text-[10px] line-through text-gray-400 mr-2">R$${Number(v.price).toFixed(2)}</span>` : '';
+
+                        return `
+                        <label onclick="selecionarOpcao(this)" class="flex justify-between opcao-item items-center p-3.5 rounded-xl cursor-pointer relative overflow-hidden mb-2 transition hover:border-orange-200 group shadow-sm bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 radio-box">
+                            <input type="radio" name="v_${p.id}" value="${originalIndex}" class="peer sr-only radio-box">
+                            <span class="text-xs font-bold text-gray-700 dark:text-gray-300 z-10 flex items-center gap-2"><i class="fas fa-utensils opacity-50 text-[10px]"></i> ${v.qtd}</span>
+                            <div class="text-right z-10 flex items-center">${oldP}<span class="font-black text-sm text-gray-800 dark:text-white">R$ ${Number(price).toFixed(2)}</span></div>
+                            <i class="fas fa-check-circle text-orange-500 absolute right-3 opacity-0 transition transform scale-0 check-icon"></i>
+                        </label>`;
+                    }).join('');
+
+                    varsHTML = `<div id="area-${p.id}" class="hidden mt-4 pt-4 border-t border-dashed border-orange-200 dark:border-gray-700 animate-up"><p class="text-[10px] font-black text-gray-400 uppercase mb-3 ml-1 tracking-wider">Selecione:</p>${optsHTML}<button onclick="addComboEnc('${p.id}')" class="w-full mt-4 bg-gray-900 dark:bg-orange-600 text-white py-3.5 rounded-xl font-black text-xs shadow-lg active:scale-95 transition hover:bg-black uppercase tracking-wide flex items-center justify-center gap-2"><i class="fas fa-plus"></i> Adicionar à Encomenda</button></div>`;
+
+                } else {
+                    const pr = p.on_sale ? p.sale_price : p.price;
+                    const old = p.on_sale ? `<span class="text-[10px] text-gray-400 line-through mr-1">R$${p.price.toFixed(2)}</span>` : '';
+                    priceHTML = `<div>${old}<span class="text-xl font-black text-orange-600 dark:text-orange-500">R$ ${Number(pr).toFixed(2)}</span></div>`;
+                    actionHTML = `<div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-xl p-1 shadow-inner border border-gray-200 dark:border-gray-600"><button onclick="addEnc('${p.id}',-1)" class="w-9 h-9 flex items-center justify-center text-gray-400 font-bold hover:text-red-500 active:scale-90 transition rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">-</button><span id="qtd-enc-${p.id}" class="w-8 text-center text-base font-bold dark:text-white">0</span><button onclick="addEnc('${p.id}',1)" class="w-9 h-9 flex items-center justify-center bg-white dark:bg-gray-600 text-green-600 rounded-lg shadow-sm font-bold hover:bg-green-50 active:scale-90 transition">+</button></div>`;
+                }
+
+                html += `
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm animate-up flex flex-col mb-4 relative overflow-hidden">
+                    <div class="flex gap-4">
+                        <div class="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100 dark:border-gray-600 relative"><img src="${img}" class="w-full h-full object-cover"></div>
+                        <div class="flex-grow flex flex-col justify-between"><div><h3 class="font-black text-sm text-gray-800 dark:text-white">${p.name}</h3><p class="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5 leading-tight">${p.description || 'Produto sob encomenda'}</p></div><div class="flex justify-between items-end mt-2">${priceHTML}${actionHTML}</div></div>
+                    </div>
+                    ${varsHTML}
+                </div>`;
+            });
+
+            const cardsContainer = document.createElement('div');
+            cardsContainer.innerHTML = html;
+            container.appendChild(cardsContainer);
+        }
+
+        window.toggleComboEnc = function (id) {
+            const area = document.getElementById(`area-${id}`);
+            const btn = document.getElementById(`btn-combo-${id}`);
+            area.classList.toggle('hidden');
+            if (area.classList.contains('hidden')) {
+                btn.innerHTML = `Ver Opções <i class="fas fa-chevron-down ml-1"></i>`;
+                btn.classList.remove('bg-orange-100', 'text-orange-700', 'border-orange-200');
+            } else {
+                btn.innerHTML = `Ocultar <i class="fas fa-chevron-up ml-1"></i>`;
+                btn.classList.add('bg-orange-100', 'text-orange-700', 'border-orange-200');
+            }
+        }
+
+        window.selecionarOpcao = function (elementoClicado) {
+            const todasAsOpcoes = elementoClicado.parentElement.querySelectorAll('.opcao-item');
+            todasAsOpcoes.forEach(opcao => {
+                opcao.classList.remove('border-orange-500', 'bg-orange-500/10', 'dark:border-orange-500');
+                opcao.classList.add('border-gray-700', 'dark:border-gray-600');
+            });
+            elementoClicado.classList.remove('border-gray-700', 'dark:border-gray-600');
+            elementoClicado.classList.add('border-orange-500', 'bg-orange-500/10', 'dark:border-orange-500');
+        }
+
+        // --- SISTEMA REAL DE CARRINHO DE ENCOMENDAS ---
+        const KEY_CART_ENC = 'carrinho_encomenda_v1';
+
+        // Substitua as funções addEnc e addComboEnc antigas por estas:
+        window.addEnc = function (id, d) {
+            const k = String(id);
+            if (!carrinhoEncomenda[k]) carrinhoEncomenda[k] = 0;
+            carrinhoEncomenda[k] += d;
+            if (carrinhoEncomenda[k] <= 0) delete carrinhoEncomenda[k];
+
+            const el = document.getElementById(`qtd-enc-${id}`);
+            if (el) el.innerText = carrinhoEncomenda[k] || 0;
+
+            salvarCarrinhoEnc();
+            if (d > 0) Swal.fire({ toast: true, position: 'bottom', title: 'Adicionado à Encomenda', icon: 'success', showConfirmButton: false, timer: 1000, background: '#22c55e', color: 'white' });
+        }
+
+        window.addComboEnc = function (id) {
+            const r = document.querySelector(`input[name="v_${id}"]:checked`);
+            if (!r) return Swal.fire({ toast: true, title: 'Selecione uma opção', icon: 'warning', showConfirmButton: false, timer: 1500 });
+
+            const k = `${id}__${r.value}`;
+            if (!carrinhoEncomenda[k]) carrinhoEncomenda[k] = 0;
+            carrinhoEncomenda[k]++;
+
+            salvarCarrinhoEnc();
+            Swal.fire({ toast: true, title: 'Opção adicionada!', icon: 'success', position: 'bottom', showConfirmButton: false, timer: 1000, background: '#22c55e', color: 'white' });
+            r.checked = false;
+            toggleComboEnc(id);
+        }
+
+        function salvarCarrinhoEnc() {
+            localStorage.setItem(KEY_CART_ENC, JSON.stringify(carrinhoEncomenda));
+            atualizarBarraEnc();
+        }
+
+        function atualizarBarraEnc() {
+            let t = 0, q = 0;
+            for (const [k, v] of Object.entries(carrinhoEncomenda)) {
+                const [pid, vIdx] = k.split('__');
+                const p = produtosEncomenda.find(x => String(x.id) === String(pid));
+                if (p) {
+                    let price = p.on_sale ? p.sale_price : p.price;
+                    if (vIdx !== undefined) {
+                        try { const vars = (typeof p.variants === 'string') ? JSON.parse(p.variants) : p.variants; if (vars[vIdx]) price = vars[vIdx].promo_price || vars[vIdx].price; } catch (e) { }
+                    }
+                    t += Number(price) * v; q += v;
+                }
+            }
+            const b = document.getElementById('barra-encomenda');
+            if (q > 0) {
+                b.classList.remove('hidden'); setTimeout(() => b.classList.remove('translate-y-32'), 10);
+                document.getElementById('total-barra-enc').innerText = `R$ ${t.toFixed(2).replace('.', ',')}`;
+                document.getElementById('qtd-badge-enc').innerText = q;
+            } else { b.classList.add('translate-y-32'); setTimeout(() => b.classList.add('hidden'), 300); }
+        }
+
+        // --- FUNÇÕES DO MODAL DE RESUMO ---
+        window.abrirResumoEnc = function () {
+            // VALIDAÇÃO: Verifica se preencheu data e hora
+            const dataEnc = document.getElementById('data-encomenda').value;
+            const horaEnc = document.getElementById('hora-encomenda').value;
+
+            if (!dataEnc || !horaEnc) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return Swal.fire('Atenção', 'Por favor, informe a Data e o Horário da encomenda antes de ver o resumo.', 'warning');
+            }
+
+            // Formata a data para mostrar no topo do modal
+            const dataFormatada = dataEnc.split('-').reverse().join('/');
+            document.getElementById('resumo-data-hora').innerHTML = `<i class="far fa-calendar-check"></i> ${dataFormatada} às ${horaEnc}`;
+
+            document.getElementById('modal-resumo-enc').classList.remove('hidden');
+            document.getElementById('modal-resumo-enc').classList.add('flex');
+            setTimeout(() => document.getElementById('modal-resumo-enc').classList.remove('opacity-0'), 10);
+            renderizarResumoEnc();
+        }
+
+        window.fecharResumoEnc = function () {
+            document.getElementById('modal-resumo-enc').classList.add('opacity-0');
+            setTimeout(() => { document.getElementById('modal-resumo-enc').classList.add('hidden'); document.getElementById('modal-resumo-enc').classList.remove('flex'); }, 300);
+        }
+
+        function renderizarResumoEnc() {
+            const l = document.getElementById('lista-itens-resumo-enc'); l.innerHTML = ''; let t = 0;
+            for (const [k, q] of Object.entries(carrinhoEncomenda)) {
+                const [pid, vIdx] = k.split('__'); const p = produtosEncomenda.find(x => String(x.id) === String(pid));
+                if (p) {
+                    let n = p.name, pr = p.on_sale ? p.sale_price : p.price;
+                    if (vIdx !== undefined) { try { const vs = (typeof p.variants === 'string') ? JSON.parse(p.variants) : p.variants; if (vs[vIdx]) { n += ` (${vs[vIdx].qtd})`; pr = vs[vIdx].promo_price || vs[vIdx].price; } } catch (e) { } }
+                    const sub = Number(pr) * q; t += sub;
+                    l.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 animate-up">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-orange-100 text-orange-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-inner">${q}x</div>
+                            <p class="font-bold text-sm text-gray-700 dark:text-white">${n}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <p class="font-black text-sm text-gray-800 dark:text-white">R$ ${sub.toFixed(2)}</p>
+                            <button onclick="removerItemEnc('${k}')" class="w-8 h-8 bg-red-50 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center hover:bg-red-100 transition shadow-sm"><i class="fas fa-trash-alt text-xs"></i></button>
+                        </div>
+                    </div>`;
+                }
+            }
+            document.getElementById('total-resumo-enc').innerText = `R$ ${t.toFixed(2).replace('.', ',')}`;
+        }
+
+        window.removerItemEnc = function (key) {
+            delete carrinhoEncomenda[key];
+            salvarCarrinhoEnc();
+            if (Object.keys(carrinhoEncomenda).length === 0) window.fecharResumoEnc();
+            else renderizarResumoEnc();
+        }
+
+        window.limparCarrinhoEnc = function () {
+            Swal.fire({ title: 'Limpar encomenda?', text: "Vai remover todos os itens.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ea580c', cancelButtonColor: '#d33', confirmButtonText: 'Sim' }).then((result) => {
+                if (result.isConfirmed) { carrinhoEncomenda = {}; localStorage.removeItem(KEY_CART_ENC); location.reload(); }
+            });
+        }
+
+        window.avancarParaCheckout = function () {
+            // Salva as informações da data para puxarmos na tela de checkout
+            const dadosAgendamento = {
+                data: document.getElementById('data-encomenda').value,
+                hora: document.getElementById('hora-encomenda').value,
+                tipo: 'encomenda'
+            };
+            localStorage.setItem('dados_agendamento', JSON.stringify(dadosAgendamento));
+
+            // Aqui ele vai para a tela de checkout (vamos ajustar a checkout.html depois para entender que é encomenda)
+            window.location.href = 'checkout.html?tipo=encomenda';
+        }
+        // Garante que a barra não pisque vazia na tela
+        atualizarBarraEnc();
+        // --- INTELIGÊNCIA DE AGENDAMENTO ---
+        function configurarCalendario() {
+            const inputData = document.getElementById('data-encomenda');
+            if(!inputData) return;
+            
+            // Puxa o limite de dias do Admin (padrão é 30 se der erro)
+            let diasMaximos = 30;
+            if (configLoja && configLoja.schedule_config && configLoja.schedule_config.dias_maximos) {
+                diasMaximos = parseInt(configLoja.schedule_config.dias_maximos);
+            }
+            
+            const hoje = new Date();
+            const yyyy = hoje.getFullYear();
+            const mm = String(hoje.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoje.getDate()).padStart(2, '0');
+            const hojeFormatado = `${yyyy}-${mm}-${dd}`;
+            
+            const futura = new Date();
+            futura.setDate(futura.getDate() + diasMaximos);
+            const futuraFormatado = `${futura.getFullYear()}-${String(futura.getMonth() + 1).padStart(2, '0')}-${String(futura.getDate()).padStart(2, '0')}`;
+            
+            inputData.min = hojeFormatado;
+            inputData.max = futuraFormatado;
+        }
+
+        window.atualizarHorarios = function() {
+            const selectHora = document.getElementById('hora-encomenda');
+            const dataEscolhida = document.getElementById('data-encomenda').value;
+            
+            if(!dataEscolhida) {
+                selectHora.innerHTML = '<option value="">Selecione a data...</option>';
+                selectHora.disabled = true;
+                return;
+            }
+
+            // Puxa as configurações do Admin
+            let horaInicio = "08:00";
+            let horaFim = "18:00";
+            let antecedenciaHoras = 1;
+            let diasAtivos = [0, 1, 2, 3, 4, 5, 6]; // Por padrão, aceita todos
+            
+            if(configLoja && configLoja.schedule_config) {
+                horaInicio = configLoja.schedule_config.inicio || "08:00";
+                horaFim = configLoja.schedule_config.fim || "18:00";
+                antecedenciaHoras = parseInt(configLoja.schedule_config.antecedencia) || 1;
+                if (configLoja.schedule_config.dias_funcionamento) {
+                    diasAtivos = configLoja.schedule_config.dias_funcionamento;
+                }
+            }
+
+            // VALIDAÇÃO DO DIA DA SEMANA
+            // Converte a data escolhida garantindo que não dê bug de fuso horário
+            const [ano, mes, dia] = dataEscolhida.split('-');
+            const dataObj = new Date(ano, mes - 1, dia);
+            const diaDaSemana = dataObj.getDay();
+
+            // Se o dia não estiver no array de dias ativos, bloqueia!
+            if (!diasAtivos.includes(diaDaSemana)) {
+                selectHora.innerHTML = '<option value="">🚫 Fechado neste dia</option>';
+                selectHora.disabled = true; // Desabilita a caixinha
+                selectHora.classList.add('text-red-500'); // Fica vermelho pro cliente ver
+                return; // Para o código aqui
+            } else {
+                selectHora.disabled = false;
+                selectHora.classList.remove('text-red-500');
+            }
+
+            selectHora.innerHTML = '<option value="">Selecione o horário...</option>';
+            
+            let atual = new Date(`2000-01-01T${horaInicio}`);
+            const limite = new Date(`2000-01-01T${horaFim}`);
+
+            const hojeData = new Date();
+            const isHoje = dataEscolhida === `${hojeData.getFullYear()}-${String(hojeData.getMonth()+1).padStart(2,'0')}-${String(hojeData.getDate()).padStart(2,'0')}`;
+
+            while (atual <= limite) {
+                let h = String(atual.getHours()).padStart(2, '0');
+                let m = String(atual.getMinutes()).padStart(2, '0');
+                
+                if (isHoje) {
+                    const agora = new Date();
+                    const horaAgendamento = new Date();
+                    horaAgendamento.setHours(atual.getHours(), atual.getMinutes(), 0);
+                    
+                    agora.setMinutes(agora.getMinutes() + (antecedenciaHoras * 60)); 
+                    
+                    if (horaAgendamento > agora) {
+                        selectHora.innerHTML += `<option value="${h}:${m}">${h}:${m}</option>`;
+                    }
+                } else {
+                    selectHora.innerHTML += `<option value="${h}:${m}">${h}:${m}</option>`;
+                }
+                
+                atual.setMinutes(atual.getMinutes() + 30);
+            }
+
+            if (selectHora.options.length === 1) {
+                selectHora.innerHTML = '<option value="">Nenhum horário disp. hoje</option>';
+                selectHora.disabled = true;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', carregarEncomendas);
     </script>
 </body>
+
 </html>

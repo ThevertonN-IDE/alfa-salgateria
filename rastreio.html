@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acompanhar Pedido</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="data.js"></script>
+    <script src="utils.js"></script>
+    <style> 
+        body { font-family: 'Segoe UI', sans-serif; background: #f3f4f6; } 
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen flex flex-col max-w-md mx-auto shadow-2xl relative">
+
+    <header class="bg-orange-600 text-white p-4 flex items-center gap-3 shadow-lg z-10">
+        <a href="index.html" class="w-10 h-10 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition"><i class="fas fa-arrow-left"></i></a>
+        <div>
+            <h1 class="font-bold text-lg leading-none">Acompanhar Pedido</h1>
+            <p class="text-[10px] opacity-80" id="id-pedido-header">Carregando...</p>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+        
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gray-100"><div id="bar-progresso" class="h-full bg-green-500 transition-all duration-1000" style="width: 0%"></div></div>
+            
+            <div id="icone-status" class="w-24 h-24 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto text-4xl mb-4 transition-all duration-500">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            
+            <h2 id="texto-status" class="text-xl font-black text-gray-800 uppercase tracking-tight">Carregando...</h2>
+            <p class="text-sm text-gray-500 mt-2 font-medium" id="subtexto-status">Aguarde um momento</p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col h-96 overflow-hidden">
+            <div class="p-4 bg-gray-50 border-b font-bold text-xs text-gray-500 uppercase flex items-center gap-2 tracking-wider">
+                <i class="fas fa-comments"></i> Chat com a Loja
+            </div>
+            <div id="chat-lista" class="flex-1 overflow-y-auto p-4 space-y-3 bg-white custom-scroll"></div>
+            <form onsubmit="event.preventDefault(); enviarMsg();" class="p-3 border-t flex gap-2 bg-gray-50">
+                <input id="chat-input" class="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-orange-500 transition shadow-sm" placeholder="Escreva uma mensagem...">
+                <button class="bg-orange-600 text-white w-12 h-12 rounded-xl hover:bg-orange-700 shadow-lg shadow-orange-200 flex items-center justify-center transition active:scale-95"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+
+    </main>
+
+    <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-gradient-to-t from-gray-100 via-gray-100 to-transparent z-20">
+        <a href="index.html" class="w-full bg-white border-2 border-gray-200 text-gray-600 font-black py-4 rounded-2xl shadow-lg hover:bg-gray-50 hover:border-gray-300 transition flex items-center justify-center gap-2 active:scale-95">
+            <i class="fas fa-store"></i> VOLTAR AO CARDÁPIO
+        </a>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get('id');
+
+        if(!orderId) { window.location.href='index.html'; }
+        document.getElementById('id-pedido-header').innerText = `Pedido #${orderId.slice(0,8)}`;
+
+        const STATUS_MAP = {
+            'pendente': { icon: 'fa-clock', text: 'Aguardando Aceite', sub: 'A loja logo confirmará seu pedido.', color: 'text-yellow-500', bg: 'bg-yellow-50', prog: '25%' },
+            'cozinha': { icon: 'fa-fire', text: 'Em Preparo', sub: 'A cozinha está caprichando!', color: 'text-blue-500', bg: 'bg-blue-50', prog: '50%' },
+            'entrega': { icon: 'fa-motorcycle', text: 'Saiu para Entrega', sub: 'Seu pedido está a caminho.', color: 'text-purple-500', bg: 'bg-purple-50', prog: '75%' },
+            'entregue': { icon: 'fa-check-circle', text: 'Pedido Entregue', sub: 'Bom apetite! Volte sempre.', color: 'text-green-500', bg: 'bg-green-50', prog: '100%' },
+            'cancelado': { icon: 'fa-times-circle', text: 'Pedido Cancelado', sub: 'Entre em contato para saber mais.', color: 'text-red-500', bg: 'bg-red-50', prog: '100%' }
+        };
+
+        async function initRastreio() {
+            _supabase.channel(`order:${orderId}`)
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` }, 
+                payload => atualizarUI(payload.new))
+                .subscribe();
+
+            const { data } = await _supabase.from('orders').select('*').eq('id', orderId).single();
+            if(data) atualizarUI(data);
+
+            carregarChat();
+        }
+
+        function atualizarUI(pedido) {
+            const st = STATUS_MAP[pedido.status] || STATUS_MAP['pendente'];
+            const iconeDiv = document.getElementById('icone-status');
+            
+            iconeDiv.className = `w-24 h-24 rounded-full flex items-center justify-center mx-auto text-4xl mb-4 transition-colors duration-500 ${st.bg} ${st.color}`;
+            iconeDiv.innerHTML = `<i class="fas ${st.icon} ${pedido.status === 'cozinha' || pedido.status === 'pendente' ? 'animate-pulse' : ''}"></i>`;
+            
+            document.getElementById('texto-status').innerText = st.text;
+            document.getElementById('subtexto-status').innerHTML = pedido.status === 'cancelado' 
+                ? `Motivo: <span class="font-bold text-red-600">${pedido.cancel_reason || 'Não informado'}</span>` 
+                : st.sub;
+            
+            document.getElementById('bar-progresso').style.width = st.prog;
+            document.getElementById('bar-progresso').className = `h-full transition-all duration-1000 ${st.color.replace('text', 'bg')}`;
+        }
+
+        function carregarChat() {
+            _supabase.channel(`chat:${orderId}`)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_chats', filter: `order_id=eq.${orderId}` }, 
+                payload => renderMsg(payload.new))
+                .subscribe();
+
+            _supabase.from('order_chats').select('*').eq('order_id', orderId).order('created_at').then(({data}) => {
+                if(data) data.forEach(renderMsg);
+            });
+        }
+
+        function renderMsg(msg) {
+            const div = document.createElement('div');
+            const isAdmin = msg.sender_type === 'admin';
+            div.className = `flex flex-col ${isAdmin ? 'items-start' : 'items-end'}`;
+            
+            div.innerHTML = `
+                <div class="max-w-[85%] px-4 py-2 rounded-2xl text-sm font-medium ${isAdmin ? 'bg-gray-100 text-gray-700 rounded-bl-none' : 'bg-orange-500 text-white rounded-br-none shadow-md'}">
+                    ${escapeHtml(msg.message)}
+                </div>
+                <span class="text-[10px] text-gray-300 mt-1 px-1">${new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            `;
+            
+            const container = document.getElementById('chat-lista');
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function enviarMsg() {
+            const input = document.getElementById('chat-input');
+            const txt = input.value.trim();
+            if(!txt) return;
+
+            await _supabase.from('order_chats').insert([{
+                order_id: orderId,
+                sender_type: 'client',
+                message: txt
+            }]);
+            input.value = '';
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        initRastreio();
+    </script>
+</body>
+</html>

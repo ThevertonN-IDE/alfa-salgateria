@@ -1,370 +1,352 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Perfil - Alfa Salgateria</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ea580c">
+    <title>Meu Perfil | Alfa Salgateria</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script src="data.js"></script>
-    <script src="utils.js"></script>
-    <script src="ui.js"></script>
     
-    <style> 
-        body { font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
-        /* Animação do Modal */
-        @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .animate-scale { animation: scaleUp 0.2s ease-out forwards; }
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    colors: { alfa: { 500: '#ea580c', 600: '#c2410c' } }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- ESTILOS PADRÃO --- */
+        body { font-family: 'Segoe UI', 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* HEADER */
+        .header-bg { 
+            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); 
+            box-shadow: 0 4px 15px rgba(234, 88, 12, 0.25);
+        }
+        .dark .header-bg { background: #1f2937; border-bottom: 1px solid #374151; box-shadow: none; }
+
+        /* FUNDO */
+        .bg-body { background-color: #f8fafc; color: #1e293b; }
+        .dark .bg-body { background-color: #111827; color: #f3f4f6; }
+
+        .bg-pattern {
+            background-image: radial-gradient(#ea580c 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+            opacity: 0.8;
+        }
+        .dark .bg-pattern { background-image: none; }
+
+        /* INPUTS E SELECTS */
+        .input-perfil {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            transition: all 0.2s;
+            appearance: none; 
+        }
+        .input-perfil:focus {
+            border-color: #ea580c;
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+        .dark .input-perfil {
+            background-color: #1f2937;
+            border-color: #374151;
+            color: #ffffff;
+        }
+        
+        /* CARDS */
+        .card-bg { background-color: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .dark .card-bg { background-color: #1f2937; border-color: #374151; box-shadow: none; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white min-h-screen pb-24 transition-colors duration-300">
+<body class="bg-body bg-pattern transition-colors duration-300 flex flex-col min-h-screen">
 
-    <header class="bg-orange-600 dark:bg-gray-800 h-48 rounded-b-[3rem] shadow-lg relative z-10 transition-colors duration-300">
-        <div class="px-6 pt-8 flex justify-between items-start text-white">
-            <a href="index.html" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition backdrop-blur-md shadow-sm">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <button onclick="alternarTema()" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition backdrop-blur-md shadow-sm">
-                <i class="fas fa-moon"></i>
-            </button>
-        </div>
-        <h1 class="text-center text-white font-black text-3xl uppercase tracking-widest mt-2 drop-shadow-md" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-            Meu Perfil
-        </h1>
+    <header class="header-bg text-white h-16 shadow-lg sticky top-0 z-50 flex items-center justify-between px-4 transition-colors">
+        <button onclick="window.location.href='index.html'" class="w-10 h-10 rounded-full bg-white text-orange-600 flex items-center justify-center shadow-md active:scale-95 transition">
+            <i class="fas fa-arrow-left font-bold"></i>
+        </button>
+
+        <span class="font-black text-lg tracking-wide uppercase text-shadow">Meu Perfil</span>
+
+        <div class="w-10"></div>
     </header>
 
-    <main class="max-w-md mx-auto px-4 relative z-20 -mt-16">
+    <main class="flex-grow p-6 w-full max-w-md mx-auto space-y-6">
         
-        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-6 pt-0 mb-6 transition-colors duration-300">
-            
-            <div class="flex flex-col items-center -mt-12 mb-6">
-                <div class="relative group cursor-pointer" onclick="document.getElementById('input-foto-perfil').click()">
-                    <div class="w-24 h-24 rounded-full border-4 border-white dark:border-gray-700 shadow-md bg-orange-500 flex items-center justify-center overflow-hidden transition-colors duration-300">
-                        <img id="img-avatar" src="" class="w-full h-full object-cover hidden">
-                        <span id="txt-iniciais" class="text-3xl font-bold text-white">?</span>
-                    </div>
-                    <div class="absolute bottom-0 right-0 bg-white text-orange-600 w-8 h-8 rounded-full flex items-center justify-center shadow-md border-2 border-gray-100 hover:bg-gray-50 transition">
-                        <i class="fas fa-pencil-alt text-xs"></i>
-                    </div>
-                    <input type="file" id="input-foto-perfil" class="hidden" accept="image/*" onchange="uploadFotoPerfil()">
+        <div class="flex flex-col items-center justify-center -mt-2">
+            <div class="relative group">
+                <div id="avatar-container" class="w-28 h-28 rounded-full bg-white dark:bg-gray-800 p-1 shadow-xl border-2 border-orange-500 overflow-hidden flex items-center justify-center relative">
+                    <i class="fas fa-spinner fa-spin text-orange-500 text-2xl"></i>
                 </div>
-                <h2 id="display-nome" class="mt-3 font-black text-lg text-gray-800 dark:text-white text-center">Carregando...</h2>
-                <p id="display-email" class="text-xs text-gray-400 font-bold">...</p>
+                <label class="absolute bottom-0 right-0 bg-orange-600 text-white w-9 h-9 rounded-full flex items-center justify-center shadow-lg cursor-pointer active:scale-95 transition hover:bg-orange-700 border-2 border-white dark:border-gray-900">
+                    <i class="fas fa-camera text-xs"></i>
+                    <input type="file" id="input-avatar" accept="image/*" class="hidden" onchange="uploadAvatar()">
+                </label>
             </div>
+            <p id="user-phone-display" class="mt-3 text-sm font-bold opacity-60"></p>
+        </div>
 
-            <div class="space-y-4">
+        <div class="space-y-4">
+            
+            <div class="card-bg p-5 rounded-3xl space-y-4">
+                <h3 class="text-xs font-black text-orange-500 uppercase tracking-widest mb-2">Dados Pessoais</h3>
                 
-                <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-xl border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase">E-mail de Acesso</label>
-                        <span id="badge-verificado" class="hidden text-[9px] font-bold bg-green-100 text-green-600 px-2 py-0.5 rounded-full uppercase">Verificado</span>
+                <div>
+                    <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Nome Completo</label>
+                    <input type="text" id="nome" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="Seu nome">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold mb-1 ml-1 opacity-70">E-mail</label>
+                    <input type="email" id="email" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="seu@email.com">
+                    <p class="text-[10px] text-gray-400 mt-1 ml-1"><i class="fas fa-info-circle"></i> A alteração requer confirmação no novo e-mail.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Telefone (Whatsapp)</label>
+                    <input type="tel" id="telefone" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none opacity-60 cursor-not-allowed" readonly>
+                </div>
+            </div>
+
+            <div class="card-bg p-5 rounded-3xl space-y-4">
+                <h3 class="text-xs font-black text-orange-500 uppercase tracking-widest mb-2">Endereço de Entrega</h3>
+                
+                <div class="grid grid-cols-[2fr_1fr] gap-3">
+                    <div>
+                        <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Logradouro</label>
+                        <input type="text" id="rua" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="Rua/Av">
                     </div>
-                    <div class="flex gap-2">
-                        <input type="email" id="perfil-email" disabled class="w-full bg-transparent outline-none font-bold text-sm text-gray-600 dark:text-gray-300 disabled:opacity-70">
-                        <button onclick="habilitarEdicaoEmail()" class="text-[10px] font-bold text-orange-600 hover:underline uppercase whitespace-nowrap">Alterar</button>
+                    <div>
+                        <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Nº</label>
+                        <input type="text" id="numero" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="123">
                     </div>
-                    <p id="msg-email-change" class="text-[9px] text-orange-500 mt-1 hidden">⚠️ Será enviado um link de confirmação para o novo e-mail.</p>
                 </div>
 
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Nome Completo</label>
-                    <input type="text" id="perfil-nome" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition text-gray-800 dark:text-white">
+                    <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Bairro</label>
+                    <div class="relative">
+                        <select id="bairro" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none cursor-pointer">
+                            <option value="" disabled selected>Carregando bairros...</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Celular / WhatsApp</label>
-                    <input type="tel" id="perfil-phone" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition text-gray-800 dark:text-white">
-                </div>
-
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Endereço Principal</label>
-                    <textarea id="perfil-endereco" rows="2" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 outline-none focus:border-orange-500 font-bold text-sm transition resize-none text-gray-800 dark:text-white"></textarea>
-                </div>
-
-                <button onclick="salvarPerfil()" id="btn-salvar" class="w-full bg-green-600 text-white py-3.5 rounded-xl font-black text-sm shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition flex items-center justify-center gap-2">
-                    <i class="fas fa-check"></i> SALVAR ALTERAÇÕES
-                </button>
-            </div>
-        </div>
-
-        <div>
-            <h2 class="text-sm font-black text-gray-400 uppercase mb-4 tracking-widest px-2 flex items-center gap-2">
-                <i class="fas fa-history"></i> Histórico Recente
-            </h2>
-            <div id="lista-historico" class="space-y-4">
-                <div class="animate-pulse space-y-3">
-                    <div class="h-24 bg-gray-200 dark:bg-gray-800 rounded-2xl"></div>
-                    <div class="h-24 bg-gray-200 dark:bg-gray-800 rounded-2xl"></div>
+                    <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Ponto de Referência</label>
+                    <input type="text" id="referencia" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="Ex: Próximo à praça...">
                 </div>
             </div>
-        </div>
 
-        <div class="text-center mt-12 pb-8 border-t border-gray-200 dark:border-gray-700 pt-8">
-            <button onclick="logout()" class="text-xs font-bold text-gray-400 hover:text-orange-600 transition mb-4 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-full">
-                <i class="fas fa-sign-out-alt mr-1"></i> Sair da Conta
+            <button onclick="salvarPerfil()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-black shadow-lg shadow-green-200/50 active:scale-95 transition uppercase tracking-wide flex items-center justify-center gap-2">
+                <i class="fas fa-save"></i> Salvar Alterações
             </button>
-            <br>
-            <button onclick="excluirConta()" class="text-[10px] font-bold text-red-300 hover:text-red-500 transition hover:underline mb-6">
-                Excluir minha conta permanentemente
+
+            <button onclick="fazerLogout()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-500 border border-red-100 dark:border-red-900 py-3.5 rounded-2xl font-bold active:scale-95 transition hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center justify-center gap-2">
+                <i class="fas fa-sign-out-alt"></i> Sair da Conta
             </button>
-            
-            <div class="text-[10px] text-gray-300 font-bold uppercase tracking-widest">
-                <p>Alfa Salgateria v1.0.0</p>
-                <p class="mt-1">Desenvolvido por <span class="text-orange-400">TG Tech</span></p>
-            </div>
+
         </div>
 
+        <p class="text-center text-[10px] opacity-40 font-mono py-4">ID: <span id="user-uid">...</span></p>
     </main>
 
-    <div id="modal-logout" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-800 rounded-[2rem] shadow-2xl p-6 w-full max-w-xs text-center animate-scale relative border border-gray-100 dark:border-gray-700">
-            
-            <div class="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 shadow-inner">
-                <i class="fas fa-sign-out-alt text-2xl"></i>
-            </div>
-            
-            <h3 class="text-xl font-black text-gray-800 dark:text-white mb-2 tracking-tight">Sair da Conta?</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium leading-relaxed">
-                Você precisará fazer login novamente para acompanhar seus pedidos e acessar seus dados.
-            </p>
-            
-            <div class="flex gap-3">
-                <button onclick="fecharModalLogout()" class="flex-1 py-3.5 rounded-xl font-bold text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition active:scale-95">
-                    CANCELAR
-                </button>
-                <button onclick="confirmarLogout()" class="flex-1 py-3.5 rounded-xl font-bold text-xs bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200/50 dark:shadow-none transition active:scale-95">
-                    SIM, SAIR
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // --- SEGURANÇA (Anti-XSS) ---
-        function escapeHtml(text) {
-            if (!text) return text;
-            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        let user = null;
+        let authEmail = ''; // Armazena o email atual para comparação
+
+        function aplicarTema() {
+            const tema = localStorage.getItem('tema');
+            if (tema === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
         }
+        aplicarTema();
 
-        let userId = null;
-        let userEmailOriginal = null;
+        // CARREGAR BAIRROS
+        async function carregarBairros() {
+            const select = document.getElementById('bairro');
+            try {
+                // Busca da tabela delivery_fees coluna 'neighborhood'
+                const { data, error } = await _supabase.from('delivery_fees').select('*').order('neighborhood');
+                
+                select.innerHTML = '<option value="" disabled selected>Selecione seu bairro</option>';
+                
+                if (error) throw error;
 
-        // Recupera tema
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
+                if (data && data.length > 0) {
+                    data.forEach(b => {
+                        const opt = document.createElement('option');
+                        opt.value = b.neighborhood; 
+                        opt.innerText = b.neighborhood; 
+                        select.appendChild(opt);
+                    });
+                } else {
+                    select.innerHTML = '<option value="">Nenhum bairro encontrado</option>';
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar bairros:', e);
+                select.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
         }
 
         async function initPerfil() {
-            // 1. Sessão
             const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { window.location.href = 'cliente-login.html'; return; }
-            userId = session.user.id;
-            userEmailOriginal = session.user.email;
+            if (!session) return window.location.href = 'cliente-login.html';
 
-            // 2. Dados de Autenticação
-            document.getElementById('perfil-email').value = userEmailOriginal;
-            document.getElementById('display-email').innerText = userEmailOriginal;
+            // Armazena e exibe o e-mail atual
+            authEmail = session.user.email;
+            document.getElementById('email').value = authEmail;
+
+            await carregarBairros();
+
+            const { data: u, error } = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
+            if (error || !u) return;
             
-            if (session.user.email_confirmed_at) {
-                document.getElementById('badge-verificado').classList.remove('hidden');
-            }
-
-            // 3. Dados do Banco (Cliente)
-            const { data: cliente } = await _supabase.from('clients').select('*').eq('id', userId).single();
-            if (cliente) {
-                document.getElementById('perfil-nome').value = cliente.name || '';
-                document.getElementById('perfil-phone').value = cliente.phone || '';
-                document.getElementById('perfil-endereco').value = cliente.address || '';
-                
-                const primeiroNome = (cliente.name || 'Cliente').split(' ')[0];
-                document.getElementById('display-nome').innerText = escapeHtml(primeiroNome);
-                document.getElementById('txt-iniciais').innerText = primeiroNome.charAt(0).toUpperCase();
-
-                if (cliente.avatar_url && cliente.avatar_url.length > 10) {
-                    const img = document.getElementById('img-avatar');
-                    img.src = cliente.avatar_url;
-                    img.classList.remove('hidden');
-                    document.getElementById('txt-iniciais').classList.add('hidden');
-                }
-            }
-
-            carregarHistorico();
+            user = u;
+            renderizarDados();
         }
 
-        function habilitarEdicaoEmail() {
-            const input = document.getElementById('perfil-email');
-            input.disabled = false;
-            input.focus();
-            input.classList.remove('bg-transparent', 'text-gray-600', 'dark:text-gray-300');
-            input.classList.add('bg-white', 'text-gray-800', 'border-orange-500');
-            document.getElementById('msg-email-change').classList.remove('hidden');
-            mostrarToast("Edite o e-mail e clique em Salvar", "info");
-        }
+        function renderizarDados() {
+            document.getElementById('nome').value = user.name || '';
+            document.getElementById('telefone').value = user.phone || '';
+            document.getElementById('user-phone-display').innerText = user.phone || '';
+            document.getElementById('user-uid').innerText = user.id.slice(0,8);
 
-        async function uploadFotoPerfil() {
-            const input = document.getElementById('input-foto-perfil');
-            if (input.files && input.files[0]) {
-                mostrarToast("Enviando foto...", "info");
-                const file = input.files[0];
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${userId}_avatar_${Date.now()}.${fileExt}`;
-
-                const { error: uploadError } = await _supabase.storage.from('imagens').upload(`perfis/${fileName}`, file);
-                
-                if (uploadError) {
-                    mostrarToast("Erro no upload", "erro");
-                    return;
-                }
-
-                const { data: publicData } = _supabase.storage.from('imagens').getPublicUrl(`perfis/${fileName}`);
-                const avatarUrl = publicData.publicUrl;
-
-                await _supabase.from('clients').update({ avatar_url: avatarUrl }).eq('id', userId);
-                
-                const img = document.getElementById('img-avatar');
-                img.src = avatarUrl;
-                img.classList.remove('hidden');
-                document.getElementById('txt-iniciais').classList.add('hidden');
-                mostrarToast("Foto atualizada!");
-            }
-        }
-
-        async function carregarHistorico() {
-            const [ordersRes, prodsRes] = await Promise.all([
-                _supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
-                _supabase.from('products').select('id, name, variants')
-            ]);
-
-            const pedidos = ordersRes.data || [];
-            const produtos = prodsRes.data || [];
-            const lista = document.getElementById('lista-historico');
-            lista.innerHTML = '';
-
-            if (pedidos.length === 0) {
-                lista.innerHTML = '<div class="text-center py-8 text-gray-400"><i class="fas fa-receipt text-3xl mb-2"></i><p class="text-xs">Sem pedidos recentes.</p></div>';
-                return;
+            const container = document.getElementById('avatar-container');
+            if (user.avatar_url) {
+                container.innerHTML = `<img src="${user.avatar_url}" class="w-full h-full object-cover">`;
+            } else {
+                const inicial = user.name ? user.name.charAt(0).toUpperCase() : '?';
+                container.innerHTML = `<span class="text-4xl font-black text-orange-500">${inicial}</span>`;
             }
 
-            pedidos.forEach(p => {
-                const data = new Date(p.created_at).toLocaleDateString('pt-BR');
-                let itensTexto = [];
-                
-                if(p.items) {
-                    for(const [key, qtd] of Object.entries(p.items)) {
-                        const parts = key.split('__');
-                        const prodId = parts[0];
-                        const variantIdx = parts[1];
+            // Separar endereço
+            if (user.address) {
+                const partes = user.address.split(',');
+                if(partes.length > 1) {
+                    document.getElementById('rua').value = partes[0].trim();
+                    const resto = partes.slice(1).join(','); 
+                    
+                    const partes2 = resto.split('-');
+                    if(partes2.length > 0) {
+                        document.getElementById('numero').value = partes2[0].trim();
                         
-                        const prod = produtos.find(x => String(x.id) === String(prodId));
-                        if(prod) {
-                            let nome = escapeHtml(prod.name);
-                            if(variantIdx !== undefined) {
-                                try {
-                                    let vars = prod.variants;
-                                    if(typeof vars === 'string') vars = JSON.parse(vars);
-                                    if(vars && vars[variantIdx]) nome += ` (${escapeHtml(vars[variantIdx].qtd)} un)`;
-                                } catch(e){}
+                        if(partes2[1]) {
+                            const bairroSalvo = partes2[1].trim();
+                            const selectBairro = document.getElementById('bairro');
+                            let achou = false;
+                            for (let i = 0; i < selectBairro.options.length; i++) {
+                                if (selectBairro.options[i].value === bairroSalvo) {
+                                    selectBairro.selectedIndex = i;
+                                    achou = true;
+                                    break;
+                                }
                             }
-                            itensTexto.push(`${qtd}x ${nome}`);
+                            if(!achou) {
+                                const opt = document.createElement('option');
+                                opt.value = bairroSalvo;
+                                opt.innerText = bairroSalvo + " (Antigo)";
+                                opt.selected = true;
+                                selectBairro.appendChild(opt);
+                            }
                         }
+
+                        if(partes2[2]) document.getElementById('referencia').value = partes2[2].replace(/\(|\)/g, '').trim();
+                    } else {
+                         document.getElementById('numero').value = resto.trim();
                     }
+                } else {
+                    document.getElementById('rua').value = user.address;
                 }
+            }
+        }
 
-                let statusClass = "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300";
-                const st = (p.status || 'pendente').toLowerCase();
-                if(st === 'entregue') statusClass = "bg-green-100 text-green-700 border-green-200";
-                if(st === 'cancelado') statusClass = "bg-red-100 text-red-700 border-red-200";
-
-                lista.innerHTML += `
-                    <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-colors duration-300">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-[10px] font-bold text-gray-400">${data}</span>
-                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border ${statusClass}">${escapeHtml(p.status || 'Pendente')}</span>
-                        </div>
-                        <p class="text-xs text-gray-600 dark:text-gray-300 font-medium line-clamp-2 mb-2 leading-relaxed">
-                            ${itensTexto.join(', ')}
-                        </p>
-                        <div class="flex justify-between items-center border-t border-dashed border-gray-200 dark:border-gray-700 pt-2">
-                            <span class="text-[10px] font-bold text-gray-400 uppercase">${p.delivery_type === 'entrega' ? '🛵 Entrega' : '🥡 Retirada'}</span>
-                            <span class="text-sm font-black text-gray-800 dark:text-white">R$ ${p.total_amount.toFixed(2)}</span>
-                        </div>
-                    </div>
-                `;
-            });
+        async function uploadAvatar() {
+            const file = document.getElementById('input-avatar').files[0];
+            if (!file) return;
+            document.getElementById('avatar-container').innerHTML = `<i class="fas fa-spinner fa-spin text-orange-500 text-3xl"></i>`;
+            try {
+                const ext = file.name.split('.').pop();
+                const fileName = `avatar_${user.id}_${Date.now()}.${ext}`;
+                const { error: uploadError } = await _supabase.storage.from('imagens').upload(`avatars/${fileName}`, file);
+                if (uploadError) throw uploadError;
+                const { data } = _supabase.storage.from('imagens').getPublicUrl(`avatars/${fileName}`);
+                await _supabase.from('clients').update({ avatar_url: data.publicUrl }).eq('id', user.id);
+                user.avatar_url = data.publicUrl;
+                renderizarDados();
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Foto atualizada!', showConfirmButton: false, timer: 1500 });
+            } catch (error) {
+                console.error(error);
+                renderizarDados();
+            }
         }
 
         async function salvarPerfil() {
-            const btn = document.getElementById('btn-salvar');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVANDO...';
+            const nome = document.getElementById('nome').value.trim();
+            const novoEmail = document.getElementById('email').value.trim();
+            const rua = document.getElementById('rua').value.trim();
+            const num = document.getElementById('numero').value.trim();
+            const bairro = document.getElementById('bairro').value;
+            const ref = document.getElementById('referencia').value.trim();
 
-            const nome = document.getElementById('perfil-nome').value;
-            const phone = document.getElementById('perfil-phone').value;
-            const address = document.getElementById('perfil-endereco').value;
-            const emailNovo = document.getElementById('perfil-email').value.trim();
+            if (!nome) return Swal.fire('Atenção', 'O nome é obrigatório.', 'warning');
+            if (!bairro) return Swal.fire('Atenção', 'Selecione um bairro.', 'warning');
+            if (!novoEmail) return Swal.fire('Atenção', 'O e-mail é obrigatório.', 'warning');
 
-            if(!nome) {
-                mostrarToast("Nome é obrigatório", "erro");
-                btn.disabled = false; btn.innerHTML = originalText;
-                return;
-            }
-
-            const { error } = await _supabase.from('clients').update({ name: nome, phone: phone, address: address }).eq('id', userId);
-
-            if(error) {
-                mostrarToast("Erro ao salvar dados", "erro");
-            } else {
-                if (emailNovo !== userEmailOriginal) {
-                    const { error: authError } = await _supabase.auth.updateUser({ email: emailNovo });
-                    if (authError) {
-                        mostrarToast("Erro ao mudar e-mail: " + authError.message, "erro");
-                    } else {
-                        mostrarToast("Verifique seu novo e-mail!", "sucesso");
-                    }
-                } else {
-                    mostrarToast("Perfil atualizado!");
+            // 1. Verificar alteração de e-mail
+            let msgEmail = '';
+            if (novoEmail !== authEmail) {
+                const { data, error } = await _supabase.auth.updateUser({ email: novoEmail });
+                if (error) {
+                    return Swal.fire('Erro no E-mail', error.message, 'error');
                 }
-                document.getElementById('display-nome').innerText = escapeHtml(nome.split(' ')[0]);
+                msgEmail = '<br><br><b>Atenção:</b> Enviamos um link de confirmação para o seu novo e-mail. A alteração só será concluída após o clique.';
             }
-            
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+
+            // 2. Salvar dados do perfil
+            let enderecoCompleto = "";
+            if (rua) {
+                enderecoCompleto = `${rua}, ${num} - ${bairro}`;
+                if (ref) enderecoCompleto += ` (${ref})`;
+            }
+
+            try {
+                const { error } = await _supabase.from('clients').update({ name: nome, address: enderecoCompleto }).eq('id', user.id);
+                if (error) throw error;
+                
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Perfil Salvo!', 
+                    html: 'Seus dados foram atualizados com sucesso.' + msgEmail,
+                    confirmButtonColor: '#ea580c' 
+                });
+                
+                // Atualiza o email de referência se não houve erro
+                if(novoEmail !== authEmail) authEmail = novoEmail;
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Erro', 'Não foi possível salvar os dados.', 'error');
+            }
         }
 
-        // --- LÓGICA DE LOGOUT (MODAL) ---
-        function logout() {
-            // Abre o modal em vez de usar confirm()
-            const modal = document.getElementById('modal-logout');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function fecharModalLogout() {
-            const modal = document.getElementById('modal-logout');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        async function confirmarLogout() {
-            // Fecha modal e executa logout
-            fecharModalLogout();
+        async function fazerLogout() {
             await _supabase.auth.signOut();
+            localStorage.removeItem('carrinho_alfa_v10');
             window.location.href = 'index.html';
-        }
-        
-        async function excluirConta() {
-            if(confirm("ATENÇÃO: Isso apagará seus dados permanentemente. Tem certeza?")) {
-                mostrarToast("Contate o suporte para exclusão definitiva.", "info");
-            }
         }
 
         initPerfil();

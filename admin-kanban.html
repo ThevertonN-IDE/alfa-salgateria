@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>KDS Cozinha | Sistema de Monitoramento Enterprise</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+    <script src="data.js"></script>
+
+    <style>
+        /* --- TEMA ESCCURO MELHORADO (Paleta Slate + Cores Limpas) --- */
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: #020617;
+            color: #f1f5f9;
+            overflow: hidden;
+        }
+
+        /* Fundo mais escuro (slate-950) */
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        /* slate-900 */
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        /* slate-700 */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* slate-600 */
+
+        .kanban-board {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            height: calc(100vh - 4rem);
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        /* Colunas com fundo mais limpo e bordas sutis */
+        .kanban-column {
+            flex: 0 0 300px;
+            display: flex;
+            flex-direction: column;
+            background: #0f172a;
+            /* slate-900 */
+            border: 1px solid #1e293b;
+            /* slate-800 */
+            border-radius: 12px;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .column-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #1e293b;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 0.5px;
+        }
+
+        .column-body {
+            flex-grow: 1;
+            padding: 0.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding-bottom: 180px;
+            /* Espaço extra footer */
+        }
+
+        /* Cores de Status (Bordas Superiores) - Mais vibrantes mas não neon */
+        .col-pending {
+            border-top: 3px solid #f59e0b;
+        }
+
+        /* amber-500 */
+        .col-prep {
+            border-top: 3px solid #0ea5e9;
+        }
+
+        /* sky-500 */
+        .col-delivery {
+            border-top: 3px solid #a855f7;
+        }
+
+        /* purple-500 */
+        .col-done {
+            border-top: 3px solid #10b981;
+        }
+
+        /* emerald-500 */
+        .col-cancel {
+            border-top: 3px solid #f43f5e;
+        }
+
+        /* rose-500 */
+
+        /* Cards - Fundo mais claro que a coluna para destacar */
+        .order-card {
+            background: #1e293b;
+            /* slate-800 */
+            border: 1px solid #334155;
+            /* slate-700 */
+            border-radius: 8px;
+            padding: 0.875rem;
+            position: relative;
+            touch-action: none;
+            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .no-drag {
+            cursor: pointer !important;
+            position: relative;
+            z-index: 50;
+        }
+
+        /* Animação de Urgência Suavizada (Usando Rose em vez de Red puro) */
+        @keyframes urgentPulse {
+
+            0%,
+            100% {
+                border-color: #f43f5e;
+                box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
+            }
+
+            50% {
+                border-color: #fb7185;
+                box-shadow: 0 0 10px 2px rgba(244, 63, 94, 0.2);
+            }
+
+            /* rose-400 */
+        }
+
+        .card-urgent {
+            animation: urgentPulse 2s infinite;
+            border: 1px solid #f43f5e;
+        }
+
+        /* --- CORREÇÃO DEFINITIVA DE IMPRESSÃO --- */
+        @media print {
+            body * {
+                visibility: hidden;
+                height: 0;
+                overflow: hidden;
+            }
+
+            #print-area,
+            #print-area * {
+                visibility: visible;
+                height: auto;
+                overflow: visible;
+            }
+
+            #print-area {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 20px;
+                background: white;
+                color: black;
+                font-family: 'Courier New', monospace;
+                z-index: 99999;
+                display: block !important;
+            }
+        }
+
+        /* Filtros no Cabeçalho */
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            border: 1px solid #1e293b;
+            color: #64748b;
+        }
+
+        .filter-btn.active {
+            background: #ea580c;
+            color: white;
+            border-color: #ea580c;
+            shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+        }
+
+        /* Badge de Encomenda no Card */
+        .badge-encomenda {
+            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 4px rgba(234, 88, 12, 0.2);
+        }
+
+        /* Ajuste visual para cards de encomendas futuras */
+        .card-futuro {
+            opacity: 0.85;
+            border-style: dashed !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="start-overlay"
+        class="fixed inset-0 bg-gray-900 z-[9999] flex flex-col items-center justify-center p-4 backdrop-blur-md">
+        <div class="mb-8 p-8 rounded-full bg-gradient-to-br from-orange-500 to-red-600 animate-bounce shadow-2xl">
+            <i class="fas fa-utensils text-6xl text-white"></i>
+        </div>
+        <h1 class="text-5xl font-black text-white mb-4 tracking-tighter">COZINHA KDS</h1>
+        <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 mb-8 max-w-md shadow-lg">
+            <p class="text-gray-300 text-center font-medium">
+                <i class="fas fa-network-wired text-green-400 mr-2"></i>
+                Sistema de Monitoramento em Tempo Real
+            </p>
+            <p class="text-xs text-gray-500 text-center mt-2">Clique para conectar ao servidor e ativar o áudio.</p>
+        </div>
+        <button id="btn-force-start"
+            class="bg-green-600 hover:bg-green-500 text-white px-12 py-5 rounded-2xl font-black text-2xl shadow-2xl transition transform hover:scale-105 active:scale-95 flex items-center gap-4 border-2 border-green-400">
+            <i class="fas fa-power-off"></i> INICIAR SISTEMA
+        </button>
+
+        <div id="error-display"
+            class="mt-6 text-red-400 font-mono text-xs hidden bg-black/80 p-4 rounded-lg w-full max-w-lg border border-red-900/50 text-left">
+        </div>
+    </div>
+
+    <header
+        class="h-20 bg-gray-950 border-b border-gray-800 flex items-center justify-between px-8 shadow-2xl shrink-0 z-40">
+        <div class="flex items-center gap-6">
+            <button onclick="window.location.href='admin.html'"
+                class="w-12 h-12 rounded-xl bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:bg-gray-700 flex items-center justify-center transition shadow-lg group"
+                title="Voltar ao Painel Admin">
+                <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+            </button>
+
+            <div class="flex flex-col">
+                <h1 class="text-2xl font-black text-white tracking-wide flex items-center gap-3">
+                    <span id="connection-status"
+                        class="w-4 h-4 bg-red-500 rounded-full shadow-[0_0_15px_currentColor] transition-colors duration-500"></span>
+                    MONITOR DE PEDIDOS
+                </h1>
+                <span class="text-xs text-gray-500 uppercase tracking-widest font-bold flex items-center gap-2">
+                    <i class="fas fa-calendar-alt"></i> <span id="data-display">--/--/----</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div id="sound-indicator"
+                class="hidden flex items-center gap-2 px-4 py-2 rounded-lg bg-green-900/20 border border-green-500/50 text-green-400 text-xs font-bold uppercase tracking-wider animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+                <i class="fas fa-volume-up"></i> Áudio Ativo
+            </div>
+
+            <div class="bg-gray-900 px-6 py-3 rounded-xl border border-gray-800 shadow-inner flex items-center gap-3">
+                <i class="far fa-clock text-orange-500"></i>
+                <span id="digital-clock" class="font-mono text-3xl font-bold text-white tracking-wider">00:00</span>
+            </div>
+            <div class="flex bg-gray-900 p-1 rounded-xl border border-gray-800 gap-1 ml-4">
+                <button onclick="setFiltro('todos', this)" class="filter-btn active">Todos</button>
+                <button onclick="setFiltro('hoje', this)" class="filter-btn">Hoje</button>
+                <button onclick="setFiltro('encomendas', this)" class="filter-btn">Encomendas</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="kanban-board custom-scroll">
+        <div class="kanban-column col-pending" id="col-pendente-header">
+            <div class="column-header text-amber-400">
+                <span class="flex items-center gap-2"><i class="fas fa-clock text-amber-500/80"></i> PENDENTES</span>
+                <span id="qtd-pendente"
+                    class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded text-xs font-bold border border-amber-500/30 transition-all">0</span>
+            </div>
+            <div id="pendente" class="column-body custom-scroll" data-status="pendente"></div>
+        </div>
+
+        <div class="kanban-column col-prep" id="col-preparo-header">
+            <div class="column-header text-sky-400">
+                <span class="flex items-center gap-2"><i class="fas fa-fire-burner text-sky-500/80"></i> PREPARO</span>
+                <span id="qtd-preparo"
+                    class="bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded text-xs font-bold border border-sky-500/30 transition-all">0</span>
+            </div>
+            <div id="preparo" class="column-body custom-scroll" data-status="preparo"></div>
+        </div>
+
+        <div class="kanban-column col-delivery" id="col-entrega-header">
+            <div class="column-header text-violet-400">
+                <span class="flex items-center gap-2"><i class="fas fa-motorcycle text-violet-500/80"></i>
+                    ENTREGA</span>
+                <span id="qtd-saiu_entrega"
+                    class="bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded text-xs font-bold border border-violet-500/30 transition-all">0</span>
+            </div>
+            <div id="saiu_entrega" class="column-body custom-scroll" data-status="saiu_entrega"></div>
+        </div>
+
+        <div class="kanban-column col-done" id="col-concluido-header">
+            <div class="column-header text-emerald-400">
+                <span class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-500/80"></i>
+                    FINALIZADOS</span>
+                <span id="qtd-entregue"
+                    class="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded text-xs font-bold border border-emerald-500/30 transition-all">0</span>
+            </div>
+            <div id="entregue" class="column-body custom-scroll" data-status="entregue"></div>
+        </div>
+
+        <div class="kanban-column col-cancel" id="col-cancelado-header">
+            <div class="column-header text-rose-400">
+                <span class="flex items-center gap-2"><i class="fas fa-ban text-rose-500/80"></i> CANCELADOS</span>
+                <span id="qtd-cancelado"
+                    class="bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded text-xs font-bold border border-rose-500/30 transition-all">0</span>
+            </div>
+            <div id="cancelado" class="column-body custom-scroll" data-status="cancelado"></div>
+        </div>
+    </main>
+    <div id="chat-modal"
+        class="fixed inset-0 bg-black/90 z-[9999] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div
+            class="bg-slate-900 w-full max-w-lg h-[80vh] rounded-2xl border border-slate-700 flex flex-col shadow-2xl overflow-hidden relative">
+
+            <div class="bg-slate-950 p-4 border-b border-slate-800 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-comments text-blue-500"></i>
+                    Pedido <span id="chat-title" class="text-yellow-500">#...</span>
+                </h3>
+                <button onclick="closeChat()"
+                    class="w-8 h-8 rounded-full bg-slate-800 text-gray-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="chat-error"
+                class="hidden bg-red-900/80 text-white text-xs p-2 text-center border-b border-red-500"></div>
+
+            <div id="chat-content" class="flex-grow overflow-y-auto p-4 space-y-3 bg-[#0f172a] custom-scroll"></div>
+
+            <div class="p-3 bg-slate-950 border-t border-slate-800 flex gap-2 shrink-0 items-center">
+                <input type="file" id="chat-file" class="hidden" accept="image/*,.pdf">
+
+                <button onclick="document.getElementById('chat-file').click()"
+                    class="text-slate-400 hover:text-white px-2 transition relative" title="Anexar">
+                    <i class="fas fa-paperclip"></i>
+                    <span id="file-indicator"
+                        class="hidden absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full"></span>
+                </button>
+
+                <input type="text" id="chat-input" placeholder="Digite sua mensagem..."
+                    class="flex-grow bg-slate-800 text-white rounded-lg px-4 py-3 border border-slate-700 focus:outline-none focus:border-blue-500">
+
+                <button onclick="sendChatMessage()"
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold transition">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="receipt-modal"
+        class="fixed inset-0 bg-black/95 z-[10000] hidden flex flex-col items-center justify-center p-4 backdrop-blur-md">
+        <div
+            class="bg-gray-900 w-full max-w-4xl h-[90vh] rounded-xl border border-gray-700 flex flex-col shadow-2xl relative">
+            <div class="bg-gray-950 p-4 border-b border-gray-800 flex justify-between items-center">
+                <h3 class="text-white font-bold"><i class="fas fa-file-invoice-dollar text-green-500 mr-2"></i>
+                    Comprovante de Pagamento</h3>
+                <button onclick="document.getElementById('receipt-modal').classList.add('hidden')"
+                    class="text-gray-400 hover:text-white w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="flex-grow bg-black flex items-center justify-center overflow-hidden relative">
+                <iframe id="receipt-frame" class="w-full h-full border-0" src=""></iframe>
+                <div id="receipt-loading" class="absolute text-white"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+            </div>
+        </div>
+    </div>
+    <div id="print-mount-point" style="display:none;"></div>
+    <div id="print-area" style="display:none;"></div>
+    <script>
+        // ====================================================================================
+        // MÓDULO 1: CONFIGURAÇÕES E ESTADO
+        // (Mudamos o nome para KDS_OPTS para não brigar com o data.js)
+        // ====================================================================================
+        const KDS_OPTS = {
+            autoCancelMinutes: 10,
+            pollingInterval: 5000,
+            alarmFrequency: 1200
+        };
+
+        // Estado Global
+        let sbClient;
+        let audioContext = null;
+        let alarmInterval = null;
+        let isSystemRunning = false;
+        let lastKnownCount = 0;
+        // ====================================================================================
+        // MÓDULO 2: UTILITÁRIOS
+        // ====================================================================================
+        // Função auxiliar para gerar os botões HTML (Usada no Render e no Destravamento)
+        // Função que gera os botões (AGORA COM CANCELAR EM TODAS AS ETAPAS)
+        // Função que gera os botões (ORDEM INVERTIDA: AÇÃO -> CANCELAR)
+        // Função que gera os botões (AÇÃO NA ESQUERDA, CANCELAR NA DIREITA)
+        function getButtonsHtml(status, id) {
+            const btnClass = "no-drag flex-1 py-3 rounded-lg text-[11px] font-bold uppercase transition hover:brightness-110 flex items-center justify-center gap-2 shadow-lg cursor-pointer select-none";
+
+            if (status === 'pendente') {
+                return `
+                    <div class="flex gap-2 w-full mt-3">
+                        <div onclick="window.processAction('${id}', 'preparo', 'aceitar')" class="${btnClass} bg-green-600 text-white border border-green-500">ACEITAR</div>
+                        <div onclick="window.processAction('${id}', 'cancelado', 'recusar')" class="${btnClass} bg-red-600 text-white border border-red-500">RECUSAR</div>
+                    </div>`;
+            } else if (status === 'preparo') {
+                return `
+                    <div class="flex gap-2 w-full mt-3">
+                        <div onclick="window.processAction('${id}', 'saiu_entrega', 'enviar')" class="${btnClass} bg-purple-600 text-white border border-purple-500">ENVIAR ENTREGA <i class="fas fa-motorcycle"></i></div>
+                        <div onclick="confirmCancel('${id}')" class="${btnClass} bg-red-900/50 text-red-400 border border-red-800 hover:bg-red-900">CANCELAR</div>
+                    </div>`;
+            } else if (status === 'saiu_entrega') {
+                return `
+                    <div class="flex gap-2 w-full mt-3">
+                        <div onclick="window.processAction('${id}', 'entregue', 'finalizar')" class="${btnClass} bg-green-600 text-white border border-green-500">FINALIZAR <i class="fas fa-check"></i></div>
+                        <div onclick="confirmCancel('${id}')" class="${btnClass} bg-red-900/50 text-red-400 border border-red-800 hover:bg-red-900">CANCELAR</div>
+                    </div>`;
+            }
+            return '';
+        }
+        function logError(msg) {
+            console.error(msg);
+            const display = document.getElementById('error-display');
+            if (display) {
+                display.innerText = `[ERRO] ${msg}`;
+                display.classList.remove('hidden');
+            } else {
+                // Fallback se o HTML ainda estiver errado
+                console.log("Erro crítico: " + msg);
+            }
+        }
+
+        function formatCurrency(value) {
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // ====================================================================================
+        // MÓDULO 3: MOTOR DE ÁUDIO
+        // ====================================================================================
+        function initAudio() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioContext = new AudioContext();
+            } catch (e) { console.warn("Áudio API não suportada."); }
+        }
+
+        function playBeep() {
+            if (!audioContext || !isSystemRunning) return;
+            if (audioContext.state === 'suspended') audioContext.resume();
+
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            // MUDANÇA: 'sawtooth' é estridente e corta o barulho da cozinha
+            osc.type = 'sawtooth';
+
+            // EFEITO SIRENE: Faz um "Ui-Ui" rápido
+            const now = audioContext.currentTime;
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.linearRampToValueAtTime(1000, now + 0.1); // Sobe
+            osc.frequency.linearRampToValueAtTime(800, now + 0.2);  // Desce
+
+            // VOLUME: Alto e curto
+            gain.gain.setValueAtTime(0.3, now); // Volume 30% (cuidado, é alto)
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+
+            osc.start();
+            osc.stop(now + 0.5);
+        }
+
+        function startAlarm() { if (!alarmInterval) alarmInterval = setInterval(playBeep, KDS_OPTS.alarmFrequency); }
+        function stopAlarm() { if (alarmInterval) { clearInterval(alarmInterval); alarmInterval = null; } }
+
+        // ====================================================================================
+        // MÓDULO 4: INICIALIZAÇÃO
+        // ====================================================================================
+        document.getElementById('btn-force-start').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-force-start');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> CONECTANDO...';
+
+            try {
+                // INICIA O MOTOR CAMALEÃO
+                if (typeof window.iniciarCamaleao === 'function') {
+                    await window.iniciarCamaleao();
+                }
+
+                // 1. Resolve Cliente Supabase (Prioridade: data.js > window.supabase > manual)
+                if (typeof _supabase !== 'undefined') sbClient = _supabase;
+                else if (typeof supabase !== 'undefined' && supabase.auth) sbClient = supabase;
+                else if (SUPABASE_URL && SUPABASE_ANON_KEY) sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                else throw new Error("Supabase não encontrado. Verifique data.js.");
+
+                // 2. Teste de Conexão
+                const { count, error } = await sbClient.from('orders').select('*', { count: 'exact', head: true });
+                if (error) throw new Error("Conexão recusada: " + error.message);
+
+                // 3. Inicializa Subsistemas
+                initAudio();
+                const dataEl = document.getElementById('data-display');
+                if (dataEl) dataEl.innerText = new Date().toLocaleDateString('pt-BR');
+
+                // 4. UI Transition
+                document.getElementById('start-overlay').style.display = 'none';
+                document.getElementById('sound-indicator').classList.remove('hidden');
+                document.getElementById('connection-status').classList.replace('bg-red-500', 'bg-green-500');
+
+                isSystemRunning = true;
+
+                // 5. Carrega Lógica
+                await initKanbanLogic();
+
+            } catch (e) {
+                btn.innerHTML = originalText;
+                btn.classList.replace('bg-green-600', 'bg-red-600');
+                logError(e.message);
+            }
+        });
+
+        // ====================================================================================
+        // MÓDULO 5: GERENCIAMENTO DE DADOS
+        // ====================================================================================
+        // Substitua a função initKanbanLogic inteira por esta:
+        // ====================================================================================
+        // MÓDULO 5: GERENCIAMENTO DE DADOS E LIMPEZA AUTOMÁTICA
+        // ====================================================================================
+        async function initKanbanLogic() {
+            // --- NOVA ROTINA DE LIMPEZA DE MADRUGADA (Auto-Concluir e Auto-Cancelar) ---
+            const hojeMeiaNoite = new Date();
+            hojeMeiaNoite.setHours(0, 0, 0, 0);
+
+            // 1. Cancela pedidos 'pendentes' (nunca aceitos) esquecidos de dias anteriores (SÓ DA LOJA ATUAL)
+            await sbClient.from('orders').update({ status: 'cancelado' }).eq('loja_id', window.LOJA_ID).eq('status', 'pendente').lt('created_at', hojeMeiaNoite.toISOString());
+
+            // 2. Conclui ('entregue') pedidos em andamento ('preparo' ou 'saiu_entrega') esquecidos de dias anteriores (SÓ DA LOJA ATUAL)
+            await sbClient.from('orders').update({ status: 'entregue' }).eq('loja_id', window.LOJA_ID).in('status', ['preparo', 'saiu_entrega']).lt('created_at', hojeMeiaNoite.toISOString());
+            // ---------------------------------------------------------------------------
+
+            // 1. Força o início do relógio do sistema E do timer dos pedidos
+            setInterval(() => {
+                // Relógio do Cabeçalho
+                const clock = document.getElementById('digital-clock');
+                if (clock) clock.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                // Timer dos Pedidos
+                checkAutoCancel();
+            }, 1000);
+
+            // 2. Busca dados iniciais
+            await fetchOrders();
+            setupRealtime();
+            setupDragDrop();
+
+            // 3. Polling de segurança (5s)
+            setInterval(async () => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const { count } = await sbClient
+                    .from('orders')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('loja_id', window.LOJA_ID)
+                    .gte('created_at', today.toISOString());
+
+                if (count !== null && count !== lastKnownCount) {
+                    console.log("Sync detectado.");
+                    fetchOrders();
+                }
+            }, KDS_OPTS.pollingInterval);
+        }
+
+        // Substitua a função fetchOrders inteira por esta:
+        async function fetchOrders() {
+            // CALCULA O INÍCIO DO DIA (HOJE 00:00)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayISO = today.toISOString();
+
+            // Busca apenas pedidos criados DEPOIS de hoje 00:00 E DA LOJA ATUAL
+            const { data, count, error } = await sbClient
+                .from('orders')
+                .select('*', { count: 'exact' })
+                .eq('loja_id', window.LOJA_ID)
+                .gte('created_at', todayISO) // <--- FILTRO RIGOROSO DE DATA
+                .order('created_at', { ascending: false });
+
+            if (error) { console.error(error); return; }
+
+            lastKnownCount = count;
+
+            // Limpa colunas
+            document.querySelectorAll('.column-body').forEach(el => el.innerHTML = '');
+
+            if (data && data.length > 0) {
+                // Inverte para renderizar na ordem correta
+                [...data].reverse().forEach(order => {
+                    renderCard(order);
+                    // Verifica mensagens não lidas
+                    checkUnreadMessages(order.id);
+
+                    if (order.status === 'pendente') {
+                        if (isOrderExpired(order)) {
+                            // Cancela silenciosamente se já expirou
+                            window.processAction(order.id, 'cancelado', 'timeout-offline');
+                        }
+                    }
+                    if (order.user_id) fetchClientName(order.user_id, order.id);
+                });
+            }
+
+            updateCounters();
+            checkAlarmCondition();
+        }
+
+        function setupRealtime() {
+            // CANAL 1: Monitora Pedidos (Mudança de Status, Novos Pedidos) DA LOJA ATUAL
+            sbClient.channel(`orders-channel-${window.LOJA_ID}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `loja_id=eq.${window.LOJA_ID}` }, payload => {
+                    handleRealtimeEvent(payload);
+                })
+                .subscribe();
+
+            // CANAL 2: Monitora Chat (Novas Mensagens de Clientes)
+            sbClient.channel('chat-channel')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_chats' }, payload => {
+                    // Só nos interessa se foi o cliente que mandou
+                    if (payload.new.sender_type === 'client') {
+                        // Toca um som suave de notificação se quiser
+                        // checkUnreadMessages atualiza o ícone no card
+                        checkUnreadMessages(payload.new.order_id);
+
+                        // Mostra alerta visual rápido
+                        const card = document.getElementById(`card-${payload.new.order_id}`);
+                        if (card) {
+                            card.style.borderColor = '#3b82f6'; // Pisca azul momentaneamente
+                            setTimeout(() => card.style.borderColor = '', 1000);
+                        }
+                    }
+                })
+                .subscribe();
+        }
+
+        async function checkUnreadMessages(orderId) {
+            // Verifica se tem mensagens do cliente neste pedido
+            const { count } = await sbClient
+                .from('order_chats')
+                .select('*', { count: 'exact', head: true })
+                .eq('order_id', orderId)
+                .eq('sender_type', 'client');
+
+            const card = document.getElementById(`card-${orderId}`);
+
+            if (count > 0 && card) {
+                // 1. Adiciona Bolinha Vermelha (Badge) se não tiver
+                if (!card.querySelector('.msg-badge')) {
+                    const badge = document.createElement('div');
+                    badge.className = 'msg-badge'; // Classe CSS que já definimos antes
+                    badge.innerHTML = '<i class="fas fa-comment-dots"></i>';
+                    badge.onclick = (e) => {
+                        e.stopPropagation();
+                        // Abre o chat em nova aba
+                        window.open(`admin-chat.html?orderId=${orderId}`, '_blank', 'width=400,height=600');
+                    };
+                    card.appendChild(badge);
+                }
+
+                // 2. Adiciona Botão de "Abrir Chat" no rodapé do card
+                const btnWrap = document.getElementById(`btn-wrap-${orderId}`);
+                if (btnWrap && !btnWrap.innerHTML.includes('admin-chat.html')) {
+                    const chatBtn = document.createElement('div');
+                    chatBtn.className = "w-full text-center mt-2";
+                    chatBtn.innerHTML = `<button onclick="window.open('admin-chat.html?orderId=${orderId}', '_blank', 'width=400,height=600')" class="text-xs text-blue-400 hover:text-blue-300 underline no-drag cursor-pointer"><i class="far fa-comments"></i> Ler Mensagem do Cliente</button>`;
+                    btnWrap.appendChild(chatBtn);
+                }
+            }
+        }
+
+        function handleRealtimeEvent(payload) {
+            const { eventType, new: newOrder } = payload;
+
+            if (eventType === 'INSERT' || eventType === 'UPDATE') {
+                const oldCard = document.getElementById(`card-${newOrder.id}`);
+                if (oldCard) oldCard.remove();
+
+                renderCard(newOrder);
+                if (newOrder.user_id) fetchClientName(newOrder.user_id, newOrder.id);
+
+                if (newOrder.status === 'pendente' && eventType === 'INSERT') startAlarm();
+            }
+            updateCounters();
+            checkAlarmCondition();
+        }
+
+        async function fetchClientName(uid, oid) {
+            const { data } = await sbClient.from('clients').select('name, phone').eq('id', uid).single();
+            if (data) {
+                const el = document.getElementById(`name-${oid}`);
+                if (el) {
+                    el.innerText = data.name;
+                    el.dataset.info = JSON.stringify(data);
+                }
+            }
+        }
+
+        // ====================================================================================
+        // MÓDULO 6: RENDERIZAÇÃO INTELIGENTE (COM LÓGICA DE CUPOM)
+        // ====================================================================================
+        // ====================================================================================
+        // MÓDULO 6: RENDERIZAÇÃO INTELIGENTE (COM LÓGICA DE CUPOM)
+        // ====================================================================================
+        function renderCard(order) {
+            const col = document.getElementById(order.status);
+            if (!col) return;
+
+            // DETECTOR DE ENCOMENDA: Verifica se existe a tag no endereço
+            const infoEncomenda = order.address && order.address.includes('[📅 ENCOMENDA:');
+            let badgeHtml = '';
+            let orderClass = '';
+
+            if (infoEncomenda) {
+                // Extrai a data/hora para exibir bonitinho
+                const match = order.address.match(/\[📅 ENCOMENDA: (.*?)\]/);
+                const dataHora = match ? match[1] : "Agendado";
+                badgeHtml = `<div class="badge-encomenda"><i class="fas fa-calendar-alt"></i> ENCOMENDA PARA: ${dataHora}</div>`;
+
+                // Se a data não for hoje, damos uma classe de transparência e borda tracejada
+                if (!dataHora.includes(new Date().toLocaleDateString('pt-BR'))) {
+                    orderClass = 'card-futuro';
+                }
+            }
+
+            // 1. Itens
+            let itemsHtml = '';
+            let subtotal = 0;
+            try {
+                JSON.parse(order.items).forEach(i => {
+                    subtotal += i.preco * i.qtd;
+                    itemsHtml += `<div class="flex justify-between text-xs border-b border-gray-700/50 pb-2 mb-2"><span class="font-bold bg-gray-700 px-1.5 rounded mr-2">${i.qtd}x</span><span class="w-full text-gray-300">${i.produto}</span></div>`;
+                });
+            } catch (e) { }
+
+            // 2. Comprovante e Link
+            let receiptBtn = '';
+            let paymentText = order.payment_method || "";
+            const linkMatch = paymentText.match(/https?:\/\/[^\s]+/);
+            let cleanLink = order.receipt_url || (linkMatch ? linkMatch[0] : null);
+
+            if (linkMatch) paymentText = paymentText.replace(linkMatch[0], '').replace('Link Comprovante:', '').trim();
+
+            if (cleanLink) {
+                receiptBtn = `
+                <div class="flex gap-2 mt-2">
+                    <button onclick="window.openReceipt('${cleanLink}')" class="no-drag flex-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-600/40">
+                        <i class="fas fa-eye"></i> Ver Comprovante
+                    </button>
+                    <button onclick="window.openChat('${order.id}')" class="no-drag flex-1 bg-yellow-600/20 text-yellow-400 border border-yellow-500/30 px-2 py-1 rounded text-[10px] font-bold hover:bg-yellow-600/40">
+                        <i class="fas fa-check-circle"></i> Validar
+                    </button>
+                </div>`;
+            }
+
+            // 3. Monta o Card
+            const card = document.createElement('div');
+            card.id = `card-${order.id}`;
+            // CORREÇÃO: Aplicando as classes urgent e futuro corretamente
+            card.className = `order-card ${order.status === 'pendente' ? 'card-urgent' : ''} ${orderClass} mb-3`;
+            card.dataset.id = order.id;
+            card.dataset.time = order.created_at;
+
+            const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            card.innerHTML = `
+                ${badgeHtml}
+                <div class="flex justify-between items-start mb-3 border-b border-gray-700 pb-2">
+                    <div class="flex items-center gap-2 w-full">
+                        <span class="bg-gray-900 text-xs font-bold px-2 py-1 rounded border border-gray-700">#${order.id.slice(0, 4).toUpperCase()}</span>
+                        <span class="text-[10px] text-gray-400 font-mono">${time}</span>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <div onclick="window.openChat('${order.id}')" class="no-drag w-8 h-8 rounded bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center cursor-pointer relative"><i class="fas fa-comment-dots"></i></div>
+                        <div onclick="window.printOrder('${order.id}')" class="no-drag w-8 h-8 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 flex items-center justify-center cursor-pointer"><i class="fas fa-print"></i></div>
+                    </div>
+                </div>
+
+                <div class="mb-3 space-y-1">
+                    <div class="font-bold text-sm text-white"><span id="name-${order.id}">...</span></div>
+                    <div class="text-xs text-gray-400">${order.address || 'Retirada'}</div>
+                    <div class="text-xs text-gray-400"><i class="fas fa-wallet"></i> ${paymentText}</div>
+                    ${receiptBtn}
+                </div>
+
+                <div class="bg-gray-900/50 rounded p-3 mb-3 max-h-48 overflow-y-auto custom-scroll text-gray-300">${itemsHtml}</div>
+
+                <div class="flex justify-between items-center border-t border-gray-700 pt-2 mb-2">
+                    <span class="text-[10px] font-bold text-gray-500 uppercase">Total</span>
+                    <span class="text-xl font-black text-green-400">R$ ${parseFloat(order.total_amount).toFixed(2)}</span>
+                </div>
+
+                <div id="btn-wrap-${order.id}">${getButtonsHtml(order.status, order.id)}</div>
+
+                ${order.status === 'pendente' ? `
+                <div id="timer-box-${order.id}" class="mt-3 bg-gray-900 rounded p-2 border border-gray-700 flex flex-col gap-1">
+                    <div class="flex justify-between text-[10px] font-bold text-red-400">
+                        <span>AUTO-CANCELAMENTO</span>
+                        <span id="timer-${order.id}">Calculando...</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-1.5">
+                        <div id="prog-${order.id}" class="bg-red-600 h-1.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>` : ''}
+            `;
+            col.prepend(card);
+        }
+
+        // ====================================================================================
+        // MÓDULO 7: AÇÕES DO SISTEMA
+        // ====================================================================================
+        // Substitua a função window.processAction inteira por esta:
+        window.processAction = async function (id, status, type) {
+            let msg = '';
+            if (type === 'aceitar') { stopAlarm(); msg = '👨‍🍳 Aceito!'; }
+            if (type === 'enviar') msg = '🛵 Saiu para entrega!';
+            if (type === 'finalizar') msg = '✅ Entregue.';
+            if (type === 'cancelado' || type === 'timeout') msg = '❌ Pedido Cancelado.';
+
+            const btnWrap = document.getElementById(`btn-wrap-${id}`);
+            if (btnWrap) btnWrap.innerHTML = '<div class="text-center text-xs text-yellow-500 py-2"><i class="fas fa-spinner fa-spin"></i> Processando...</div>';
+
+            // Atualiza no Banco
+            const { error } = await sbClient.from('orders').update({ status: status }).eq('id', id);
+
+            if (!error) {
+                // Envia mensagem no chat (se houver mensagem definida)
+                if (msg) sbClient.from('order_chats').insert([{ order_id: id, sender_type: 'admin', message: msg }]);
+
+                // MOVIMENTAÇÃO VISUAL DO CARD
+                const card = document.getElementById(`card-${id}`);
+                if (card) {
+                    const targetColumn = document.getElementById(status); // Busca a coluna de destino (inclusive 'cancelado')
+
+                    if (targetColumn) {
+                        targetColumn.prepend(card); // Move para o topo da coluna
+
+                        // Atualiza os botões (se for cancelado, vai ficar sem botões, o que é correto)
+                        if (btnWrap) btnWrap.innerHTML = getButtonsHtml(status, id);
+
+                        // Limpeza visual (Remove urgência e timer se não for mais pendente)
+                        if (status !== 'pendente') {
+                            card.classList.remove('card-urgent');
+                            const timerBox = document.getElementById(`timer-box-${id}`);
+                            if (timerBox) timerBox.remove();
+                        }
+                    } else {
+                        // Só remove se não achar a coluna de destino (segurança)
+                        console.warn(`Coluna ${status} não encontrada, removendo card.`);
+                        card.remove();
+                    }
+                }
+
+                // Atualiza contadores após breve delay para o DOM assentar
+                setTimeout(() => {
+                    updateCounters();
+                    checkAlarmCondition();
+                }, 100);
+
+            } else {
+                console.error(error);
+                Swal.fire("Erro", "Falha ao atualizar. Verifique a conexão.", "error");
+                // Restaura botões em caso de erro
+                if (btnWrap && card) {
+                    const oldStatus = card.parentElement.id;
+                    btnWrap.innerHTML = getButtonsHtml(oldStatus, id);
+                }
+            }
+        };
+
+        // Função auxiliar para o botão de lixeira extra
+        // Função de Cancelamento com Motivos
+        // Função de Cancelamento (CORRIGIDA: Texto Escuro para Modal Branco)
+        window.confirmCancel = async function (id) {
+            const { value: reason } = await Swal.fire({
+                title: 'Cancelar Pedido?',
+                // Aqui mudamos as classes para cores escuras (text-gray-800, text-black, etc)
+                html: `
+                    <div class="text-left text-sm text-gray-800 space-y-3 p-2">
+                        <p class="mb-2 font-bold text-gray-950">Selecione o motivo:</p>
+                        
+                        <label class="flex items-center cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                            <input type="radio" name="cancel_reason" value="Cliente solicitou cancelamento" class="mr-2 accent-red-600" checked>
+                            <span class="text-gray-700 font-medium">Cliente pediu para cancelar</span>
+                        </label>
+                        
+                        <label class="flex items-center cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                            <input type="radio" name="cancel_reason" value="Ingrediente em falta" class="mr-2 accent-red-600">
+                            <span class="text-gray-700 font-medium">Falta de ingrediente/produto</span>
+                        </label>
+                        
+                        <label class="flex items-center cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                            <input type="radio" name="cancel_reason" value="Endereço fora da área" class="mr-2 accent-red-600">
+                            <span class="text-gray-700 font-medium">Problema com endereço/entregador</span>
+                        </label>
+
+                        <label class="flex items-center cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                            <input type="radio" name="cancel_reason" value="other" id="radio-other" class="mr-2 accent-red-600">
+                            <span class="text-gray-700 font-medium">Outro motivo (Digitar)</span>
+                        </label>
+
+                        <textarea id="other_text" class="w-full mt-2 p-2 bg-white border border-gray-300 rounded text-gray-900 text-xs hidden focus:border-red-500 outline-none placeholder-gray-500" placeholder="Digite o motivo do cancelamento..."></textarea>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626', // Vermelho forte
+                cancelButtonColor: '#6b7280',  // Cinza
+                confirmButtonText: 'Confirmar Cancelamento',
+                cancelButtonText: 'Voltar',
+                didOpen: () => {
+                    // Lógica para mostrar/esconder o campo de texto
+                    const radios = document.querySelectorAll('input[name="cancel_reason"]');
+                    const area = document.getElementById('other_text');
+                    radios.forEach(r => {
+                        r.addEventListener('change', (e) => {
+                            if (e.target.value === 'other') {
+                                area.classList.remove('hidden');
+                                area.focus();
+                            } else {
+                                area.classList.add('hidden');
+                            }
+                        });
+                    });
+                },
+                preConfirm: () => {
+                    const selected = document.querySelector('input[name="cancel_reason"]:checked');
+                    if (!selected) return false;
+
+                    if (selected.value === 'other') {
+                        const text = document.getElementById('other_text').value.trim();
+                        if (!text) {
+                            Swal.showValidationMessage('Por favor, digite o motivo.');
+                            return false;
+                        }
+                        return `❌ Cancelado: ${text}`;
+                    }
+                    return `❌ Cancelado: ${selected.value}`;
+                }
+            });
+
+            if (reason) {
+                window.processAction(id, 'cancelado', reason);
+            }
+        };
+        // ====================================================================================
+        // MÓDULO 8: IMPRESSÃO DETALHADA COM DESCONTOS
+        // ====================================================================================
+        // Substitua a função window.printOrder inteira por esta:
+        window.printOrder = async function (id) {
+            const { data: order } = await sbClient.from('orders').select('*').eq('id', id).single();
+            if (!order) return;
+
+            const elName = document.getElementById(`name-${id}`);
+            let info = { name: 'Cliente', phone: '' };
+            if (elName && elName.dataset.info) info = JSON.parse(elName.dataset.info);
+
+            let itensHtml = '';
+            let subtotal = 0;
+            try {
+                JSON.parse(order.items).forEach(i => {
+                    const total = parseFloat(i.preco || 0) * i.qtd;
+                    subtotal += total;
+                    itensHtml += `
+                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                        <span>${i.qtd}x ${i.produto}</span>
+                        <span>R$ ${total.toFixed(2)}</span>
+                    </div>`;
+                });
+            } catch (e) { }
+
+            // LIMPEZA DO LINK NO PAGAMENTO
+            let paymentClean = order.payment_method || "";
+            // Remove qualquer URL do texto
+            paymentClean = paymentClean.replace(/(https?:\/\/[^\s]+)/g, "").replace("Link Comprovante:", "").trim();
+
+            const dataPedido = new Date(order.created_at).toLocaleString('pt-BR');
+            const totalFinal = parseFloat(order.total_amount);
+            const desconto = subtotal - totalFinal;
+
+            let descontoHtml = '';
+            if (desconto > 0.05) {
+                descontoHtml = `
+                <div style="display:flex; justify-content:space-between; margin-top:5px; border-top:1px dashed #000; paddingTop:5px;">
+                    <span>Subtotal</span><span>${formatCurrency(subtotal)}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>Desconto</span><span>- ${formatCurrency(desconto)}</span>
+                </div>`;
+            }
+
+            const printArea = document.getElementById('print-area');
+            printArea.innerHTML = `
+                <div style="text-align:center; font-weight:bold; font-size:16px;">ALFA SALGATERIA</div>
+                <div style="text-align:center; margin-bottom:10px;">Pedido #${order.id.slice(0, 4).toUpperCase()}</div>
+                <div style="border-bottom:1px dashed #000; margin-bottom:10px;"></div>
+                
+                <div><b>Data:</b> ${dataPedido}</div>
+                <div><b>Cliente:</b> ${info.name}</div>
+                <div><b>Tel:</b> ${info.phone || '-'}</div>
+                <div><b>End:</b> ${order.address}</div>
+                <div><b>Pag:</b> ${paymentClean}</div>
+                
+                <div style="border-bottom:1px dashed #000; margin:10px 0;"></div>
+                <div style="font-weight:bold; margin-bottom:5px;">ITENS:</div>
+                ${itensHtml}
+                
+                ${descontoHtml}
+                
+                <div style="border-top:2px solid #000; margin-top:10px; padding-top:5px; display:flex; justify-content:space-between; font-size:18px; font-weight:bold;">
+                    <span>TOTAL</span>
+                    <span>${formatCurrency(totalFinal)}</span>
+                </div>
+                <div style="text-align:center; margin-top:20px; font-size:10px;">*** VIA COZINHA ***</div>
+            `;
+            window.print();
+        };
+
+        // ====================================================================================
+        // UTILS
+        // ====================================================================================
+        function isOrderExpired(order) {
+            const diff = (new Date() - new Date(order.created_at)) / 1000;
+            return diff > (KDS_OPTS.autoCancelMinutes * 60);
+        }
+
+        function checkAutoCancel() {
+            // Seleciona todos os elementos de timer na tela
+            const timers = document.querySelectorAll('[id^="timer-"]');
+
+            timers.forEach(timerEl => {
+                const card = timerEl.closest('.order-card');
+                // Se não achar o card ou se o card não estiver na coluna pendente, ignora
+                if (!card || card.parentElement.id !== 'pendente') return;
+
+                const timeStr = card.dataset.time;
+                if (!timeStr) {
+                    timerEl.innerText = "Err";
+                    return;
+                }
+
+                // Tenta converter a data de várias formas
+                let createdTime = new Date(timeStr).getTime();
+                if (isNaN(createdTime)) {
+                    // Fallback para datas Safari/iOS se necessário
+                    createdTime = Date.parse(timeStr.replace(/-/g, "/").replace("T", " "));
+                }
+
+                const nowTime = new Date().getTime();
+
+                // Se ainda for inválido, usa o horário atual para não travar
+                if (isNaN(createdTime)) createdTime = nowTime;
+
+                // Diferença
+                const diff = (nowTime - createdTime) / 1000;
+                const limit = (KDS_OPTS.autoCancelMinutes || 10) * 60;
+                const remain = limit - diff;
+
+                // Barra de Progresso
+                const bar = document.getElementById(`prog-${card.dataset.id}`);
+                if (bar) {
+                    const pct = Math.min((diff / limit) * 100, 100);
+                    bar.style.width = `${pct}%`;
+                }
+
+                // Texto do Relógio
+                if (remain > 0) {
+                    const m = Math.floor(remain / 60).toString().padStart(2, '0');
+                    const s = Math.floor(remain % 60).toString().padStart(2, '0');
+                    timerEl.innerText = `${m}:${s}`;
+                    timerEl.style.color = ""; // Cor normal
+                } else {
+                    timerEl.innerText = "EXPIRADO";
+                    timerEl.style.color = "#ef4444"; // Vermelho
+
+                    // Executa cancelamento (com trava para não repetir)
+                    if (!card.dataset.timeoutLock) {
+                        card.dataset.timeoutLock = "true";
+                        console.log("Auto-cancelando:", card.dataset.id);
+                        window.processAction(card.dataset.id, 'cancelado', 'timeout');
+                    }
+                }
+            });
+        }
+
+        function checkAlarmCondition() {
+            const pend = document.getElementById('pendente').children.length;
+            if (pend > 0) startAlarm(); else stopAlarm();
+        }
+
+        function updateCounters() {
+            const columns = ['pendente', 'preparo', 'saiu_entrega', 'entregue', 'cancelado'];
+
+            columns.forEach(colId => {
+                const container = document.getElementById(colId);
+                const badge = document.getElementById(`qtd-${colId}`);
+
+                if (container && badge) {
+                    // Conta apenas as DIVs diretas que são cards reais (ignora fantasmas do arraste)
+                    const cards = Array.from(container.children).filter(child =>
+                        child.classList.contains('order-card') &&
+                        child.style.display !== 'none'
+                    );
+
+                    const count = cards.length;
+                    badge.innerText = count;
+
+                    // Estilo Condicional (Cinza se zero, Colorido se tiver itens)
+                    badge.className = count === 0
+                        ? "bg-gray-700 text-gray-500 px-2 py-0.5 rounded text-xs transition-colors"
+                        : `px-2 py-0.5 rounded text-xs font-bold text-white transition-colors ${getColorForColumn(colId)}`;
+                }
+            });
+        }
+
+        function getColorForColumn(id) {
+            if (id === 'pendente') return 'bg-yellow-500 text-black';
+            if (id === 'preparo') return 'bg-blue-600';
+            if (id === 'saiu_entrega') return 'bg-purple-600';
+            if (id === 'entregue') return 'bg-green-600';
+            return 'bg-red-600';
+        }
+        function setupDragDrop() {
+            document.querySelectorAll('.column-body').forEach(col => {
+                new Sortable(col, {
+                    group: 'kanban', animation: 150, filter: '.no-drag', preventOnFilter: false, onEnd: function (evt) {
+                        if (evt.from !== evt.to) window.processAction(evt.item.dataset.id, evt.to.dataset.status, null);
+                    }
+                });
+            });
+        }
+
+        // ====================================================================================
+        // MÓDULO 8: LÓGICA DO CHAT (CORRIGIDA)
+        // ====================================================================================
+
+        let currentChatId = null;
+
+        // Abrir Modal
+        window.openChat = async function (id) {
+            currentChatId = id;
+            const modal = document.getElementById('chat-modal');
+            const title = document.getElementById('chat-title');
+            const content = document.getElementById('chat-content');
+            const errorBox = document.getElementById('chat-error');
+
+            if (modal) modal.classList.remove('hidden');
+            if (errorBox) errorBox.classList.add('hidden'); // Esconde erro anterior
+
+            // CORREÇÃO: Mostra o ID correto no título
+            if (title) title.innerText = `#${id.slice(0, 4).toUpperCase()}`;
+
+            if (content) content.innerHTML = '<div class="text-center text-gray-500 mt-10"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>';
+
+            // Limpa input
+            const fileInput = document.getElementById('chat-file');
+            if (fileInput) fileInput.value = '';
+            document.getElementById('file-indicator').classList.add('hidden');
+
+            await loadChatMessages(id);
+
+            // Remove badge do card
+            const badge = document.querySelector(`#card-${id} .msg-badge`);
+            if (badge) badge.remove();
+        };
+
+        window.closeChat = function () {
+            document.getElementById('chat-modal').classList.add('hidden');
+            currentChatId = null;
+        };
+
+        // Indicador de arquivo selecionado
+        document.getElementById('chat-file').addEventListener('change', function () {
+            const indicator = document.getElementById('file-indicator');
+            if (this.files.length > 0) indicator.classList.remove('hidden');
+            else indicator.classList.add('hidden');
+        });
+
+        async function loadChatMessages(id) {
+            const { data } = await sbClient
+                .from('order_chats')
+                .select('*')
+                .eq('order_id', id)
+                .order('created_at', { ascending: true });
+
+            const content = document.getElementById('chat-content');
+            content.innerHTML = '';
+
+            if (data && data.length > 0) {
+                data.forEach(msg => {
+                    const isMe = msg.sender_type === 'admin';
+                    const align = isMe ? 'justify-end' : 'justify-start';
+                    const bg = isMe ? 'bg-blue-600 text-white' : 'bg-slate-700 text-gray-200';
+
+                    let msgContent = msg.message;
+
+                    // Verifica se é URL de arquivo
+                    if (msg.message.includes('supabase.co') && msg.message.includes('/storage/')) {
+                        if (msg.message.match(/\.(jpeg|jpg|gif|png)$/i)) {
+                            msgContent = `<a href="${msg.message}" target="_blank"><img src="${msg.message}" class="max-w-[200px] rounded border border-white/20 mt-1"></a>`;
+                        } else {
+                            msgContent = `<a href="${msg.message}" target="_blank" class="flex items-center gap-2 underline font-bold"><i class="fas fa-paperclip"></i> Ver Anexo</a>`;
+                        }
+                    }
+
+                    const html = `
+                        <div class="flex ${align} mb-2">
+                            <div class="${bg} max-w-[85%] rounded-xl px-3 py-2 text-sm shadow break-words">
+                                <div class="font-bold text-[10px] opacity-75 mb-1">${isMe ? 'Restaurante' : 'Cliente'}</div>
+                                <div>${msgContent}</div>
+                                <div class="text-[9px] text-right opacity-50 mt-1">${new Date(msg.created_at).toLocaleTimeString().slice(0, 5)}</div>
+                            </div>
+                        </div>`;
+                    content.insertAdjacentHTML('beforeend', html);
+                });
+                content.scrollTop = content.scrollHeight;
+            } else {
+                content.innerHTML = '<div class="text-center text-gray-600 text-xs mt-10">Nenhuma mensagem.</div>';
+            }
+        }
+
+        window.sendChatMessage = async function () {
+            const input = document.getElementById('chat-input');
+            const fileInput = document.getElementById('chat-file');
+            const errorBox = document.getElementById('chat-error');
+
+            errorBox.classList.add('hidden'); // Limpa erro
+
+            const text = input.value.trim();
+            const file = fileInput.files[0];
+
+            if (!text && !file) return;
+            if (!currentChatId) return;
+
+            // Feedback visual
+            const btn = document.querySelector('button[onclick="sendChatMessage()"]');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            let finalMessage = text;
+
+            try {
+                // 1. Upload
+                if (file) {
+                    const fileName = `${currentChatId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+
+                    const { data, error } = await sbClient.storage.from('arquivos').upload(fileName, file);
+                    if (error) throw new Error("Erro no upload: " + error.message);
+
+                    const { data: publicUrlData } = sbClient.storage.from('arquivos').getPublicUrl(fileName);
+                    const fileUrl = publicUrlData.publicUrl;
+
+                    if (text) finalMessage += "\n";
+                    finalMessage = fileUrl; // Manda URL
+                }
+
+                // 2. Chat
+                const { error: chatError } = await sbClient.from('order_chats').insert([{
+                    order_id: currentChatId,
+                    sender_type: 'admin',
+                    message: finalMessage
+                }]);
+
+                if (chatError) throw new Error("Erro ao salvar mensagem.");
+
+                // 3. Limpeza
+                input.value = '';
+                fileInput.value = '';
+                document.getElementById('file-indicator').classList.add('hidden');
+
+                await loadChatMessages(currentChatId);
+
+            } catch (err) {
+                console.error(err);
+                // Exibe erro na div, não alert
+                errorBox.innerText = err.message;
+                errorBox.classList.remove('hidden');
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }
+        };
+
+        // Enter para enviar
+        document.getElementById('chat-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+        // Função para abrir o modal de comprovante
+        window.openReceipt = function (url) {
+            const modal = document.getElementById('receipt-modal');
+            const frame = document.getElementById('receipt-frame');
+            const loading = document.getElementById('receipt-loading');
+
+            modal.classList.remove('hidden');
+            loading.classList.remove('hidden'); // Mostra loading
+            frame.classList.add('hidden');
+
+            frame.src = url;
+
+            frame.onload = function () {
+                loading.classList.add('hidden');
+                frame.classList.remove('hidden');
+            };
+        };
+        let filtroAtual = 'todos';
+
+        window.setFiltro = function (tipo, btn) {
+            filtroAtual = tipo;
+            // Atualiza botões
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Re-filtra os cards existentes
+            filtrarCardsNaTela();
+        }
+
+        function filtrarCardsNaTela() {
+            const cards = document.querySelectorAll('.order-card');
+            const hojeStr = new Date().toLocaleDateString('pt-BR');
+
+            cards.forEach(card => {
+                const text = card.innerText;
+                const isEnc = text.includes('ENCOMENDA PARA:');
+                const isHoje = text.includes(hojeStr);
+
+                if (filtroAtual === 'todos') {
+                    card.style.display = 'block';
+                } else if (filtroAtual === 'hoje') {
+                    // Mostra pedidos comuns OU encomendas que sejam para hoje
+                    if (!isEnc || (isEnc && isHoje)) card.style.display = 'block';
+                    else card.style.display = 'none';
+                } else if (filtroAtual === 'encomendas') {
+                    // Mostra APENAS encomendas (de qualquer dia)
+                    if (isEnc) card.style.display = 'block';
+                    else card.style.display = 'none';
+                }
+            });
+            updateCounters();
+        }
+    </script>
+</body>
+
+</html>

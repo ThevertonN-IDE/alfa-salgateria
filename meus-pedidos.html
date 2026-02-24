@@ -1,84 +1,144 @@
 <!DOCTYPE html>
 <html lang="pt-br" class="transition-colors duration-300">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Meus Pedidos - Alfa</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <script src="data.js"></script>
     <script src="utils.js"></script>
     <script src="ui.js"></script>
 </head>
+
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white pb-10 transition-colors duration-300">
 
-    <header class="bg-orange-600 dark:bg-gray-800 p-6 pb-12 rounded-b-[2.5rem] shadow-lg sticky top-0 z-40">
-        <div class="flex justify-between items-center text-white">
-            <a href="perfil.html" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition backdrop-blur-md">
+    <header
+        class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100 dark:border-gray-800 shadow-sm">
+        <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="perfil.html"
+                class="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition active:scale-95 shadow-sm border border-gray-100 dark:border-gray-700">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h1 class="text-xl font-black uppercase tracking-wider">Histórico</h1>
-            <div class="w-10"></div> </div>
-        
-        <div class="mt-4 text-center">
-            <p class="text-orange-100 text-xs uppercase tracking-widest font-bold">Seus últimos pedidos</p>
+
+            <div class="flex flex-col items-center">
+                <img id="loja-logo-cliente" src="https://placehold.co/100?text=Logo"
+                    class="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-sm mb-1 hidden">
+                <h1 class="text-sm font-black text-gray-800 dark:text-white tracking-tight leading-none">Meus Pedidos
+                </h1>
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Histórico e Rastreio</p>
+            </div>
+
+            <div class="w-10"></div>
         </div>
     </header>
 
-    <main class="max-w-md mx-auto p-4 -mt-8 space-y-4 relative z-10">
-        
+    <main class="max-w-md mx-auto p-4 space-y-4 relative z-10 mt-2">
+
         <div id="loading-pedidos" class="text-center py-10">
             <i class="fas fa-circle-notch fa-spin text-3xl text-orange-500"></i>
             <p class="text-xs text-gray-400 mt-2 font-bold uppercase">Buscando pedidos...</p>
         </div>
 
-        <div id="lista-vazia" class="hidden flex-col items-center justify-center py-10 opacity-0 transition-opacity duration-500">
-            <div class="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4 text-gray-400 text-3xl">
+        <div id="lista-vazia"
+            class="hidden flex-col items-center justify-center py-10 opacity-0 transition-opacity duration-500">
+            <div
+                class="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4 text-gray-400 text-3xl">
                 <i class="fas fa-receipt"></i>
             </div>
             <h3 class="text-lg font-black text-gray-400 dark:text-gray-500 uppercase">Nenhum pedido</h3>
-            <p class="text-xs text-gray-400 text-center max-w-[200px] mt-2 mb-6">Você ainda não experimentou nossas delícias.</p>
-            <a href="index.html" class="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold text-xs shadow-lg hover:bg-orange-700 transition">FAZER PEDIDO AGORA</a>
+            <p class="text-xs text-gray-400 text-center max-w-[200px] mt-2 mb-6">Você ainda não experimentou nossas
+                delícias.</p>
+            <a href="index.html"
+                class="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold text-xs shadow-lg hover:bg-orange-700 transition">FAZER
+                PEDIDO AGORA</a>
         </div>
 
         <div id="lista-pedidos" class="space-y-4 pb-10"></div>
 
     </main>
+    <div id="chat-modal"
+        class="fixed inset-0 bg-black/60 z-[9999] hidden flex-col justify-end sm:justify-center items-center backdrop-blur-sm sm:p-4 transition-opacity duration-300 opacity-0">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md h-[85vh] sm:h-[600px] sm:rounded-2xl rounded-t-3xl flex flex-col shadow-2xl transform translate-y-full sm:translate-y-0 transition-transform duration-300 relative overflow-hidden"
+            id="chat-container">
 
+            <div
+                class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
+                <div>
+                    <h3 class="font-black text-gray-800 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-store text-orange-500"></i> Restaurante
+                    </h3>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5" id="chat-order-id">
+                        Pedido #...</p>
+                </div>
+                <button onclick="fecharChat()"
+                    class="w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-500 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="chat-messages"
+                class="flex-grow p-4 overflow-y-auto custom-scroll flex flex-col gap-3 bg-white dark:bg-gray-800">
+            </div>
+
+            <div
+                class="p-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center gap-2">
+                <input type="file" id="chat-file" class="hidden" accept="image/*">
+                <button onclick="document.getElementById('chat-file').click()"
+                    class="w-10 h-10 rounded-full text-gray-400 hover:text-orange-500 transition flex items-center justify-center relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex-shrink-0">
+                    <i class="fas fa-camera"></i>
+                    <span id="file-indicator"
+                        class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-white"></span>
+                </button>
+                <input type="text" id="chat-input" placeholder="Escreva uma mensagem..."
+                    class="flex-grow bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full px-4 py-2.5 text-sm outline-none focus:border-orange-500 dark:text-white transition">
+                <button onclick="enviarMensagem()"
+                    class="w-10 h-10 rounded-full bg-orange-600 text-white flex items-center justify-center hover:bg-orange-700 transition flex-shrink-0 shadow-md">
+                    <i class="fas fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
     <script>
-        // Cache de produtos para "traduzir" os IDs
         let mapProdutos = {};
+        let currentUser = null;
+        let activeChatOrder = null;
 
         async function initPedidos() {
-            // 1. Verifica Login
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'cliente-login.html'; return; }
+            currentUser = session.user;
 
             try {
-                // 2. Busca Produtos (para pegar os nomes) e Pedidos em paralelo
-                const [resProds, resOrders] = await Promise.all([
-                    _supabase.from('products').select('id, name'),
-                    _supabase.from('orders')
-                        .select('*')
-                        .eq('user_id', session.user.id)
-                        .order('created_at', { ascending: false })
-                ]);
-
-                // Cria mapa de ID -> Nome do Produto
-                if (resProds.data) {
-                    resProds.data.forEach(p => mapProdutos[p.id] = p.name);
+                // 1. CARREGA PRODUTOS PRIMEIRO E ESPERA
+                const { data: prods } = await _supabase.from('products').select('id, name');
+                if (prods) {
+                    prods.forEach(p => mapProdutos[p.id] = p.name);
                 }
 
-                // Renderiza
-                const pedidos = resOrders.data || [];
-                renderizarLista(pedidos);
+                // 2. DEPOIS CARREGA OS PEDIDOS E AS CONFIGURAÇÕES
+                const [resOrders, resConfig] = await Promise.all([
+                    _supabase.from('orders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }),
+                    _supabase.from('store_config').select('logo_url').limit(1).single()
+                ]);
+
+                if (resConfig.data && resConfig.data.logo_url) {
+                    const imgLogo = document.getElementById('loja-logo-cliente');
+                    imgLogo.src = resConfig.data.logo_url;
+                    imgLogo.classList.remove('hidden');
+                }
+
+                renderizarLista(resOrders.data || []);
+                inscreverTempoReal();
 
             } catch (erro) {
                 console.error(erro);
-                mostrarToast("Erro ao carregar pedidos", "erro");
+                Swal.fire('Erro', 'Não foi possível carregar os pedidos.', 'error');
             } finally {
                 document.getElementById('loading-pedidos').classList.add('hidden');
             }
@@ -94,68 +154,112 @@
                 return;
             }
 
+            container.innerHTML = '';
+
             pedidos.forEach(order => {
+                if (order.status === 'cancelado') return; // Oculta cancelados
+
                 const dataObj = new Date(order.created_at);
                 const dataFormatada = dataObj.toLocaleDateString('pt-BR');
-                const horaFormatada = dataObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                
-                // Traduz o JSON de itens
-                let itensHtml = '';
-                let totalItens = 0;
-                
-                // O campo 'items' é um JSON tipo { "15": 2, "20": 1 }
-                for (const [idProd, qtd] of Object.entries(order.items)) {
-                    const nomeProd = mapProdutos[idProd] || "Item removido do cardápio";
-                    totalItens += qtd;
-                    itensHtml += `<li class="flex justify-between text-xs text-gray-600 dark:text-gray-300 py-0.5 border-b border-dashed border-gray-100 dark:border-gray-700 last:border-0">
-                        <span>${qtd}x ${nomeProd}</span>
-                    </li>`;
+                const horaFormatada = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                let isEncomenda = order.address && order.address.includes('[📅 ENCOMENDA:');
+                let tagEncomendaHtml = '';
+
+                if (isEncomenda) {
+                    const match = order.address.match(/\[📅 ENCOMENDA: (.*?)\]/);
+                    const dataHora = match ? match[1] : "Futura";
+                    tagEncomendaHtml = `
+                    <div class="encomenda-banner p-3 rounded-xl mb-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] font-black uppercase text-orange-600 tracking-widest">Retirada Agendada</p>
+                            <p class="text-sm font-bold text-gray-800 dark:text-orange-900">${dataHora}</p>
+                        </div>
+                        <i class="far fa-calendar-check text-2xl text-orange-400 opacity-50"></i>
+                    </div>`;
                 }
 
-                // Ícones e Cores baseados no tipo
-                const iconeEntrega = order.delivery_type === 'entrega' ? 'fa-motorcycle' : 'fa-bag-shopping';
-                const textoEntrega = order.delivery_type === 'entrega' ? 'Entrega' : 'Retirada';
-                
-                // Define cor do status (Assumindo que você pode adicionar uma coluna 'status' no futuro)
-                // Por enquanto, todos aparecem como "Recebido" ou "Concluído" visualmente
-                const statusColor = 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+                const { flow, currentIdx, progress } = getStatusInfo(order.status, isEncomenda);
+                const isActive = order.status !== 'entregue';
 
+                let itensHtml = '';
+                try {
+                    let itemsData = order.items;
+                    if (typeof itemsData === 'string') itemsData = JSON.parse(itemsData);
+                    if (typeof itemsData === 'string') itemsData = JSON.parse(itemsData);
+
+                    if (Array.isArray(itemsData)) {
+                        itemsData.forEach(item => {
+                            let nome = item.produto || item.name || 'Produto';
+                            let q = item.qtd !== undefined ? item.qtd : 1;
+                            if (String(nome).includes('object Object')) nome = 'Pedido Antigo (Teste)';
+                            if (String(q).includes('object Object')) q = '-';
+
+                            itensHtml += `<li class="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400 py-1.5 border-b border-dashed border-gray-100 dark:border-gray-700/50 last:border-0"><span><strong class="text-gray-800 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded mr-1">${q}x</strong> ${nome}</span></li>`;
+                        });
+                    } else if (typeof itemsData === 'object' && itemsData !== null) {
+                        for (const [idProd, qtd] of Object.entries(itemsData)) {
+                            let nomeProd = mapProdutos[idProd] || 'Produto Legado';
+                            let q = qtd;
+                            if (String(nomeProd).includes('object Object')) nomeProd = 'Pedido Antigo (Teste)';
+                            if (String(q).includes('object Object')) q = '-';
+
+                            itensHtml += `<li class="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400 py-1.5 border-b border-dashed border-gray-100 dark:border-gray-700/50 last:border-0"><span><strong class="text-gray-800 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded mr-1">${q}x</strong> ${nomeProd}</span></li>`;
+                        }
+                    } else {
+                        itensHtml = '<li class="text-xs text-gray-500">Detalhes não disponíveis.</li>';
+                    }
+                } catch (e) {
+                    console.error(e);
+                    itensHtml = '<li class="text-xs text-red-500">Erro ao carregar itens.</li>';
+                }
+
+                // AQUI ESTÁ A CORREÇÃO PRINCIPAL DA BARRA DE PROGRESSO
                 const html = `
-                <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl shadow-soft border border-gray-100 dark:border-gray-700 animate-up">
-                    <div class="flex justify-between items-start mb-3 border-b border-gray-100 dark:border-gray-700 pb-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-orange-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400">
-                                <i class="fas fa-receipt"></i>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-gray-400 uppercase">${dataFormatada} às ${horaFormatada}</p>
-                                <h3 class="text-sm font-black text-gray-800 dark:text-white">Pedido #${order.id}</h3>
-                            </div>
-                        </div>
-                        <span class="${statusColor} px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide">
-                            Concluído
-                        </span>
-                    </div>
-
-                    <div class="mb-4">
-                        <ul class="space-y-1">
-                            ${itensHtml}
-                        </ul>
-                    </div>
-
-                    <div class="flex justify-between items-end bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl">
-                        <div class="space-y-1">
-                            <p class="text-[10px] text-gray-500 font-bold uppercase flex items-center gap-1">
-                                <i class="fas ${iconeEntrega}"></i> ${textoEntrega}
-                            </p>
-                            <p class="text-[10px] text-gray-500 font-bold uppercase flex items-center gap-1">
-                                <i class="fas fa-credit-card"></i> ${order.payment_method.toUpperCase()}
-                            </p>
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-4 animate-up">
+                    
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${dataFormatada}</p>
+                            <h3 class="text-sm font-black text-gray-800 dark:text-white">Pedido #${order.id.slice(0, 6).toUpperCase()}</h3>
                         </div>
                         <div class="text-right">
                             <p class="text-[10px] text-gray-400 uppercase font-bold">Total</p>
-                            <p class="text-lg font-black text-green-600 dark:text-green-400">R$ ${order.total_amount.toFixed(2)}</p>
+                            <p class="text-base font-black text-green-600 dark:text-green-400">R$ ${parseFloat(order.total_amount).toFixed(2)}</p>
                         </div>
+                    </div>
+
+                    ${tagEncomendaHtml}
+
+                    <div class="relative w-full mt-4 mb-6 ${!isActive ? 'opacity-50 grayscale' : ''}">
+                        <div class="absolute top-2 left-[12%] right-[12%] h-1 bg-gray-200 dark:bg-gray-700 z-0"></div>
+                        <div class="absolute top-2 left-[12%] h-1 bg-orange-500 z-0 transition-all duration-700" style="width: ${progress * 0.76}%;"></div>
+                        
+                        <div class="flex justify-between relative z-10 w-full">
+                            ${flow.map((step, idx) => `
+                                <div class="flex flex-col items-center w-1/4">
+                                    <div class="w-5 h-5 rounded-full border-[3px] border-white dark:border-gray-800 ${idx <= currentIdx ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'} transition-colors duration-500 shadow-sm mb-1"></div>
+                                    <span class="text-[9px] font-bold ${idx === currentIdx ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400 dark:text-gray-500'} uppercase text-center w-full px-0.5 leading-tight">${step.label}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl mb-4">
+                        <ul class="space-y-1">${itensHtml}</ul>
+                    </div>
+
+                    <div class="flex gap-2">
+                        ${isActive ? `
+                            <button onclick="abrirChat('${order.id}')" class="flex-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 py-3 rounded-xl font-bold text-xs hover:bg-orange-200 transition flex items-center justify-center gap-2 relative shadow-sm active:scale-95">
+                                <i class="fas fa-comments"></i> Falar com a Loja
+                                <span id="badge-${order.id}" class="chat-badge hidden"></span>
+                            </button>
+                        ` : `
+                            <button onclick="pedirNovamente('${order.id}')" class="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-3 rounded-xl font-bold text-xs hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md active:scale-95">
+                                <i class="fas fa-redo"></i> Pedir Novamente
+                            </button>
+                        `}
                     </div>
                 </div>`;
 
@@ -163,7 +267,294 @@
             });
         }
 
+        // --- SISTEMA DE RASTREIO E RENDERIZAÇÃO ---
+        function getStatusInfo(status, isEncomenda) {
+            const flow = isEncomenda
+                ? [{ id: 'pendente', label: 'Análise' }, { id: 'preparo', label: 'Agendado' }, { id: 'saiu_entrega', label: 'Pronto' }, { id: 'entregue', label: 'Concluído' }]
+                : [{ id: 'pendente', label: 'Recebido' }, { id: 'preparo', label: 'Preparo' }, { id: 'saiu_entrega', label: 'A Caminho' }, { id: 'entregue', label: 'Entregue' }];
+
+            const currentIdx = flow.findIndex(f => f.id === status);
+            const progress = currentIdx === -1 ? 0 : (currentIdx / (flow.length - 1)) * 100;
+
+            return { flow, currentIdx, progress };
+        }
+
+        function renderizarLista(pedidos) {
+            const container = document.getElementById('lista-pedidos');
+            const empty = document.getElementById('lista-vazia');
+
+            if (pedidos.length === 0) {
+                empty.classList.remove('hidden');
+                setTimeout(() => empty.classList.remove('opacity-0'), 50);
+                return;
+            }
+
+            container.innerHTML = '';
+
+            pedidos.forEach(order => {
+                if (order.status === 'cancelado') return; // Oculta cancelados
+
+                const dataObj = new Date(order.created_at);
+                const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                const horaFormatada = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                let isEncomenda = order.address && order.address.includes('[📅 ENCOMENDA:');
+                let tagEncomendaHtml = '';
+
+                if (isEncomenda) {
+                    const match = order.address.match(/\[📅 ENCOMENDA: (.*?)\]/);
+                    const dataHora = match ? match[1] : "Futura";
+                    tagEncomendaHtml = `
+                    <div class="encomenda-banner p-3 rounded-xl mb-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] font-black uppercase text-orange-600 tracking-widest">Retirada Agendada</p>
+                            <p class="text-sm font-bold text-gray-800 dark:text-orange-900">${dataHora}</p>
+                        </div>
+                        <i class="far fa-calendar-check text-2xl text-orange-400 opacity-50"></i>
+                    </div>`;
+                }
+
+                const { flow, currentIdx, progress } = getStatusInfo(order.status, isEncomenda);
+                const isActive = order.status !== 'entregue';
+
+                // --- NOVO SISTEMA BLINDADO PARA LER ITENS ---
+                let itensHtml = '';
+                try {
+                    let itemsData = order.items;
+
+                    // Tratamento seguro de conversão
+                    if (typeof itemsData === 'string') {
+                        try { itemsData = JSON.parse(itemsData); } catch (e) { }
+                    }
+                    if (typeof itemsData === 'string') {
+                        try { itemsData = JSON.parse(itemsData); } catch (e) { }
+                    }
+
+                    if (Array.isArray(itemsData)) {
+                        // Formato Novo (Checkout)
+                        itemsData.forEach(item => {
+                            if (item && typeof item === 'object' && !Array.isArray(item)) {
+                                let nome = item.produto || item.name;
+                                let q = item.qtd || 1;
+
+                                // Garante que o nome é uma string, não um objeto
+                                if (typeof nome === 'object' || String(nome).includes('object Object')) {
+                                    nome = 'Item do Pedido';
+                                }
+
+                                itensHtml += `<li class="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400 py-1.5 border-b border-dashed border-gray-100 dark:border-gray-700/50 last:border-0"><span><strong class="text-gray-800 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded mr-1">${q}x</strong> ${nome}</span></li>`;
+                            }
+                        });
+                    } else if (typeof itemsData === 'object' && itemsData !== null) {
+                        // Formato Antigo (Mapeamento de IDs)
+                        for (const [key, value] of Object.entries(itemsData)) {
+                            // Ignora chaves estranhas que o sistema antigo possa ter gerado
+                            if (String(key).includes('object Object') || String(value).includes('object Object')) {
+                                continue;
+                            }
+
+                            let nomeProd = mapProdutos[key] || 'Item Legado';
+                            let q = value;
+
+                            itensHtml += `<li class="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400 py-1.5 border-b border-dashed border-gray-100 dark:border-gray-700/50 last:border-0"><span><strong class="text-gray-800 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded mr-1">${q}x</strong> ${nomeProd}</span></li>`;
+                        }
+                    }
+
+                    if (itensHtml === '') {
+                        itensHtml = '<li class="text-xs text-gray-500 py-1">Sem itens registrados para este pedido.</li>';
+                    }
+
+                } catch (e) {
+                    console.error("Falha ao analisar itens do pedido", order.id, e);
+                    itensHtml = '<li class="text-xs text-red-500 py-1">Não foi possível carregar os itens.</li>';
+                }
+
+                // --- ESTRUTURA DA BARRA DE PROGRESSO CORRIGIDA ---
+                const html = `
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-4 animate-up">
+                    
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${dataFormatada}</p>
+                            <h3 class="text-sm font-black text-gray-800 dark:text-white">Pedido #${order.id.slice(0, 6).toUpperCase()}</h3>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-gray-400 uppercase font-bold">Total</p>
+                            <p class="text-base font-black text-green-600 dark:text-green-400">R$ ${parseFloat(order.total_amount).toFixed(2)}</p>
+                        </div>
+                    </div>
+
+                    ${tagEncomendaHtml}
+
+                    <div class="relative w-full mt-4 mb-6 ${!isActive ? 'opacity-50 grayscale' : ''}">
+                        
+                        <div class="absolute top-[8px] left-[10%] right-[10%] h-[4px] bg-gray-200 dark:bg-gray-700 z-0 rounded-full">
+                             <div class="h-full bg-orange-500 z-0 transition-all duration-700 rounded-full" style="width: ${progress}%;"></div>
+                        </div>
+                        
+                        <div class="flex justify-between relative z-10 w-full">
+                            ${flow.map((step, idx) => `
+                                <div class="flex flex-col items-center w-1/4">
+                                    <div class="w-[20px] h-[20px] rounded-full border-[3px] border-white dark:border-gray-800 ${idx <= currentIdx ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'} transition-colors duration-500 shadow-sm mb-1.5 flex-shrink-0"></div>
+                                    <span class="text-[9px] font-bold ${idx === currentIdx ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400 dark:text-gray-500'} uppercase text-center w-[120%] leading-tight">${step.label}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl mb-4 mt-2">
+                        <ul class="space-y-1">${itensHtml}</ul>
+                    </div>
+
+                    <div class="flex gap-2">
+                        ${isActive ? `
+                            <button onclick="abrirChat('${order.id}')" class="flex-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 py-3 rounded-xl font-bold text-xs hover:bg-orange-200 transition flex items-center justify-center gap-2 relative shadow-sm active:scale-95">
+                                <i class="fas fa-comments"></i> Falar com a Loja
+                                <span id="badge-${order.id}" class="chat-badge hidden"></span>
+                            </button>
+                        ` : `
+                            <button onclick="pedirNovamente('${order.id}')" class="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-3 rounded-xl font-bold text-xs hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md active:scale-95">
+                                <i class="fas fa-redo"></i> Pedir Novamente
+                            </button>
+                        `}
+                    </div>
+                </div>`;
+
+                container.innerHTML += html;
+            });
+        }
+
+        // --- SISTEMA DE CHAT ---
+        async function abrirChat(orderId) {
+            activeChatOrder = orderId;
+            document.getElementById('chat-order-id').innerText = `Pedido #${orderId.slice(0, 6).toUpperCase()}`;
+            document.getElementById('chat-modal').classList.remove('hidden');
+
+            // Animação de entrada suave
+            setTimeout(() => {
+                document.getElementById('chat-modal').classList.remove('opacity-0');
+                document.getElementById('chat-container').classList.remove('translate-y-full');
+            }, 10);
+
+            // Tira a bolinha vermelha se houver
+            document.getElementById(`badge-${orderId}`).classList.add('hidden');
+
+            await carregarMensagens();
+        }
+
+        function fecharChat() {
+            document.getElementById('chat-modal').classList.add('opacity-0');
+            document.getElementById('chat-container').classList.add('translate-y-full');
+            setTimeout(() => {
+                document.getElementById('chat-modal').classList.add('hidden');
+                activeChatOrder = null;
+            }, 300);
+        }
+
+        async function carregarMensagens() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '<div class="text-center text-gray-400 text-xs py-4"><i class="fas fa-spinner fa-spin"></i></div>';
+
+            const { data } = await _supabase.from('order_chats').select('*').eq('order_id', activeChatOrder).order('created_at', { ascending: true });
+
+            container.innerHTML = '';
+            if (data && data.length > 0) {
+                data.forEach(msg => {
+                    const isMe = msg.sender_type === 'client';
+                    const alignClass = isMe ? 'self-end' : 'self-start';
+                    const bgClass = isMe ? 'bg-orange-600 text-white rounded-l-2xl rounded-tr-2xl' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-r-2xl rounded-tl-2xl';
+
+                    let content = msg.message;
+                    if (content.includes('/storage/')) {
+                        content = `<a href="${content}" target="_blank" class="underline font-bold flex items-center gap-1"><i class="fas fa-image"></i> Ver Anexo</a>`;
+                    }
+
+                    container.innerHTML += `
+                        <div class="flex flex-col ${alignClass} max-w-[80%]">
+                            <div class="${bgClass} px-4 py-2 text-sm shadow-sm">
+                                ${content}
+                            </div>
+                            <span class="text-[9px] text-gray-400 mt-1 ${isMe ? 'text-right' : 'text-left'}">${new Date(msg.created_at).toLocaleTimeString().slice(0, 5)}</span>
+                        </div>
+                    `;
+                });
+                container.scrollTop = container.scrollHeight;
+            } else {
+                container.innerHTML = '<div class="text-center text-gray-400 text-xs py-10">Envie a primeira mensagem.</div>';
+            }
+        }
+
+        async function enviarMensagem() {
+            const input = document.getElementById('chat-input');
+            const fileInput = document.getElementById('chat-file');
+            const text = input.value.trim();
+            const file = fileInput.files[0];
+
+            if (!text && !file) return;
+
+            let finalMessage = text;
+
+            try {
+                if (file) {
+                    const fileName = `chat_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+                    await _supabase.storage.from('imagens').upload(`chat/${fileName}`, file);
+                    const { data } = _supabase.storage.from('imagens').getPublicUrl(`chat/${fileName}`);
+                    finalMessage = data.publicUrl;
+                }
+
+                await _supabase.from('order_chats').insert([{
+                    order_id: activeChatOrder,
+                    sender_type: 'client',
+                    message: finalMessage
+                }]);
+
+                input.value = '';
+                fileInput.value = '';
+                document.getElementById('file-indicator').classList.add('hidden');
+                carregarMensagens();
+
+            } catch (err) {
+                Swal.fire('Erro', 'Falha ao enviar mensagem', 'error');
+            }
+        }
+
+        document.getElementById('chat-file').addEventListener('change', function () {
+            if (this.files.length > 0) document.getElementById('file-indicator').classList.remove('hidden');
+            else document.getElementById('file-indicator').classList.add('hidden');
+        });
+
+        // --- TEMPO REAL E UTILITÁRIOS ---
+        function inscreverTempoReal() {
+            // Escuta mudanças de status no pedido
+            _supabase.channel('public:orders').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${currentUser.id}` }, payload => {
+                // Recarrega a tela para a barra de progresso andar sozinha
+                initPedidos();
+            }).subscribe();
+
+            // Escuta novas mensagens da loja
+            _supabase.channel('public:order_chats').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_chats' }, payload => {
+                if (payload.new.sender_type === 'admin') {
+                    if (activeChatOrder === payload.new.order_id) {
+                        carregarMensagens(); // Se o chat estiver aberto, atualiza a tela
+                    } else {
+                        // Se o chat estiver fechado, mostra a bolinha vermelha e toca um som
+                        const badge = document.getElementById(`badge-${payload.new.order_id}`);
+                        if (badge) {
+                            badge.classList.remove('hidden');
+                            if (window.navigator && window.navigator.vibrate) navigator.vibrate(200);
+                        }
+                    }
+                }
+            }).subscribe();
+        }
+
+        function pedirNovamente(orderId) {
+            // Função bônus para o futuro! Adiciona os itens antigos no carrinho local e joga pro index.
+            Swal.fire('Em breve', 'A função de repetir pedido estará disponível na próxima atualização!', 'info');
+        }
+
         initPedidos();
     </script>
 </body>
+
 </html>
