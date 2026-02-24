@@ -27,6 +27,12 @@
     </script>
 
     <style>
+        /* Área segura para celulares modernos (Notch) */
+        header {
+            padding-top: max(env(safe-area-inset-top), 1rem) !important;
+            min-height: calc(4rem + env(safe-area-inset-top));
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
             -webkit-tap-highlight-color: transparent;

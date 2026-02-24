@@ -89,7 +89,19 @@ window.iniciarCamaleao = async function () {
         // --- INJETANDO A COR E NOME NO SITE ---
         // Muda a variável CSS no documento
         document.documentElement.style.setProperty('--cor-primaria', config.cor_primaria);
+        // Pega a cor de onde ela estiver disponível no seu script
+        const corParaBarra = (typeof loja !== 'undefined' ? loja.cor_primaria :
+            typeof config !== 'undefined' ? config.cor_primaria :
+                typeof lojaConfig !== 'undefined' ? lojaConfig.cor_primaria : '#ea580c');
 
+        // --- PINTAR A BARRA DE STATUS DO CELULAR ---
+        let metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (!metaTheme) {
+            metaTheme = document.createElement('meta');
+            metaTheme.name = "theme-color";
+            document.head.appendChild(metaTheme);
+        }
+        metaTheme.setAttribute('content', corParaBarra);
         // Atualiza título da aba do navegador
         document.title = `${config.nome_loja} - Cardápio`;
 

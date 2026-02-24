@@ -39,6 +39,12 @@
     </script>
 
     <style>
+        /* Área segura para celulares modernos (Notch) */
+        header {
+            padding-top: max(env(safe-area-inset-top), 1rem) !important;
+            min-height: calc(4rem + env(safe-area-inset-top));
+        }
+
         /* --- RESET GERAL --- */
         body {
             font-family: 'Segoe UI', sans-serif;
