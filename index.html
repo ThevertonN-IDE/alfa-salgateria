@@ -504,24 +504,21 @@
 
                         // 📡 RADAR EM TEMPO REAL: Escuta mudanças nos pedidos deste cliente!
                         _supabase.channel(`cliente-orders-${u.id}`)
-                            .on('postgres_changes', {
-                                event: 'UPDATE',
-                                schema: 'public',
-                                table: 'orders',
-                                filter: `user_id=eq.${u.id}`
+                            .on('postgres_changes', { 
+                                event: 'UPDATE', 
+                                schema: 'public', 
+                                table: 'orders', 
+                                filter: `user_id=eq.${u.id}` 
                             }, payload => {
-                                const statusAntigo = payload.old.status;
                                 const statusNovo = payload.new.status;
 
-                                // Se o status mudou, disparamos a notificação!
-                                if (statusAntigo !== statusNovo) {
-                                    dispararNotificacao(statusNovo, payload.new.id);
-                                    checkPedidos(u.id); // Atualiza a bolinha vermelha
-
-                                    // Se a tela de "Meus Pedidos" estiver aberta, recarrega a lista
-                                    if (!document.getElementById('modal-meus-pedidos').classList.contains('hidden')) {
-                                        abrirMeusPedidos();
-                                    }
+                                // Dispara a notificação imediatamente com o novo status
+                                dispararNotificacao(statusNovo, payload.new.id);
+                                checkPedidos(u.id);
+                                
+                                // Se a tela de "Meus Pedidos" estiver aberta, recarrega a lista sozinha!
+                                if (!document.getElementById('modal-meus-pedidos').classList.contains('hidden')) {
+                                    abrirMeusPedidos(); 
                                 }
                             })
                             .subscribe();
