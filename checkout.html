@@ -407,8 +407,23 @@
         let dadosAgendamento = null; // Guarda a data/hora da encomenda
 
         function aplicarTema() {
-            if (localStorage.getItem('tema') === 'dark') document.documentElement.classList.add('dark');
-            else document.documentElement.classList.remove('dark');
+            const html = document.documentElement;
+            const isDark = localStorage.getItem('tema') === 'dark';
+
+            if (isDark) html.classList.add('dark');
+            else html.classList.remove('dark');
+
+            // Atualiza a barra de status do celular
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!metaTheme) {
+                metaTheme = document.createElement('meta');
+                metaTheme.name = "theme-color";
+                document.head.appendChild(metaTheme);
+            }
+
+            // Puxa a cor exata do CSS (Motor Camaleão) ou fica cinza escuro no Dark Mode
+            const corPrimaria = getComputedStyle(html).getPropertyValue('--cor-primaria').trim() || '#ea580c';
+            metaTheme.setAttribute('content', isDark ? '#111827' : corPrimaria);
         }
         aplicarTema();
 

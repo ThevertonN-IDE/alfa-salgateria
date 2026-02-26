@@ -12,6 +12,56 @@
     <script src="data.js"></script>
     <script src="utils.js"></script>
     <style>
+        /* INJEÇÃO DE TEMA ESCURO NO DASHBOARD */
+        html.dark body {
+            background-color: #020617;
+            color: #f1f5f9;
+        }
+
+        html.dark header,
+        html.dark .bg-white {
+            background-color: #0f172a !important;
+            border-color: #1e293b !important;
+            color: #f1f5f9;
+        }
+
+        html.dark h1,
+        html.dark h2,
+        html.dark h3,
+        html.dark h4,
+        html.dark p,
+        html.dark span,
+        html.dark td,
+        html.dark th {
+            color: #e2e8f0 !important;
+        }
+
+        html.dark .text-gray-500,
+        html.dark .text-gray-400 {
+            color: #94a3b8 !important;
+        }
+
+        html.dark .border-gray-100,
+        html.dark .border-gray-200 {
+            border-color: #1e293b !important;
+        }
+
+        html.dark .bg-gray-50 {
+            background-color: #1e293b !important;
+        }
+
+        html.dark .tab-link.active {
+            border-color: #c084fc;
+            color: #c084fc !important;
+        }
+
+        html.dark .date-input {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: white;
+            color-scheme: dark;
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
             background: #f8fafc;
@@ -144,14 +194,14 @@
             class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-5">
             <div class="flex gap-2 flex-wrap">
                 <button onclick="filtrarPeriodoRapido('hoje', this)"
-                    class="filter-btn active bg-purple-600 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md">Hoje</button>
+                    class="filter-btn active bg-purple-600 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md border border-purple-600">Hoje</button>
                 <button onclick="filtrarPeriodoRapido('ontem', this)"
-                    class="filter-btn bg-gray-50 text-gray-500 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-100 transition border border-gray-200">Ontem</button>
+                    class="filter-btn bg-purple-50 text-purple-600 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-purple-100 transition border border-purple-200">Ontem</button>
                 <button onclick="filtrarPeriodoRapido('semana', this)"
-                    class="filter-btn bg-gray-50 text-gray-500 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-100 transition border border-gray-200">7
+                    class="filter-btn bg-purple-50 text-purple-600 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-purple-100 transition border border-purple-200">7
                     Dias</button>
                 <button onclick="filtrarPeriodoRapido('mes', this)"
-                    class="filter-btn bg-gray-50 text-gray-500 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-100 transition border border-gray-200">Este
+                    class="filter-btn bg-purple-50 text-purple-600 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-purple-100 transition border border-purple-200">Este
                     Mês</button>
             </div>
 
@@ -373,14 +423,14 @@
         function limparFiltrosRapidos() {
             document.querySelectorAll('.filter-btn').forEach(b => {
                 b.classList.remove('bg-purple-600', 'text-white', 'active');
-                b.classList.add('bg-gray-50', 'text-gray-500');
+                b.classList.add('bg-purple-50', 'text-purple-600', 'border-purple-200');
             });
             periodoAtual = 'custom';
         }
 
         function filtrarPeriodoRapido(p, btn) {
             limparFiltrosRapidos();
-            btn.classList.remove('bg-gray-50', 'text-gray-500');
+            btn.classList.remove('bg-purple-50', 'text-purple-600', 'border-purple-200');
             btn.classList.add('bg-purple-600', 'text-white', 'active');
 
             // Limpa os inputs de data para não confundir o usuário
@@ -854,6 +904,20 @@
         document.addEventListener('DOMContentLoaded', () => {
             carregarRelatorios('hoje'); // Inicia carregando os dados de hoje
         });
+        function aplicarTemaAdmin() {
+            const isDark = localStorage.getItem('tema') === 'dark';
+            const html = document.documentElement;
+            if (isDark) html.classList.add('dark'); else html.classList.remove('dark');
+
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!metaTheme) {
+                metaTheme = document.createElement('meta');
+                metaTheme.name = "theme-color";
+                document.head.appendChild(metaTheme);
+            }
+            metaTheme.setAttribute('content', isDark ? '#020617' : '#ffffff');
+        }
+        aplicarTemaAdmin();
     </script>
 </body>
 

@@ -21,33 +21,104 @@
 
     <style>
         /* --- TEMA ESCCURO MELHORADO (Paleta Slate + Cores Limpas) --- */
+        /* --- TEMA ADAPTÁVEL (CLARO/ESCURO) --- */
         body {
             font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: #020617;
-            color: #f1f5f9;
+            background-color: #f8fafc;
+            /* Modo Claro */
+            color: #1e293b;
             overflow: hidden;
+            transition: background-color 0.3s;
         }
 
-        /* Fundo mais escuro (slate-950) */
+        html.dark body {
+            background-color: #020617;
+            color: #f1f5f9;
+        }
 
+        /* Scrollbars */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #0f172a;
+            background: #f1f5f9;
         }
 
-        /* slate-900 */
         ::-webkit-scrollbar-thumb {
-            background: #334155;
+            background: #cbd5e1;
             border-radius: 3px;
         }
 
-        /* slate-700 */
-        ::-webkit-scrollbar-thumb:hover {
+        html.dark ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        html.dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+
+        html.dark ::-webkit-scrollbar-thumb:hover {
             background: #475569;
+        }
+
+        /* Kanban Custom Colors */
+        .kanban-column {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+
+        html.dark .kanban-column {
+            background: #0f172a;
+            border-color: #1e293b;
+        }
+
+        .column-header {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        html.dark .column-header {
+            border-bottom-color: #1e293b;
+        }
+
+        .order-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+
+        html.dark .order-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        header {
+            background: #ffffff !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+
+        html.dark header {
+            background: #030712 !important;
+            border-bottom-color: #1f2937 !important;
+        }
+
+        header h1,
+        header span,
+        header .bg-gray-900 {
+            color: #1e293b !important;
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        html.dark header h1,
+        html.dark header span {
+            color: #ffffff !important;
+        }
+
+        html.dark header .bg-gray-900 {
+            background-color: #111827 !important;
+            border-color: #1f2937 !important;
+            color: #ffffff !important;
         }
 
         /* slate-600 */
@@ -1403,6 +1474,20 @@
             });
             updateCounters();
         }
+        function aplicarTemaAdmin() {
+            const isDark = localStorage.getItem('tema') === 'dark';
+            const html = document.documentElement;
+            if (isDark) html.classList.add('dark'); else html.classList.remove('dark');
+
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!metaTheme) {
+                metaTheme = document.createElement('meta');
+                metaTheme.name = "theme-color";
+                document.head.appendChild(metaTheme);
+            }
+            metaTheme.setAttribute('content', isDark ? '#020617' : '#ffffff');
+        }
+        aplicarTemaAdmin();
     </script>
 </body>
 

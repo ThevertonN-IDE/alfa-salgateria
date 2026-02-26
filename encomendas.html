@@ -261,7 +261,26 @@
         </div>
     </div>
     <script>
-        if (localStorage.getItem('tema') === 'dark') document.documentElement.classList.add('dark');
+        function aplicarTema() {
+            const html = document.documentElement;
+            const isDark = localStorage.getItem('tema') === 'dark';
+
+            if (isDark) html.classList.add('dark');
+            else html.classList.remove('dark');
+
+            // Atualiza a barra de status do celular
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!metaTheme) {
+                metaTheme = document.createElement('meta');
+                metaTheme.name = "theme-color";
+                document.head.appendChild(metaTheme);
+            }
+
+            // Puxa a cor exata do CSS (Motor Camaleão) ou fica cinza escuro no Dark Mode
+            const corPrimaria = getComputedStyle(html).getPropertyValue('--cor-primaria').trim() || '#ea580c';
+            metaTheme.setAttribute('content', isDark ? '#111827' : corPrimaria);
+        }
+        aplicarTema();
 
         let produtosEncomenda = [];
         let carrinhoEncomenda = {};
@@ -553,33 +572,33 @@
         // --- INTELIGÊNCIA DE AGENDAMENTO ---
         function configurarCalendario() {
             const inputData = document.getElementById('data-encomenda');
-            if(!inputData) return;
-            
+            if (!inputData) return;
+
             // Puxa o limite de dias do Admin (padrão é 30 se der erro)
             let diasMaximos = 30;
             if (configLoja && configLoja.schedule_config && configLoja.schedule_config.dias_maximos) {
                 diasMaximos = parseInt(configLoja.schedule_config.dias_maximos);
             }
-            
+
             const hoje = new Date();
             const yyyy = hoje.getFullYear();
             const mm = String(hoje.getMonth() + 1).padStart(2, '0');
             const dd = String(hoje.getDate()).padStart(2, '0');
             const hojeFormatado = `${yyyy}-${mm}-${dd}`;
-            
+
             const futura = new Date();
             futura.setDate(futura.getDate() + diasMaximos);
             const futuraFormatado = `${futura.getFullYear()}-${String(futura.getMonth() + 1).padStart(2, '0')}-${String(futura.getDate()).padStart(2, '0')}`;
-            
+
             inputData.min = hojeFormatado;
             inputData.max = futuraFormatado;
         }
 
-        window.atualizarHorarios = function() {
+        window.atualizarHorarios = function () {
             const selectHora = document.getElementById('hora-encomenda');
             const dataEscolhida = document.getElementById('data-encomenda').value;
-            
-            if(!dataEscolhida) {
+
+            if (!dataEscolhida) {
                 selectHora.innerHTML = '<option value="">Selecione a data...</option>';
                 selectHora.disabled = true;
                 return;
@@ -590,8 +609,8 @@
             let horaFim = "18:00";
             let antecedenciaHoras = 1;
             let diasAtivos = [0, 1, 2, 3, 4, 5, 6]; // Por padrão, aceita todos
-            
-            if(configLoja && configLoja.schedule_config) {
+
+            if (configLoja && configLoja.schedule_config) {
                 horaInicio = configLoja.schedule_config.inicio || "08:00";
                 horaFim = configLoja.schedule_config.fim || "18:00";
                 antecedenciaHoras = parseInt(configLoja.schedule_config.antecedencia) || 1;
@@ -618,31 +637,31 @@
             }
 
             selectHora.innerHTML = '<option value="">Selecione o horário...</option>';
-            
+
             let atual = new Date(`2000-01-01T${horaInicio}`);
             const limite = new Date(`2000-01-01T${horaFim}`);
 
             const hojeData = new Date();
-            const isHoje = dataEscolhida === `${hojeData.getFullYear()}-${String(hojeData.getMonth()+1).padStart(2,'0')}-${String(hojeData.getDate()).padStart(2,'0')}`;
+            const isHoje = dataEscolhida === `${hojeData.getFullYear()}-${String(hojeData.getMonth() + 1).padStart(2, '0')}-${String(hojeData.getDate()).padStart(2, '0')}`;
 
             while (atual <= limite) {
                 let h = String(atual.getHours()).padStart(2, '0');
                 let m = String(atual.getMinutes()).padStart(2, '0');
-                
+
                 if (isHoje) {
                     const agora = new Date();
                     const horaAgendamento = new Date();
                     horaAgendamento.setHours(atual.getHours(), atual.getMinutes(), 0);
-                    
-                    agora.setMinutes(agora.getMinutes() + (antecedenciaHoras * 60)); 
-                    
+
+                    agora.setMinutes(agora.getMinutes() + (antecedenciaHoras * 60));
+
                     if (horaAgendamento > agora) {
                         selectHora.innerHTML += `<option value="${h}:${m}">${h}:${m}</option>`;
                     }
                 } else {
                     selectHora.innerHTML += `<option value="${h}:${m}">${h}:${m}</option>`;
                 }
-                
+
                 atual.setMinutes(atual.getMinutes() + 30);
             }
 

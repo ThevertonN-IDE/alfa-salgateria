@@ -1,21 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt-br" class="">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ea580c">
     <title>Meu Perfil | Alfa Salgateria</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <script src="data.js"></script>
-    
+
     <script>
         tailwind.config = {
-            darkMode: 'class', 
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: { alfa: { 500: '#ea580c', 600: '#c2410c' } }
@@ -26,26 +27,47 @@
 
     <style>
         /* --- ESTILOS PADRÃO --- */
-        body { font-family: 'Segoe UI', 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        body {
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
 
         /* HEADER */
-        .header-bg { 
-            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); 
+        .header-bg {
+            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
             box-shadow: 0 4px 15px rgba(234, 88, 12, 0.25);
         }
-        .dark .header-bg { background: #1f2937; border-bottom: 1px solid #374151; box-shadow: none; }
+
+        .dark .header-bg {
+            background: #1f2937;
+            border-bottom: 1px solid #374151;
+            box-shadow: none;
+        }
 
         /* FUNDO */
-        .bg-body { background-color: #f8fafc; color: #1e293b; }
-        .dark .bg-body { background-color: #111827; color: #f3f4f6; }
+        .bg-body {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .dark .bg-body {
+            background-color: #111827;
+            color: #f3f4f6;
+        }
 
         .bg-pattern {
             background-image: radial-gradient(#ea580c 0.5px, transparent 0.5px);
             background-size: 24px 24px;
             opacity: 0.8;
         }
-        .dark .bg-pattern { background-image: none; }
+
+        .dark .bg-pattern {
+            background-image: none;
+        }
 
         /* INPUTS E SELECTS */
         .input-perfil {
@@ -53,27 +75,41 @@
             border: 1px solid #e2e8f0;
             color: #334155;
             transition: all 0.2s;
-            appearance: none; 
+            appearance: none;
         }
+
         .input-perfil:focus {
             border-color: #ea580c;
             box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
         }
+
         .dark .input-perfil {
             background-color: #1f2937;
             border-color: #374151;
             color: #ffffff;
         }
-        
+
         /* CARDS */
-        .card-bg { background-color: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .dark .card-bg { background-color: #1f2937; border-color: #374151; box-shadow: none; }
+        .card-bg {
+            background-color: #ffffff;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .card-bg {
+            background-color: #1f2937;
+            border-color: #374151;
+            box-shadow: none;
+        }
     </style>
 </head>
+
 <body class="bg-body bg-pattern transition-colors duration-300 flex flex-col min-h-screen">
 
-    <header class="header-bg text-white h-16 shadow-lg sticky top-0 z-50 flex items-center justify-between px-4 transition-colors">
-        <button onclick="window.location.href='index.html'" class="w-10 h-10 rounded-full bg-white text-orange-600 flex items-center justify-center shadow-md active:scale-95 transition">
+    <header
+        class="header-bg text-white h-16 shadow-lg sticky top-0 z-50 flex items-center justify-between px-4 transition-colors">
+        <button onclick="window.location.href='index.html'"
+            class="w-10 h-10 rounded-full bg-white text-orange-600 flex items-center justify-center shadow-md active:scale-95 transition">
             <i class="fas fa-arrow-left font-bold"></i>
         </button>
 
@@ -83,13 +119,15 @@
     </header>
 
     <main class="flex-grow p-6 w-full max-w-md mx-auto space-y-6">
-        
+
         <div class="flex flex-col items-center justify-center -mt-2">
             <div class="relative group">
-                <div id="avatar-container" class="w-28 h-28 rounded-full bg-white dark:bg-gray-800 p-1 shadow-xl border-2 border-orange-500 overflow-hidden flex items-center justify-center relative">
+                <div id="avatar-container"
+                    class="w-28 h-28 rounded-full bg-white dark:bg-gray-800 p-1 shadow-xl border-2 border-orange-500 overflow-hidden flex items-center justify-center relative">
                     <i class="fas fa-spinner fa-spin text-orange-500 text-2xl"></i>
                 </div>
-                <label class="absolute bottom-0 right-0 bg-orange-600 text-white w-9 h-9 rounded-full flex items-center justify-center shadow-lg cursor-pointer active:scale-95 transition hover:bg-orange-700 border-2 border-white dark:border-gray-900">
+                <label
+                    class="absolute bottom-0 right-0 bg-orange-600 text-white w-9 h-9 rounded-full flex items-center justify-center shadow-lg cursor-pointer active:scale-95 transition hover:bg-orange-700 border-2 border-white dark:border-gray-900">
                     <i class="fas fa-camera text-xs"></i>
                     <input type="file" id="input-avatar" accept="image/*" class="hidden" onchange="uploadAvatar()">
                 </label>
@@ -98,48 +136,59 @@
         </div>
 
         <div class="space-y-4">
-            
+
             <div class="card-bg p-5 rounded-3xl space-y-4">
                 <h3 class="text-xs font-black text-orange-500 uppercase tracking-widest mb-2">Dados Pessoais</h3>
-                
+
                 <div>
                     <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Nome Completo</label>
-                    <input type="text" id="nome" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="Seu nome">
+                    <input type="text" id="nome" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none"
+                        placeholder="Seu nome">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold mb-1 ml-1 opacity-70">E-mail</label>
-                    <input type="email" id="email" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="seu@email.com">
-                    <p class="text-[10px] text-gray-400 mt-1 ml-1"><i class="fas fa-info-circle"></i> A alteração requer confirmação no novo e-mail.</p>
+                    <input type="email" id="email"
+                        class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none"
+                        placeholder="seu@email.com">
+                    <p class="text-[10px] text-gray-400 mt-1 ml-1"><i class="fas fa-info-circle"></i> A alteração requer
+                        confirmação no novo e-mail.</p>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Telefone (Whatsapp)</label>
-                    <input type="tel" id="telefone" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none opacity-60 cursor-not-allowed" readonly>
+                    <input type="tel" id="telefone"
+                        class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none opacity-60 cursor-not-allowed"
+                        readonly>
                 </div>
             </div>
 
             <div class="card-bg p-5 rounded-3xl space-y-4">
                 <h3 class="text-xs font-black text-orange-500 uppercase tracking-widest mb-2">Endereço de Entrega</h3>
-                
+
                 <div class="grid grid-cols-[2fr_1fr] gap-3">
                     <div>
                         <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Logradouro</label>
-                        <input type="text" id="rua" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="Rua/Av">
+                        <input type="text" id="rua"
+                            class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none"
+                            placeholder="Rua/Av">
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Nº</label>
-                        <input type="text" id="numero" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="123">
+                        <input type="text" id="numero"
+                            class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="123">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Bairro</label>
                     <div class="relative">
-                        <select id="bairro" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none cursor-pointer">
+                        <select id="bairro"
+                            class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none cursor-pointer">
                             <option value="" disabled selected>Carregando bairros...</option>
                         </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                        <div
+                            class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                             <i class="fas fa-chevron-down text-xs"></i>
                         </div>
                     </div>
@@ -147,15 +196,19 @@
 
                 <div>
                     <label class="block text-xs font-bold mb-1 ml-1 opacity-70">Ponto de Referência</label>
-                    <input type="text" id="referencia" class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none" placeholder="Ex: Próximo à praça...">
+                    <input type="text" id="referencia"
+                        class="w-full px-4 py-3 rounded-xl input-perfil font-bold outline-none"
+                        placeholder="Ex: Próximo à praça...">
                 </div>
             </div>
 
-            <button onclick="salvarPerfil()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-black shadow-lg shadow-green-200/50 active:scale-95 transition uppercase tracking-wide flex items-center justify-center gap-2">
+            <button onclick="salvarPerfil()"
+                class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-black shadow-lg shadow-green-200/50 active:scale-95 transition uppercase tracking-wide flex items-center justify-center gap-2">
                 <i class="fas fa-save"></i> Salvar Alterações
             </button>
 
-            <button onclick="fazerLogout()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-500 border border-red-100 dark:border-red-900 py-3.5 rounded-2xl font-bold active:scale-95 transition hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center justify-center gap-2">
+            <button onclick="fazerLogout()"
+                class="w-full bg-red-50 dark:bg-red-900/20 text-red-500 border border-red-100 dark:border-red-900 py-3.5 rounded-2xl font-bold active:scale-95 transition hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center justify-center gap-2">
                 <i class="fas fa-sign-out-alt"></i> Sair da Conta
             </button>
 
@@ -169,9 +222,23 @@
         let authEmail = ''; // Armazena o email atual para comparação
 
         function aplicarTema() {
-            const tema = localStorage.getItem('tema');
-            if (tema === 'dark') document.documentElement.classList.add('dark');
-            else document.documentElement.classList.remove('dark');
+            const html = document.documentElement;
+            const isDark = localStorage.getItem('tema') === 'dark';
+
+            if (isDark) html.classList.add('dark');
+            else html.classList.remove('dark');
+
+            // Atualiza a barra de status do celular
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!metaTheme) {
+                metaTheme = document.createElement('meta');
+                metaTheme.name = "theme-color";
+                document.head.appendChild(metaTheme);
+            }
+
+            // Puxa a cor exata do CSS (Motor Camaleão) ou fica cinza escuro no Dark Mode
+            const corPrimaria = getComputedStyle(html).getPropertyValue('--cor-primaria').trim() || '#ea580c';
+            metaTheme.setAttribute('content', isDark ? '#111827' : corPrimaria);
         }
         aplicarTema();
 
@@ -181,16 +248,16 @@
             try {
                 // Busca da tabela delivery_fees coluna 'neighborhood'
                 const { data, error } = await _supabase.from('delivery_fees').select('*').order('neighborhood');
-                
+
                 select.innerHTML = '<option value="" disabled selected>Selecione seu bairro</option>';
-                
+
                 if (error) throw error;
 
                 if (data && data.length > 0) {
                     data.forEach(b => {
                         const opt = document.createElement('option');
-                        opt.value = b.neighborhood; 
-                        opt.innerText = b.neighborhood; 
+                        opt.value = b.neighborhood;
+                        opt.innerText = b.neighborhood;
                         select.appendChild(opt);
                     });
                 } else {
@@ -214,7 +281,7 @@
 
             const { data: u, error } = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
             if (error || !u) return;
-            
+
             user = u;
             renderizarDados();
         }
@@ -223,7 +290,7 @@
             document.getElementById('nome').value = user.name || '';
             document.getElementById('telefone').value = user.phone || '';
             document.getElementById('user-phone-display').innerText = user.phone || '';
-            document.getElementById('user-uid').innerText = user.id.slice(0,8);
+            document.getElementById('user-uid').innerText = user.id.slice(0, 8);
 
             const container = document.getElementById('avatar-container');
             if (user.avatar_url) {
@@ -236,15 +303,15 @@
             // Separar endereço
             if (user.address) {
                 const partes = user.address.split(',');
-                if(partes.length > 1) {
+                if (partes.length > 1) {
                     document.getElementById('rua').value = partes[0].trim();
-                    const resto = partes.slice(1).join(','); 
-                    
+                    const resto = partes.slice(1).join(',');
+
                     const partes2 = resto.split('-');
-                    if(partes2.length > 0) {
+                    if (partes2.length > 0) {
                         document.getElementById('numero').value = partes2[0].trim();
-                        
-                        if(partes2[1]) {
+
+                        if (partes2[1]) {
                             const bairroSalvo = partes2[1].trim();
                             const selectBairro = document.getElementById('bairro');
                             let achou = false;
@@ -255,7 +322,7 @@
                                     break;
                                 }
                             }
-                            if(!achou) {
+                            if (!achou) {
                                 const opt = document.createElement('option');
                                 opt.value = bairroSalvo;
                                 opt.innerText = bairroSalvo + " (Antigo)";
@@ -264,9 +331,9 @@
                             }
                         }
 
-                        if(partes2[2]) document.getElementById('referencia').value = partes2[2].replace(/\(|\)/g, '').trim();
+                        if (partes2[2]) document.getElementById('referencia').value = partes2[2].replace(/\(|\)/g, '').trim();
                     } else {
-                         document.getElementById('numero').value = resto.trim();
+                        document.getElementById('numero').value = resto.trim();
                     }
                 } else {
                     document.getElementById('rua').value = user.address;
@@ -326,16 +393,16 @@
             try {
                 const { error } = await _supabase.from('clients').update({ name: nome, address: enderecoCompleto }).eq('id', user.id);
                 if (error) throw error;
-                
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: 'Perfil Salvo!', 
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Perfil Salvo!',
                     html: 'Seus dados foram atualizados com sucesso.' + msgEmail,
-                    confirmButtonColor: '#ea580c' 
+                    confirmButtonColor: '#ea580c'
                 });
-                
+
                 // Atualiza o email de referência se não houve erro
-                if(novoEmail !== authEmail) authEmail = novoEmail;
+                if (novoEmail !== authEmail) authEmail = novoEmail;
 
             } catch (error) {
                 console.error(error);
@@ -352,4 +419,5 @@
         initPerfil();
     </script>
 </body>
+
 </html>
