@@ -820,9 +820,10 @@
                     icon: 'success',
                     title: 'Sucesso!',
                     text: 'Seu pedido foi recebido.',
-                    confirmButtonColor: '#ea580c'
+                    confirmButtonColor: 'var(--cor-primaria, #ea580c)'
                 });
-                window.location.href = 'index.html';
+                // AJUSTE: Redireciona para a tela de MEUS PEDIDOS mantendo o ID da loja
+                window.location.href = `meus-pedidos.html?loja=${window.LOJA_ID}`;
 
             } catch (err) {
                 console.error(err);

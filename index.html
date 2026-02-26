@@ -916,9 +916,20 @@
             else { s.classList.add('-translate-x-full'); o.classList.add('opacity-0'); setTimeout(() => o.classList.add('hidden'), 300); }
         }
         window.alternarTema = function () {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('tema', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-            document.getElementById('icon-tema').className = document.documentElement.classList.contains('dark') ? 'fas fa-sun text-yellow-400' : 'fas fa-moon text-purple-500';
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+
+            localStorage.setItem('tema', isDark ? 'dark' : 'light');
+            document.getElementById('icon-tema').className = isDark ? 'fas fa-sun text-yellow-400' : 'fas fa-moon text-purple-500';
+
+            // --- AJUSTE: COR DA BARRA DE STATUS DO CELULAR ---
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme) {
+                // Se for escuro, fica cinza escuro do Tailwind (#111827). Se for claro, pega a cor da loja atual.
+                const corParaBarra = isDark ? '#111827' : (typeof window.LOJA_CONFIG !== 'undefined' ? window.LOJA_CONFIG.cor_primaria : '#ea580c');
+                metaTheme.setAttribute('content', corParaBarra);
+            }
         }
         if (localStorage.getItem('tema') === 'dark') window.alternarTema();
 

@@ -17,13 +17,12 @@
 
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white pb-10 transition-colors duration-300">
 
-    <header
-        class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100 dark:border-gray-800 shadow-sm">
+    <header class="bg-primary text-white sticky top-0 z-40 shadow-md transition-colors">
         <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="perfil.html"
-                class="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition active:scale-95 shadow-sm border border-gray-100 dark:border-gray-700">
+            <button onclick="window.location.href='index.html?loja=' + window.LOJA_ID"
+                class="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition active:scale-95 shadow-sm">
                 <i class="fas fa-arrow-left"></i>
-            </a>
+            </button>
 
             <div class="flex flex-col items-center">
                 <img id="loja-logo-cliente" src="https://placehold.co/100?text=Logo"
@@ -110,6 +109,11 @@
         let activeChatOrder = null;
 
         async function initPedidos() {
+            // INICIA O MOTOR CAMALEÃO
+            if (typeof window.iniciarCamaleao === 'function') {
+                await window.iniciarCamaleao();
+            }
+
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'cliente-login.html'; return; }
             currentUser = session.user;
@@ -525,34 +529,45 @@
 
         // --- TEMPO REAL E UTILITÁRIOS ---
         function inscreverTempoReal() {
-            // Escuta mudanças de status no pedido
-            _supabase.channel('public:orders').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${currentUser.id}` }, payload => {
-                // Recarrega a tela para a barra de progresso andar sozinha
-                initPedidos();
-            }).subscribe();
+            // 1. Escuta mudanças de status no pedido (Isolado por Loja)
+            _supabase.channel(`orders-${window.LOJA_ID}-${currentUser.id}`)
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'orders',
+                    filter: `user_id=eq.${currentUser.id}`
+                }, payload => {
+                    // Recarrega a tela para a barra de progresso andar sozinha
+                    initPedidos();
+                }).subscribe();
 
-            // Escuta novas mensagens da loja
-            _supabase.channel('public:order_chats').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_chats' }, payload => {
-                if (payload.new.sender_type === 'admin') {
-                    if (activeChatOrder === payload.new.order_id) {
-                        carregarMensagens(); // Se o chat estiver aberto, atualiza a tela
-                    } else {
-                        // Se o chat estiver fechado, mostra a bolinha vermelha e toca um som
-                        const badge = document.getElementById(`badge-${payload.new.order_id}`);
-                        if (badge) {
-                            badge.classList.remove('hidden');
-                            if (window.navigator && window.navigator.vibrate) navigator.vibrate(200);
+            // 2. Escuta novas mensagens da loja no Chat
+            _supabase.channel(`chats-${window.LOJA_ID}-${currentUser.id}`)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'order_chats'
+                }, payload => {
+                    if (payload.new.sender_type === 'admin') {
+                        if (activeChatOrder === payload.new.order_id) {
+                            carregarMensagens(); // Se o chat estiver aberto, atualiza a tela
+                        } else {
+                            // Se o chat estiver fechado, mostra a bolinha vermelha e toca um som
+                            const badge = document.getElementById(`badge-${payload.new.order_id}`);
+                            if (badge) {
+                                badge.classList.remove('hidden');
+                                if (window.navigator && window.navigator.vibrate) navigator.vibrate(200);
+                            }
                         }
                     }
-                }
-            }).subscribe();
+                }).subscribe();
         }
 
         function pedirNovamente(orderId) {
-            // Função bônus para o futuro! Adiciona os itens antigos no carrinho local e joga pro index.
             Swal.fire('Em breve', 'A função de repetir pedido estará disponível na próxima atualização!', 'info');
         }
 
+        // Inicia tudo
         initPedidos();
     </script>
 </body>

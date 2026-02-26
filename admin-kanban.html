@@ -59,6 +59,7 @@
             height: calc(100vh - 4rem);
             overflow-x: auto;
             width: 100%;
+            scroll-behavior: smooth;
         }
 
         /* Colunas com fundo mais limpo e bordas sutis */
@@ -67,12 +68,29 @@
             display: flex;
             flex-direction: column;
             background: #0f172a;
-            /* slate-900 */
             border: 1px solid #1e293b;
-            /* slate-800 */
             border-radius: 12px;
             height: 100%;
             transition: all 0.3s ease;
+            scroll-snap-align: center;
+            /* Encaixe suave */
+        }
+
+        /* --- RESPONSIVIDADE CELULAR --- */
+        @media (max-width: 768px) {
+            .kanban-board {
+                scroll-snap-type: x mandatory;
+                /* Faz a coluna "colar" na tela */
+                padding-bottom: 2rem;
+                height: auto;
+                min-height: calc(100vh - 8rem);
+            }
+
+            .kanban-column {
+                flex: 0 0 88vw;
+                /* Ocupa 88% da tela, deixando a próxima coluna levemente à mostra */
+                height: 75vh;
+            }
         }
 
         .column-header {
@@ -264,8 +282,8 @@
     </div>
 
     <header
-        class="h-20 bg-gray-950 border-b border-gray-800 flex items-center justify-between px-8 shadow-2xl shrink-0 z-40">
-        <div class="flex items-center gap-6">
+        class="h-auto md:h-20 py-4 md:py-0 bg-gray-950 border-b border-gray-800 flex flex-col md:flex-row items-center justify-between px-4 md:px-8 shadow-2xl shrink-0 z-40 gap-4 md:gap-0">
+        <div class="flex items-center gap-4 md:gap-6 w-full md:w-auto justify-between md:justify-start">
             <button onclick="window.location.href='admin.html'"
                 class="w-12 h-12 rounded-xl bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:bg-gray-700 flex items-center justify-center transition shadow-lg group"
                 title="Voltar ao Painel Admin">
