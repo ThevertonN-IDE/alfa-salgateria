@@ -104,6 +104,23 @@
         </div>
     </div>
     <script>
+        // FORÇA O TEMA CORRETO E A BARRA DE STATUS LOGO AO ABRIR
+        function aplicarTema() {
+            const isDark = localStorage.getItem('tema') === 'dark';
+            const html = document.documentElement;
+            if (isDark) html.classList.add('dark'); else html.classList.remove('dark');
+            
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!metaTheme) {
+                metaTheme = document.createElement('meta');
+                metaTheme.name = "theme-color";
+                document.head.appendChild(metaTheme);
+            }
+            const corPrimaria = getComputedStyle(html).getPropertyValue('--cor-primaria').trim() || '#ea580c';
+            metaTheme.setAttribute('content', isDark ? '#111827' : corPrimaria);
+        }
+        aplicarTema();
+
         let mapProdutos = {};
         let currentUser = null;
         let activeChatOrder = null;

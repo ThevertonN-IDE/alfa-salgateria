@@ -492,6 +492,11 @@
                 // Pega as configurações da loja que o Camaleão já baixou (para saber se a loja está aberta/fechada)
                 if (window.LOJA_CONFIG) {
                     configLoja = window.LOJA_CONFIG;
+                    
+                    // REAPLICA A COR DA BARRA APÓS O CAMALEÃO CARREGAR (Evita piscar laranja no Tema Escuro)
+                    const isDark = document.documentElement.classList.contains('dark');
+                    let metaTheme = document.querySelector('meta[name="theme-color"]');
+                    if (metaTheme) metaTheme.setAttribute('content', isDark ? '#111827' : configLoja.cor_primaria);
                 }
 
                 // Verifica se o cliente está logado
