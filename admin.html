@@ -8,11 +8,35 @@
     <meta name="theme-color" content="#ea580c">
 
     <title>Alfa Admin | Painel de Controle Master</title>
+    <script>
+        (function () {
+            // 1. Previne o "piscar" de cor (usando o ID correto 'loja_atual_id')
+            const lojaId = new URLSearchParams(window.location.search).get('loja') || localStorage.getItem('loja_atual_id') || 'alfa';
+            const cachedRgb = localStorage.getItem(`tema_cor_${lojaId}`);
+            if (cachedRgb) document.documentElement.style.setProperty('--primary-rgb', cachedRgb);
 
+            // 2. NOVO: Previne o "flash branco" se o usuário estiver no Modo Escuro
+            const tema = localStorage.getItem('tema');
+            if (tema === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // A sintaxe <alpha-value> é o segredo do Tailwind para manipular opacidade!
+                        primary: 'rgb(var(--primary-rgb) / <alpha-value>)'
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <link rel="stylesheet" href="styles/variables.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -1034,7 +1058,7 @@
                     _supabase.from('store_config').select('*').eq('loja_id', window.LOJA_ID).single(), // Usamos .single() porque o ID é único
                     _supabase.from('delivery_fees').select('*').eq('loja_id', window.LOJA_ID).order('price'),
                     _supabase.from('coupons').select('*').eq('loja_id', window.LOJA_ID).order('code'),
-                    _supabase.from('clients').select('*').order('created_at', { ascending: false }) // Clientes podem ser globais
+                    _supabase.from('profiles').select('*').order('created_at', { ascending: false }) // Clientes podem ser globais
                 ]);
 
                 produtos = p.data || []; categorias = c.data || [];
@@ -1079,7 +1103,7 @@
         async function checkAuth() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'cliente-login.html'; return false; }
-            const { data: user } = await _supabase.from('clients').select('is_admin').eq('id', session.user.id).single();
+            const { data: user } = await _supabase.from('profiles').select('is_admin').eq('id', session.user.id).single();
             if (!user?.is_admin) { await Swal.fire("Acesso Negado", "Área restrita.", "warning"); window.location.href = 'index.html'; return false; }
             return true;
         }
@@ -1221,7 +1245,7 @@
         async function toggleClienteBloqueio() {
             const id = document.getElementById('cli-id-hidden').value;
             const v = document.getElementById('cli-blocked-toggle').checked;
-            await _supabase.from('clients').update({ is_blocked: v }).eq('id', id);
+            await _supabase.from('profiles').update({ is_blocked: v }).eq('id', id);
             const c = clientes.find(x => x.id === id);
             if (c) c.is_blocked = v;
             renderClientes();
@@ -1231,7 +1255,7 @@
             const id = document.getElementById('cli-id-hidden').value;
             const n = document.getElementById('cli-nome-edit').value;
             const p = document.getElementById('cli-phone-edit').value;
-            await _supabase.from('clients').update({ name: n, phone: p }).eq('id', id);
+            await _supabase.from('profiles').update({ name: n, phone: p }).eq('id', id);
             const c = clientes.find(x => x.id === id);
             if (c) { c.name = n; c.phone = p; }
             document.getElementById('cli-nome-header').innerText = n;

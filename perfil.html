@@ -6,10 +6,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ea580c">
     <title>Meu Perfil | Alfa Salgateria</title>
+    <script>
+        (function () {
+            // 1. Previne o "piscar" de cor (usando o ID correto 'loja_atual_id')
+            const lojaId = new URLSearchParams(window.location.search).get('loja') || localStorage.getItem('loja_atual_id') || 'alfa';
+            const cachedRgb = localStorage.getItem(`tema_cor_${lojaId}`);
+            if (cachedRgb) document.documentElement.style.setProperty('--primary-rgb', cachedRgb);
 
+            // 2. NOVO: Previne o "flash branco" se o usuário estiver no Modo Escuro
+            const tema = localStorage.getItem('tema');
+            if (tema === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // A sintaxe <alpha-value> é o segredo do Tailwind para manipular opacidade!
+                        primary: 'rgb(var(--primary-rgb) / <alpha-value>)'
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles/variables.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="data.js"></script>
@@ -279,7 +304,7 @@
 
             await carregarBairros();
 
-            const { data: u, error } = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
+            const { data: u, error } = await _supabase.from('profiles').select('*').eq('id', session.user.id).single();
             if (error || !u) return;
 
             user = u;
@@ -351,7 +376,7 @@
                 const { error: uploadError } = await _supabase.storage.from('imagens').upload(`avatars/${fileName}`, file);
                 if (uploadError) throw uploadError;
                 const { data } = _supabase.storage.from('imagens').getPublicUrl(`avatars/${fileName}`);
-                await _supabase.from('clients').update({ avatar_url: data.publicUrl }).eq('id', user.id);
+                await _supabase.from('profiles').update({ avatar_url: data.publicUrl }).eq('id', user.id);
                 user.avatar_url = data.publicUrl;
                 renderizarDados();
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Foto atualizada!', showConfirmButton: false, timer: 1500 });
@@ -391,7 +416,7 @@
             }
 
             try {
-                const { error } = await _supabase.from('clients').update({ name: nome, address: enderecoCompleto }).eq('id', user.id);
+                const { error } = await _supabase.from('profiles').update({ name: nome, address: enderecoCompleto }).eq('id', user.id);
                 if (error) throw error;
 
                 Swal.fire({

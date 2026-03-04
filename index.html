@@ -6,7 +6,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ea580c">
     <title>Alfa Salgateria | v1.4.0 Final</title>
+    <script>
+        (function () {
+            // 1. Previne o "piscar" de cor (usando o ID correto 'loja_atual_id')
+            const lojaId = new URLSearchParams(window.location.search).get('loja') || localStorage.getItem('loja_atual_id') || 'alfa';
+            const cachedRgb = localStorage.getItem(`tema_cor_${lojaId}`);
+            if (cachedRgb) document.documentElement.style.setProperty('--primary-rgb', cachedRgb);
+
+            // 2. NOVO: Previne o "flash branco" se o usuário estiver no Modo Escuro
+            const tema = localStorage.getItem('tema');
+            if (tema === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // A sintaxe <alpha-value> é o segredo do Tailwind para manipular opacidade!
+                        primary: 'rgb(var(--primary-rgb) / <alpha-value>)'
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles/variables.css">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -492,7 +518,7 @@
                 // Pega as configurações da loja que o Camaleão já baixou (para saber se a loja está aberta/fechada)
                 if (window.LOJA_CONFIG) {
                     configLoja = window.LOJA_CONFIG;
-                    
+
                     // REAPLICA A COR DA BARRA APÓS O CAMALEÃO CARREGAR (Evita piscar laranja no Tema Escuro)
                     const isDark = document.documentElement.classList.contains('dark');
                     let metaTheme = document.querySelector('meta[name="theme-color"]');
@@ -502,7 +528,7 @@
                 // Verifica se o cliente está logado
                 const { data: { session } } = await _supabase.auth.getSession();
                 if (session) {
-                    const { data: u } = await _supabase.from('clients').select('*').eq('id', session.user.id).single();
+                    const { data: u } = await _supabase.from('profiles').select('*').eq('id', session.user.id).single();
                     if (u) {
                         user = u;
                         window.updateUserUI(u);
