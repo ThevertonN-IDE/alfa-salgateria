@@ -1,0 +1,25 @@
+/* Arquivo: /styles/variables.css */
+
+:root {
+  /* Cores Padrão (Fallback da Alfa) */
+  --primary-color: #ea580c; 
+  --secondary-color: #ffffff;
+  --bg-app: #f8fafc;
+  --text-main: #1e293b;
+}
+
+/* Quando o usuário ativar a "Lua", as variáveis de fundo e texto mudam sozinhas! */
+html.dark {
+  --bg-app: #0f172a; /* slate-900 */
+  --text-main: #f1f5f9; /* slate-100 */
+}
+
+/* Exemplo de uso em componentes genéricos */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+}
+
+.status-bar-mobile {
+  background-color: var(--primary-color);
+}
