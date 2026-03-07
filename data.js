@@ -89,17 +89,40 @@ function aplicarConfiguracoesVisuais(config) {
         });
     }
 
+    // Dentro da função aplicarConfiguracoesVisuais(config)
+
     if (config.logo_url) {
-        document.querySelectorAll('.logo-loja-dinamica').forEach(img => {
-            img.src = config.logo_url;
-        });
-        let linkFavicon = document.querySelector("link[rel~='icon']");
-        if (!linkFavicon) {
-            linkFavicon = document.createElement('link');
-            linkFavicon.rel = 'icon';
-            document.head.appendChild(linkFavicon);
+        // 1. Defesa em Profundidade: Valida o protocolo da URL
+        const isSafeUrl = config.logo_url.startsWith('http') || config.logo_url.startsWith('data:image');
+
+        if (isSafeUrl) {
+            // 2. Preload Invisível (Evita o "piscar" e o CLS)
+            const imgPreload = new Image();
+            imgPreload.src = config.logo_url;
+
+            // 3. Só aplica no DOM se o download for um sucesso
+            imgPreload.onload = () => {
+                // Seleciona tanto as logos normais quanto a logo do loader de uma vez
+                document.querySelectorAll('.logo-loja-dinamica, #loader-logo').forEach(img => {
+                    img.src = config.logo_url;
+                });
+
+                // Atualiza o Favicon do navegador
+                let linkFavicon = document.querySelector("link[rel~='icon']");
+                if (!linkFavicon) {
+                    linkFavicon = document.createElement('link');
+                    linkFavicon.rel = 'icon';
+                    document.head.appendChild(linkFavicon);
+                }
+                linkFavicon.href = config.logo_url;
+            };
+
+            // 4. Sistema de Fallback (Se a imagem do Supabase Storage quebrar/sumir)
+            imgPreload.onerror = () => {
+                console.warn(`[Motor Camaleão] Falha ao carregar logo da loja ${config.nome_loja}. Mantendo Fallback Padrão.`);
+                // O sistema não faz nada. O HTML continuará exibindo a sua logo genérica (assets/default-logo.png)
+            };
         }
-        linkFavicon.href = config.logo_url;
     }
 
     // Efeito de App Nativo na Barra do Celular (Ajustado pro Modo Escuro)

@@ -5,227 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ea580c">
-    <title>Alfa Salgateria | v1.4.0 Final</title>
-    <script>
-        (function () {
-            // 1. Previne o "piscar" de cor (usando o ID correto 'loja_atual_id')
-            const lojaId = new URLSearchParams(window.location.search).get('loja') || localStorage.getItem('loja_atual_id') || 'alfa';
-            const cachedRgb = localStorage.getItem(`tema_cor_${lojaId}`);
-            if (cachedRgb) document.documentElement.style.setProperty('--primary-rgb', cachedRgb);
-
-            // 2. NOVO: Previne o "flash branco" se o usuário estiver no Modo Escuro
-            const tema = localStorage.getItem('tema');
-            if (tema === 'dark') document.documentElement.classList.add('dark');
-        })();
-    </script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        // A sintaxe <alpha-value> é o segredo do Tailwind para manipular opacidade!
-                        primary: 'rgb(var(--primary-rgb) / <alpha-value>)'
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="styles/variables.css">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    console.log('App PWA ativado!', reg.scope);
-                }).catch(err => {
-                    console.log('Falha no PWA:', err);
-                });
-            });
-        }
-    </script>
+    <title>Alfa App | High Performance</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script src="data.js"></script>
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    // Agora o Tailwind vai ler a cor que o data.js trouxer do banco
-                    colors: { primary: 'var(--cor-primaria, #ea580c)' },
-                    zIndex: { '100': '100', '110': '110' }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        /* Área segura para celulares modernos (Notch) */
-        header {
-            padding-top: max(env(safe-area-inset-top), 1rem) !important;
-            min-height: calc(4rem + env(safe-area-inset-top));
-        }
-
-        /* --- RESET GERAL --- */
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* --- HEADER GRADIENTE --- */
-        .header-bg {
-            background-color: var(--cor-primaria, #ea580c);
-        }
-
-        .dark .header-bg {
-            background: #1f2937;
-            border-bottom: 1px solid #374151;
-        }
-
-        /* --- PADRÃO DE FUNDO --- */
-        .bg-pattern-light {
-            background-color: #f8fafc;
-            background-image: radial-gradient(var(--cor-primaria, #ea580c) 0.5px, transparent 0.5px);
-            background-size: 24px 24px;
-            opacity: 1;
-        }
-
-        /* --- UTILITÁRIOS --- */
-        .glass {
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-
-        .animate-up {
-            animation: slideUp 0.3s ease-out forwards;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        /* --- CLASSES FORÇADAS (MODO CLARO) --- */
-        /* Garante que fique branco no modo claro */
-        .force-white-light {
-            background-color: #ffffff !important;
-            color: #1f2937 !important;
-        }
-
-        .dark .force-white-light {
-            background-color: #111827 !important;
-            color: #f3f4f6 !important;
-        }
-
-        /* --- COMBOS --- */
-        .radio-box:checked+div {
-            border-color: #ea580c;
-            background-color: #fff7ed;
-            color: #c2410c;
-        }
-
-        .radio-box:checked+div .check-icon {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .dark .radio-box:checked+div {
-            background-color: #431407;
-            border-color: #f97316;
-            color: #fdba74;
-        }
-
-        /* --- CHAT --- */
-        .msg-user {
-            background-color: #ea580c;
-            color: white;
-            border-radius: 12px 12px 0 12px;
-            margin-left: auto;
-            max-width: 85%;
-        }
-
-        .msg-admin {
-            background-color: #f3f4f6;
-            color: #374151;
-            border-radius: 12px 12px 12px 0;
-            margin-right: auto;
-            max-width: 85%;
-        }
-
-        .dark .msg-admin {
-            background-color: #374151;
-            color: white;
-        }
-
-        /* STICKY */
-        .sticky-cat {
-            position: sticky;
-            top: 64px;
-            z-index: 20;
-            background: rgba(255, 255, 255, 0.98);
-            border-bottom: 1px solid #ffedd5;
-        }
-
-        .dark .sticky-cat {
-            background: rgba(31, 41, 55, 0.98);
-            border-color: #374151;
-        }
-
-        /* Estilo para a opção selecionada */
-        .option-selected {
-            border-color: #f97316 !important;
-            /* Laranja do seu tema */
-            background-color: rgba(249, 115, 22, 0.15) !important;
-            /* Fundo laranja transparente */
-            box-shadow: 0 0 0 1px #f97316 !important;
-            /* Brilho na borda */
-            transform: translateY(-1px);
-            /* Leve subida para destaque */
-        }
-
-        /* Garante que a transição seja suave */
-        .option-card {
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-        }
-
-        /* --- ANIMAÇÃO DE MINIMIZAR CATEGORIAS --- */
-        .cat-content {
-            transition: all 0.3s ease-in-out;
-            transform-origin: top;
-        }
-
-        .cat-content.collapsed {
-            display: none !important;
-        }
-
-        .collapsed-icon {
-            transform: rotate(-90deg);
-        }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="./src/style/variables.css">
+    <link rel="stylesheet" href="./src/style/global.css">
 </head>
 
 <body
-    class="bg-pattern-light text-gray-800 transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
+    class="bg-[#f8fafc] text-gray-800 transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100 flex flex-col min-h-screen pb-20">
 
     <header class="header-bg text-white h-16 shadow-lg sticky top-0 z-50 flex items-center justify-between px-4">
-        <button onclick="toggleSidebar()"
+        <button data-action="toggle-sidebar"
             class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/20 transition active:scale-95">
             <i class="fas fa-bars text-xl"></i>
         </button>
@@ -233,26 +27,23 @@
         <div class="flex items-center gap-3">
             <div
                 class="w-10 h-10 bg-white rounded-full p-0.5 shadow-md overflow-hidden border-2 border-white/40 relative">
-                <img id="logo-header" src="" class="w-full h-full object-cover rounded-full hidden logo-loja-dinamica"
-                    onload="this.classList.remove('hidden'); document.getElementById('logo-fallback').classList.add('hidden');">
-                <div id="logo-fallback"
-                    class="w-full h-full flex items-center justify-center text-primary font-black text-[12px] bg-white absolute inset-0">
-                    <i class="fas fa-store"></i>
-                </div>
+                <img id="logo-header" src="./assets/default-logo.png"
+                    class="w-full h-full object-cover rounded-full logo-loja-dinamica"
+                    onerror="this.src='./assets/default-logo.png'">
             </div>
             <span
                 class="font-black text-lg tracking-tight uppercase text-shadow nome-loja-dinamico">Carregando...</span>
         </div>
 
         <div id="header-profile-area">
-            <button onclick="window.location.href='cliente-login.html'"
+            <button data-action="login-redirect"
                 class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center border border-white/30 text-white shadow-sm active:scale-95 transition">
                 <i class="fas fa-user"></i>
             </button>
         </div>
     </header>
 
-    <div id="sidebar-overlay" onclick="toggleSidebar()"
+    <div id="sidebar-overlay" data-action="toggle-sidebar"
         class="fixed inset-0 bg-black/60 z-[60] hidden transition-opacity opacity-0 backdrop-blur-sm"></div>
     <div id="sidebar"
         class="fixed inset-y-0 left-0 w-[85%] max-w-xs force-white-light z-[70] transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col border-r border-gray-200 dark:border-gray-800">
@@ -261,9 +52,8 @@
             <div class="flex items-center gap-4 mb-4">
                 <div
                     class="w-16 h-16 bg-white rounded-full p-0.5 overflow-hidden shadow-lg border-2 border-white/20 relative">
-                    <img id="logo-sidebar" src=""
-                        class="w-full h-full object-cover rounded-full hidden logo-loja-dinamica"
-                        onload="this.classList.remove('hidden')">
+                    <img id="logo-sidebar" src="./assets/default-logo.png"
+                        class="w-16 h-16 object-cover rounded-full logo-loja-dinamica border-2 border-white/20 shadow-lg">
                     <div
                         class="absolute inset-0 flex items-center justify-center text-primary font-black text-2xl bg-white">
                         <i class="fas fa-store"></i>
@@ -274,7 +64,7 @@
                     <p id="nome-cliente-sidebar" class="text-sm opacity-90 mt-1 font-medium">Visitante</p>
                 </div>
             </div>
-            <button id="btn-login-sidebar" onclick="window.location.href='cliente-login.html'"
+            <button id="btn-login-sidebar" data-action="login-redirect"
                 class="bg-white text-primary w-full py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-gray-50 transition uppercase">
                 Entrar / Cadastrar
             </button>
@@ -283,15 +73,15 @@
         <nav class="p-4 space-y-2 flex-grow overflow-y-auto">
             <div id="sidebar-user-links"
                 class="hidden space-y-2 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
-                <button id="btn-admin-panel" onclick="window.location.href='admin.html'"
+                <button id="btn-admin-panel" data-action="admin-redirect"
                     class="w-full flex items-center gap-4 p-3.5 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 transition font-bold text-sm hidden border border-purple-100 dark:border-purple-800">
                     <i class="fas fa-tools text-lg"></i> Painel Admin
                 </button>
-                <button onclick="window.location.href='perfil.html'"
+                <button data-action="profile-redirect"
                     class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-orange-50 dark:hover:bg-gray-800 transition font-bold text-sm">
                     <i class="fas fa-user-circle text-xl"></i> Meu Perfil
                 </button>
-                <button onclick="abrirMeusPedidos(); toggleSidebar()"
+                <button data-action="open-orders"
                     class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-orange-50 dark:hover:bg-gray-800 transition font-bold text-sm">
                     <div
                         class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-500 relative">
@@ -303,7 +93,7 @@
                 </button>
             </div>
 
-            <button onclick="window.location.href='encomendas.html'"
+            <button data-action="orders-redirect"
                 class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-blue-50 dark:hover:bg-gray-800 transition font-bold text-sm">
                 <div
                     class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-500">
@@ -311,7 +101,7 @@
                 </div>
                 Encomendas
             </button>
-            <button onclick="faleConosco()"
+            <button data-action="whatsapp-redirect"
                 class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-green-50 dark:hover:bg-gray-800 transition font-bold text-sm">
                 <div
                     class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-500">
@@ -319,7 +109,7 @@
                 </div>
                 Fale Conosco
             </button>
-            <button onclick="alternarTema()"
+            <button data-action="toggle-theme"
                 class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-purple-50 dark:hover:bg-gray-800 transition font-bold text-sm">
                 <div
                     class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-500">
@@ -327,9 +117,9 @@
                 </div>
                 Alterar Tema
             </button>
-            <button id="btn-logout" onclick="fazerLogout()"
+            <button id="btn-logout" data-action="logout"
                 class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition font-bold text-sm mt-4 border-t border-gray-100 dark:border-gray-700 hidden">
-                <i class="fas fa-sign-out-alt"></i> Sair da Conta
+                <i class="fas fa-sign-out-alt pointer-events-none"></i> Sair da Conta
             </button>
         </nav>
 
@@ -342,52 +132,15 @@
     <div class="px-5 py-3 force-white-light shadow-sm sticky top-16 z-30 transition-colors">
         <div class="relative group">
             <i class="fas fa-search absolute left-4 top-3.5 text-gray-400 text-sm"></i>
-            <input type="text" id="input-busca" onkeyup="filtrar(this.value)" placeholder="Buscar delícias..."
+            <input type="text" id="input-busca" placeholder="Buscar delícias..."
                 class="w-full pl-10 pr-10 py-3 bg-white dark:bg-gray-800 rounded-2xl outline-none font-bold text-sm text-gray-700 dark:text-white placeholder-gray-400 focus:ring-2 ring-orange-500 transition-all border border-gray-200 dark:border-gray-700 shadow-sm">
-            <button onclick="limparBusca()" id="btn-limpar-busca"
+            <button data-action="clear-search" id="btn-limpar-busca"
                 class="absolute right-3 top-3.5 text-gray-400 hover:text-orange-500 hidden p-1"><i
-                    class="fas fa-times"></i></button>
+                    class="fas fa-times pointer-events-none"></i></button>
         </div>
     </div>
 
-    <main class="p-5 space-y-8 flex-grow min-h-[50vh]">
-
-        <div id="skeleton" class="space-y-6 animate-pulse">
-            <div class="h-8 w-40 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-            <div class="h-28 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
-            <div class="h-28 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
-        </div>
-
-        <div id="vazio" class="hidden flex-col items-center justify-center text-center py-20 opacity-80 animate-up">
-            <div class="bg-orange-100 dark:bg-gray-800 p-5 rounded-full mb-4">
-                <i class="fas fa-search text-3xl text-orange-500"></i>
-            </div>
-            <p class="text-lg font-black text-gray-700 dark:text-white mb-2">Ops! Não encontramos <br> <span
-                    id="termo-buscado" class="text-primary"></span></p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 max-w-[250px]">Tente verificar a ortografia ou use
-                as categorias:</p>
-
-            <div id="lista-sugestoes" class="flex flex-wrap justify-center gap-2 max-w-sm">
-            </div>
-
-            <button onclick="limparBusca()"
-                class="mt-8 text-primary font-bold text-xs uppercase hover:underline tracking-wide">
-                Ver Todo o Cardápio
-            </button>
-        </div>
-
-        <div id="erro-conexao" class="hidden flex-col items-center justify-center text-center py-20">
-            <div
-                class="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4 text-red-500">
-                <i class="fas fa-wifi text-2xl"></i>
-            </div>
-            <p class="font-bold text-gray-700 dark:text-white">Falha ao carregar.</p>
-            <p id="error-msg" class="text-xs text-gray-500 mt-2 font-mono bg-red-50 p-2 rounded">...</p>
-            <button onclick="location.reload()"
-                class="mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-lg active:scale-95">Recarregar</button>
-        </div>
-        <div id="conteudo-cardapio"></div>
-    </main>
+    <main class="p-5 space-y-8 flex-grow" id="catalog-root"></main>
 
     <footer
         class="mt-auto py-8 text-center border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 glass">
@@ -398,7 +151,7 @@
 
     <div id="barra-pedido"
         class="fixed bottom-5 left-5 right-5 bg-gray-900 dark:bg-primary text-white p-4 rounded-3xl shadow-2xl z-30 hidden items-center justify-between transition-transform duration-300 translate-y-32 cursor-pointer active:scale-95 ring-4 ring-white dark:ring-gray-900"
-        onclick="abrirResumoPedido()">
+        data-action="open-cart">
         <div class="flex flex-col pl-2">
             <span class="text-[9px] opacity-70 uppercase tracking-widest font-bold">Total Estimado</span>
             <span id="total-barra" class="text-xl font-black">R$ 0,00</span>
@@ -411,11 +164,11 @@
 
     <div id="modal-resumo"
         class="fixed inset-0 bg-black/60 z-[100] hidden items-end transition-opacity opacity-0 backdrop-blur-sm"
-        onclick="if(event.target === this) fecharResumo()">
+        data-action="close-cart">
         <div class="force-white-light w-full rounded-t-[2.5rem] p-6 animate-up max-h-[90vh] flex flex-col shadow-2xl">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="font-black text-2xl">Carrinho</h3>
-                <button onclick="fecharResumo()"
+                <button data-action="close-cart"
                     class="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 transition hover:bg-gray-200"><i
                         class="fas fa-times"></i></button>
             </div>
@@ -427,10 +180,10 @@
                         0,00</span>
                 </div>
                 <div class="grid grid-cols-[1fr_2fr] gap-4">
-                    <button onclick="limparCarrinho()"
+                    <button data-action="clear-cart"
                         class="bg-red-50 dark:bg-red-900/20 text-red-500 py-4 rounded-2xl font-bold text-sm hover:bg-red-100 transition flex items-center justify-center gap-2"><i
                             class="fas fa-trash-alt"></i> Tudo</button>
-                    <button onclick="window.location.href='checkout.html'"
+                    <button data-action="checkout-redirect"
                         class="bg-green-600 text-white py-4 rounded-2xl font-black text-base shadow-xl shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition uppercase tracking-wide flex items-center justify-center gap-2">Finalizar
                         <i class="fas fa-arrow-right"></i></button>
                 </div>
@@ -442,648 +195,18 @@
         class="fixed inset-0 z-[100] bg-white dark:bg-gray-900 hidden flex-col animate-up transition-colors duration-300">
         <div
             class="force-white-light p-4 shadow-sm flex items-center gap-4 sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800">
-            <button onclick="document.getElementById('modal-meus-pedidos').classList.add('hidden')"
+            <button data-action="close-orders"
                 class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 transition text-gray-600 dark:text-gray-300"><i
                     class="fas fa-arrow-left"></i></button>
             <h2 class="font-black text-xl">Meus Pedidos</h2>
         </div>
         <div id="lista-pedidos" class="flex-grow overflow-y-auto p-5 space-y-4 custom-scroll force-white-light"></div>
     </div>
-
-    <div id="area-chat-pedido" class="fixed inset-0 z-[110] bg-gray-100 dark:bg-black hidden flex-col animate-in">
-        <div class="header-bg p-4 shadow-md flex items-center justify-between sticky top-0 z-10 text-white">
-            <button onclick="fecharChat()"
-                class="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center active:scale-90 transition hover:bg-gray-100 shadow-md">
-                <i class="fas fa-arrow-left font-bold"></i>
-            </button>
-
-            <div class="text-center text-white">
-                <h3 class="font-black text-sm uppercase tracking-wide text-white drop-shadow-md">PEDIDO #<span
-                        id="chat-id"></span></h3>
-                <span id="chat-status"
-                    class="text-[10px] bg-black/20 px-3 py-0.5 rounded-full font-bold uppercase tracking-wider text-white">...</span>
-            </div>
-
-            <button onclick="carregarChat()"
-                class="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center active:scale-90 transition hover:bg-white/30">
-                <i class="fas fa-sync-alt text-sm"></i>
-            </button>
-        </div>
-
-        <div id="chat-msgs"
-            class="flex-grow overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-gray-900 pb-24 custom-scroll"></div>
-
-        <div
-            class="p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 fixed bottom-0 w-full safe-area-bottom shadow-lg">
-            <div id="chat-preview" class="hidden mb-2 relative w-20 h-20 mx-auto animate-up">
-                <img id="chat-preview-img"
-                    class="w-full h-full object-cover rounded-xl border-2 border-orange-500 shadow-md">
-                <button onclick="limparPreview()"
-                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md border-2 border-white"><i
-                        class="fas fa-times"></i></button>
-            </div>
-            <div class="flex gap-2 items-end">
-                <label
-                    class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 flex items-center justify-center cursor-pointer hover:text-orange-500 transition flex-shrink-0 active:scale-95">
-                    <i class="fas fa-camera text-lg"></i>
-                    <input type="file" id="chat-file" accept="image/*" class="hidden" onchange="previewImg()">
-                </label>
-                <div class="flex-grow bg-gray-100 dark:bg-gray-700 rounded-2xl px-4 py-3 flex items-center">
-                    <textarea id="chat-text" rows="1"
-                        class="w-full bg-transparent outline-none text-sm resize-none max-h-24 dark:text-white text-gray-800"
-                        placeholder="Mensagem..."></textarea>
-                </div>
-                <button onclick="enviarMsg()"
-                    class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:bg-orange-700 transition flex-shrink-0 active:scale-95">
-                    <i class="fas fa-paper-plane text-xs"></i>
-                </button>
-            </div>
-        </div>
+    <div id="alfa-toast-container"
+        class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col items-center pointer-events-none">
     </div>
-
-    <script>
-        let carrinho = {}, prods = [], cats = [], configLoja = {}, user = null, chatId = null, chatImg = null;
-        const KEY_CART = 'carrinho_alfa_v10';
-
-        async function init() {
-            // INICIA O MOTOR CAMALEÃO E A TRAVA DA MENSALIDADE
-            if (typeof window.iniciarCamaleao === 'function') {
-                const lojaAtiva = await window.iniciarCamaleao();
-                if (!lojaAtiva) return; // Se a loja inativou ou não existe, para TUDO aqui!
-            }
-
-            try {
-                if (typeof _supabase === 'undefined') throw new Error("Supabase não carregado (Verifique data.js)");
-
-                // Pega as configurações da loja que o Camaleão já baixou (para saber se a loja está aberta/fechada)
-                if (window.LOJA_CONFIG) {
-                    configLoja = window.LOJA_CONFIG;
-
-                    // REAPLICA A COR DA BARRA APÓS O CAMALEÃO CARREGAR (Evita piscar laranja no Tema Escuro)
-                    const isDark = document.documentElement.classList.contains('dark');
-                    let metaTheme = document.querySelector('meta[name="theme-color"]');
-                    if (metaTheme) metaTheme.setAttribute('content', isDark ? '#111827' : configLoja.cor_primaria);
-                }
-
-                // Verifica se o cliente está logado
-                const { data: { session } } = await _supabase.auth.getSession();
-                if (session) {
-                    const { data: u } = await _supabase.from('profiles').select('*').eq('id', session.user.id).single();
-                    if (u) {
-                        user = u;
-                        window.updateUserUI(u);
-                        checkPedidos(u.id);
-
-                        // 🔔 Pede permissão para enviar Notificações no celular
-                        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-                            Notification.requestPermission();
-                        }
-
-                        // 📡 RADAR EM TEMPO REAL: Escuta mudanças nos pedidos deste cliente!
-                        _supabase.channel(`cliente-orders-${u.id}`)
-                            .on('postgres_changes', {
-                                event: 'UPDATE',
-                                schema: 'public',
-                                table: 'orders',
-                                filter: `user_id=eq.${u.id}`
-                            }, payload => {
-                                const statusNovo = payload.new.status;
-
-                                // Dispara a notificação imediatamente com o novo status
-                                dispararNotificacao(statusNovo, payload.new.id);
-                                checkPedidos(u.id);
-
-                                // Se a tela de "Meus Pedidos" estiver aberta, recarrega a lista sozinha!
-                                if (!document.getElementById('modal-meus-pedidos').classList.contains('hidden')) {
-                                    abrirMeusPedidos();
-                                }
-                            })
-                            .subscribe();
-                    }
-                }
-
-                // Carrega os produtos da loja atual
-                await loadData();
-
-                // Restaura o carrinho salvo
-                restoreCart();
-
-            } catch (e) {
-                console.error(e);
-                document.getElementById('skeleton').classList.add('hidden');
-                document.getElementById('erro-conexao').classList.remove('hidden');
-                document.getElementById('erro-conexao').classList.add('flex');
-            }
-        }
-        // --- SISTEMA DE NOTIFICAÇÕES NATIVAS ---
-        function dispararNotificacao(status, orderId) {
-            let titulo = "";
-            let mensagem = "";
-            let icone = "info"; // Para o SweetAlert
-
-            const idCurto = orderId.slice(0, 4).toUpperCase();
-
-            switch (status) {
-                case 'preparo':
-                    titulo = "👨‍🍳 Pedido Aceito!";
-                    mensagem = `Seu pedido #${idCurto} já está sendo preparado pela nossa cozinha!`;
-                    icone = "success";
-                    break;
-                case 'saiu_entrega':
-                    titulo = "🛵 Saiu para Entrega!";
-                    mensagem = `O entregador já está a caminho com o seu pedido #${idCurto}. Fique atento!`;
-                    icone = "info";
-                    break;
-                case 'entregue':
-                    titulo = "✅ Pedido Entregue";
-                    mensagem = `Pedido #${idCurto} finalizado. Bom apetite e muito obrigado!`;
-                    icone = "success";
-                    break;
-                case 'cancelado':
-                    titulo = "❌ Pedido Cancelado";
-                    mensagem = `Houve um problema e o pedido #${idCurto} foi cancelado. Confira o chat.`;
-                    icone = "error";
-                    break;
-                default:
-                    return; // Ignora se for 'pendente' ou algum erro
-            }
-
-            // 1. Alerta Bonito na Tela do App (Toast)
-            Swal.fire({
-                toast: true,
-                position: 'top',
-                icon: icone,
-                title: titulo,
-                text: mensagem,
-                showConfirmButton: false,
-                timer: 6000,
-                timerProgressBar: true,
-                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#1f2937'
-            });
-
-            // 2. Notificação Nativa do Celular (Aparece mesmo se o app estiver minimizado, dependendo do sistema)
-            // 2. Notificação forçada na BARRA DO SISTEMA via Service Worker (PWA)
-            if (Notification.permission === "granted") {
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.ready.then(function (registration) {
-                        registration.showNotification(titulo, {
-                            body: mensagem,
-                            icon: configLoja.logo_url || "https://placehold.co/192x192/ea580c/white?text=App",
-                            badge: configLoja.logo_url || "https://placehold.co/192x192/ea580c/white?text=App",
-                            vibrate: [200, 100, 200],
-                            tag: 'pedido-' + orderId, // Agrupa notificações do mesmo pedido
-                            requireInteraction: false
-                        });
-                    });
-                } else {
-                    // Fallback para PC se o PWA não estiver rodando
-                    new Notification(titulo, {
-                        body: mensagem,
-                        icon: configLoja.logo_url || "https://placehold.co/192x192/ea580c/white?text=App"
-                    });
-                }
-            }
-        }
-        window.updateUserUI = function (u) {
-            const btnLogin = document.getElementById('btn-login-sidebar');
-            if (btnLogin) btnLogin.outerHTML = '';
-            document.getElementById('nome-cliente-sidebar').innerText = u.name;
-            document.getElementById('sidebar-user-links').classList.remove('hidden');
-            document.getElementById('btn-logout').classList.remove('hidden');
-            if (u.is_admin) document.getElementById('btn-admin-panel').classList.remove('hidden');
-
-            const headerProfileDiv = document.getElementById('header-profile-area');
-            if (headerProfileDiv) {
-                if (u.avatar_url) {
-                    headerProfileDiv.innerHTML = `<button onclick="toggleSidebar()" class="w-10 h-10 rounded-full overflow-hidden border-2 border-white/50 active:scale-95 transition shadow-sm"><img src="${u.avatar_url}" class="w-full h-full object-cover"></button>`;
-                } else {
-                    const inicial = u.name ? u.name.charAt(0).toUpperCase() : '?';
-                    headerProfileDiv.innerHTML = `<button onclick="toggleSidebar()" class="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center font-black border-2 border-orange-200 shadow-md active:scale-95 transition text-lg">${inicial}</button>`;
-                }
-            }
-        }
-
-        window.fazerLogout = async function () {
-            await _supabase.auth.signOut();
-            localStorage.removeItem(KEY_CART);
-            window.location.reload();
-        }
-
-        async function loadData() {
-            const [cData, pData] = await Promise.all([
-                // Adicionamos o .eq('loja_id', window.LOJA_ID) nas duas linhas abaixo!
-                _supabase.from('categories').select('*').eq('loja_id', window.LOJA_ID).order('name'),
-                _supabase.from('products').select('*').eq('active', true).eq('loja_id', window.LOJA_ID).order('order_index')
-            ]);
-            cats = cData.data || [];
-            prods = pData.data || [];
-            document.getElementById('skeleton').classList.add('hidden');
-            render();
-        }
-
-        function render() {
-            const el = document.getElementById('conteudo-cardapio');
-            el.innerHTML = '';
-
-            if (!prods.length) {
-                document.getElementById('vazio').classList.remove('hidden');
-                return;
-            }
-
-            cats.forEach(cat => {
-                const itens = prods.filter(p => p.category_id === cat.id);
-                if (itens.length > 0) {
-                    const div = document.createElement('div');
-                    div.id = `cat-${cat.id}`;
-                    div.className = "mb-10 scroll-mt-24 group-cat";
-                    div.innerHTML = `
-                        <div onclick="toggleCat('${cat.id}')" class="sticky-cat py-4 px-5 mb-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center cursor-pointer rounded-2xl transition hover:shadow-md">
-                            <h2 class="text-sm font-black text-gray-800 dark:text-white uppercase tracking-widest flex items-center gap-3">
-                                <span class="w-1.5 h-5 bg-orange-500 rounded-full shadow-sm"></span> ${cat.name}
-                            </h2>
-                            <i id="icon-${cat.id}" class="fas fa-chevron-down text-gray-400 transition-transform duration-300"></i>
-                        </div>
-                        <div id="lista-${cat.id}" class="cat-content space-y-6">
-                            ${itens.map(p => htmlProduto(p)).join('')}
-                        </div>
-                    `;
-                    el.appendChild(div);
-                }
-            });
-        }
-
-        window.toggleCat = function (id) {
-            document.getElementById(`lista-${id}`).classList.toggle('collapsed');
-            document.getElementById(`icon-${id}`).classList.toggle('collapsed-icon');
-        }
-
-        function htmlProduto(p) {
-            const img = p.image_url || 'https://placehold.co/100?text=Foto';
-            let vars = [];
-            try { if (p.variants) vars = (typeof p.variants === 'string') ? JSON.parse(p.variants) : p.variants; } catch (e) { vars = []; }
-            const hasVar = Array.isArray(vars) && vars.length > 0;
-
-            let priceHTML = '', actionHTML = '', varsHTML = '';
-
-            if (hasVar) {
-                const min = Math.min(...vars.map(v => v.promo_price || v.price));
-                priceHTML = `<span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">A partir de <span class="text-primary dark:text-orange-500 font-black text-base">R$ ${min.toFixed(2)}</span></span>`;
-                actionHTML = `<button onclick="toggleCombo('${p.id}')" id="btn-combo-${p.id}" class="bg-white dark:bg-gray-700 text-primary dark:text-white px-4 py-2 rounded-xl text-xs font-bold uppercase hover:bg-orange-50 transition shadow-sm border border-orange-200 dark:border-gray-600">Ver Opções <i class="fas fa-chevron-down ml-1"></i></button>`;
-
-                let opts = vars.map((v, i) => {
-                    const price = v.promo_price || v.price;
-                    const oldP = v.promo_price ? `<span class="text-[10px] line-through text-gray-400 mr-2">R$${Number(v.price).toFixed(2)}</span>` : '';
-                    return `
-                    <label onclick="selecionarOpcao(this)" class="flex justify-between opcao-item items-center p-3.5 rounded-xl cursor-pointer relative overflow-hidden mb-2 transition hover:border-orange-200 group shadow-sm bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 radio-box">
-                        <input type="radio" name="v_${p.id}" value="${i}" class="peer sr-only radio-box">
-                        <span class="text-xs font-bold text-gray-700 dark:text-gray-300 z-10 flex items-center gap-2"><i class="fas fa-utensils opacity-50 text-[10px]"></i> ${v.qtd}</span>
-                        <div class="text-right z-10 flex items-center">${oldP}<span class="font-black text-sm text-gray-800 dark:text-white">R$ ${Number(price).toFixed(2)}</span></div>
-                        <i class="fas fa-check-circle text-orange-500 absolute right-3 opacity-0 transition transform scale-0 check-icon"></i>
-                    </label>`;
-                }).join('');
-                varsHTML = `<div id="area-${p.id}" class="hidden mt-4 pt-4 border-t border-dashed border-orange-200 dark:border-gray-700 animate-up"><p class="text-[10px] font-black text-gray-400 uppercase mb-3 ml-1 tracking-wider">Selecione:</p>${opts}<button onclick="addCombo('${p.id}')" class="w-full mt-4 bg-gray-900 dark:bg-primary text-white py-3.5 rounded-xl font-black text-xs shadow-lg active:scale-95 transition hover:bg-black uppercase tracking-wide flex items-center justify-center gap-2"><i class="fas fa-plus"></i> Adicionar</button></div>`;
-            } else {
-                const pr = p.on_sale ? p.sale_price : p.price;
-                const old = p.on_sale ? `<span class="text-[10px] text-gray-400 line-through mr-1">R$${p.price.toFixed(2)}</span>` : '';
-                priceHTML = `<div>${old}<span class="text-xl font-black text-primary dark:text-orange-500">R$ ${Number(pr).toFixed(2)}</span></div>`;
-                actionHTML = `<div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-xl p-1 shadow-inner border border-gray-200 dark:border-gray-600"><button onclick="add('${p.id}',-1)" class="w-9 h-9 flex items-center justify-center text-gray-400 font-bold hover:text-red-500 active:scale-90 transition rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">-</button><span id="qtd-${p.id}" class="w-8 text-center text-base font-bold dark:text-white">0</span><button onclick="add('${p.id}',1)" class="w-9 h-9 flex items-center justify-center bg-white dark:bg-gray-600 text-green-600 rounded-lg shadow-sm font-bold hover:bg-green-50 active:scale-90 transition">+</button></div>`;
-            }
-
-            return `
-                <div class="prod-card p-5 rounded-[2rem] relative overflow-hidden group prod-item bg-white dark:bg-gray-800" data-nome="${p.name.toLowerCase()}">
-                    <div class="flex gap-5 relative z-10">
-                        <div class="w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-2xl flex-shrink-0 overflow-hidden relative shadow-inner border border-gray-100 dark:border-gray-600">
-                            <img src="${img}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" onerror="this.src='https://placehold.co/100?text=Foto';">
-                            ${(p.on_sale && !hasVar) ? '<span class="absolute top-0 left-0 bg-red-500 text-white text-[8px] font-black px-2 py-1 rounded-br-xl shadow-sm uppercase tracking-wide">Oferta</span>' : ''}
-                        </div>
-                        <div class="flex-grow flex flex-col justify-between">
-                            <div><h3 class="font-black text-gray-800 dark:text-white text-base leading-tight mb-1">${p.name}</h3><p class="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed font-medium">${p.description || ''}</p></div>
-                            <div class="flex justify-between items-end mt-3">${priceHTML}${actionHTML}</div>
-                        </div>
-                    </div>
-                    ${varsHTML}
-                </div>
-            `;
-        }
-
-        window.toggleCombo = function (id) {
-            const area = document.getElementById(`area-${id}`);
-            const btn = document.getElementById(`btn-combo-${id}`);
-            area.classList.toggle('hidden');
-            if (area.classList.contains('hidden')) {
-                btn.innerHTML = `Ver Opções <i class="fas fa-chevron-down ml-1"></i>`;
-                btn.classList.remove('bg-orange-100', 'text-orange-700', 'border-orange-200');
-            } else {
-                btn.innerHTML = `Ocultar <i class="fas fa-chevron-up ml-1"></i>`;
-                btn.classList.add('bg-orange-100', 'text-orange-700', 'border-orange-200');
-            }
-        }
-
-        window.add = function (id, d) {
-            const k = String(id);
-            if (!carrinho[k]) carrinho[k] = 0; carrinho[k] += d;
-            if (carrinho[k] <= 0) delete carrinho[k];
-            const el = document.getElementById(`qtd-${id}`);
-            if (el) el.innerText = carrinho[k] || 0;
-            saveCart();
-            if (d > 0) Swal.fire({ toast: true, position: 'bottom', title: 'Item atualizado', icon: 'success', showConfirmButton: false, timer: 800, background: '#22c55e', color: 'white' });
-        }
-
-        window.addCombo = function (id) {
-            const r = document.querySelector(`input[name="v_${id}"]:checked`);
-            if (!r) return Swal.fire({ toast: true, title: 'Selecione uma opção', icon: 'warning', showConfirmButton: false, timer: 1500 });
-            const k = `${id}__${r.value}`;
-            if (!carrinho[k]) carrinho[k] = 0; carrinho[k]++;
-            Swal.fire({ toast: true, title: 'Adicionado!', icon: 'success', position: 'bottom', showConfirmButton: false, timer: 1000, background: '#22c55e', color: 'white' });
-            r.checked = false; toggleCombo(id);
-            saveCart();
-        }
-
-        function saveCart() { localStorage.setItem(KEY_CART, JSON.stringify(carrinho)); updateBar(); }
-        function restoreCart() {
-            const s = localStorage.getItem(KEY_CART);
-            if (s) {
-                try {
-                    carrinho = JSON.parse(s);
-                    for (const [k, v] of Object.entries(carrinho)) {
-                        if (!k.includes('__')) { const el = document.getElementById(`qtd-${k}`); if (el) el.innerText = v; }
-                    }
-                    updateBar();
-                } catch (e) { carrinho = {}; }
-            }
-        }
-
-        function updateBar() {
-            let t = 0, q = 0;
-            for (const [k, v] of Object.entries(carrinho)) {
-                const [pid, vIdx] = k.split('__');
-                const p = prods.find(x => String(x.id) === String(pid));
-                if (p) {
-                    let price = p.on_sale ? p.sale_price : p.price;
-                    if (vIdx !== undefined) {
-                        try { const vars = (typeof p.variants === 'string') ? JSON.parse(p.variants) : p.variants; if (vars[vIdx]) price = vars[vIdx].promo_price || vars[vIdx].price; } catch (e) { }
-                    }
-                    t += Number(price) * v; q += v;
-                }
-            }
-            const b = document.getElementById('barra-pedido');
-            if (q > 0) {
-                b.classList.remove('hidden'); setTimeout(() => b.classList.remove('translate-y-32'), 10);
-                document.getElementById('total-barra').innerText = `R$ ${t.toFixed(2).replace('.', ',')}`;
-                document.getElementById('qtd-badge').innerText = q;
-            } else { b.classList.add('translate-y-32'); setTimeout(() => b.classList.add('hidden'), 300); }
-        }
-
-        window.limparCarrinho = function () {
-            Swal.fire({ title: 'Limpar carrinho?', text: "Vai remover tudo.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ea580c', cancelButtonColor: '#d33', confirmButtonText: 'Sim' }).then((result) => {
-                if (result.isConfirmed) { carrinho = {}; localStorage.removeItem(KEY_CART); location.reload(); }
-            });
-        }
-
-        window.removerItem = function (key) {
-            delete carrinho[key];
-            saveCart();
-            if (Object.keys(carrinho).length === 0) window.fecharResumo();
-            else renderResumo();
-        }
-
-        window.abrirResumoPedido = function () {
-            if (configLoja && configLoja.is_open === false) return Swal.fire('Loja Fechada', 'Não aceitamos pedidos agora.', 'warning');
-            document.getElementById('modal-resumo').classList.remove('hidden'); document.getElementById('modal-resumo').classList.add('flex'); setTimeout(() => document.getElementById('modal-resumo').classList.remove('opacity-0'), 10); renderResumo();
-        }
-        window.fecharResumo = function () { document.getElementById('modal-resumo').classList.add('opacity-0'); setTimeout(() => { document.getElementById('modal-resumo').classList.add('hidden'); document.getElementById('modal-resumo').classList.remove('flex'); }, 300); }
-
-        function renderResumo() {
-            const l = document.getElementById('lista-itens-resumo'); l.innerHTML = ''; let t = 0;
-            for (const [k, q] of Object.entries(carrinho)) {
-                const [pid, vIdx] = k.split('__'); const p = prods.find(x => String(x.id) === String(pid));
-                if (p) {
-                    let n = p.name, pr = p.on_sale ? p.sale_price : p.price;
-                    if (vIdx !== undefined) { try { const vs = (typeof p.variants === 'string') ? JSON.parse(p.variants) : p.variants; if (vs[vIdx]) { n += ` (${vs[vIdx].qtd})`; pr = vs[vIdx].promo_price || vs[vIdx].price; } } catch (e) { } }
-                    const sub = Number(pr) * q; t += sub;
-                    l.innerHTML += `
-                    <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 animate-up">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-orange-100 text-primary w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-inner">${q}x</div>
-                            <p class="font-bold text-sm text-gray-700 dark:text-white">${n}</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <p class="font-black text-sm text-gray-800 dark:text-white">R$ ${sub.toFixed(2)}</p>
-                            <button onclick="removerItem('${k}')" class="w-8 h-8 bg-red-50 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center hover:bg-red-100 transition shadow-sm"><i class="fas fa-trash-alt text-xs"></i></button>
-                        </div>
-                    </div>`;
-                }
-            }
-            document.getElementById('total-resumo').innerText = `R$ ${t.toFixed(2).replace('.', ',')}`;
-        }
-
-        // --- FILTROS (LÓGICA CORRIGIDA) ---
-        window.filtrar = function (val) {
-            val = val.toLowerCase(); let found = false;
-            let visibleCount = 0;
-
-            document.querySelectorAll('.prod-item').forEach(el => {
-                const nomeProduto = el.getAttribute('data-nome');
-                if (nomeProduto && nomeProduto.includes(val)) {
-                    el.style.display = 'block';
-                    found = true;
-                    visibleCount++;
-                } else {
-                    el.style.display = 'none';
-                }
-            });
-
-            document.querySelectorAll('.group-cat').forEach(c => {
-                const visibleInCat = c.querySelectorAll('.prod-item[style="display: block;"]').length;
-                c.style.display = visibleInCat > 0 ? 'block' : 'none';
-            });
-
-            const v = document.getElementById('vazio');
-            const b = document.getElementById('btn-limpar-busca');
-            const termoSpan = document.getElementById('termo-buscado');
-            const listaSugestoes = document.getElementById('lista-sugestoes');
-
-            if (visibleCount === 0 && val.length > 0) {
-                v.classList.remove('hidden'); v.classList.add('flex');
-                termoSpan.innerText = `"${val}"`;
-
-                listaSugestoes.innerHTML = '';
-                cats.forEach(cat => {
-                    listaSugestoes.innerHTML += `
-                        <button onclick="buscarSugestao('${cat.name}')" 
-                                class="bg-white border border-gray-200 px-3 py-1 rounded-full text-xs text-gray-600 hover:border-orange-400 hover:text-primary transition shadow-sm mb-1 mr-1">
-                            ${cat.name}
-                        </button>
-                    `;
-                });
-            } else {
-                v.classList.add('hidden'); v.classList.remove('flex');
-            }
-
-            if (val.length > 0) b.classList.remove('hidden'); else b.classList.add('hidden');
-        }
-
-        window.buscarSugestao = function (termo) {
-            document.getElementById('input-busca').value = '';
-            window.limparBusca();
-            const cat = cats.find(c => c.name === termo);
-            if (cat) {
-                const el = document.getElementById(`cat-${cat.id}`);
-                if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    if (document.getElementById(`lista-${cat.id}`).classList.contains('collapsed')) {
-                        window.toggleCat(cat.id);
-                    }
-                }
-            }
-        }
-
-        window.limparBusca = function () { document.getElementById('input-busca').value = ''; window.filtrar(''); }
-
-        window.toggleSidebar = function () {
-            const s = document.getElementById('sidebar'); const o = document.getElementById('sidebar-overlay');
-            if (s.classList.contains('-translate-x-full')) { s.classList.remove('-translate-x-full'); o.classList.remove('hidden'); setTimeout(() => o.classList.remove('opacity-0'), 10); }
-            else { s.classList.add('-translate-x-full'); o.classList.add('opacity-0'); setTimeout(() => o.classList.add('hidden'), 300); }
-        }
-        window.alternarTema = function () {
-            const html = document.documentElement;
-            html.classList.toggle('dark');
-            const isDark = html.classList.contains('dark');
-
-            localStorage.setItem('tema', isDark ? 'dark' : 'light');
-            document.getElementById('icon-tema').className = isDark ? 'fas fa-sun text-yellow-400' : 'fas fa-moon text-purple-500';
-
-            // --- AJUSTE: COR DA BARRA DE STATUS DO CELULAR ---
-            let metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme) {
-                // Se for escuro, fica cinza escuro do Tailwind (#111827). Se for claro, pega a cor da loja atual.
-                const corParaBarra = isDark ? '#111827' : (typeof window.LOJA_CONFIG !== 'undefined' ? window.LOJA_CONFIG.cor_primaria : '#ea580c');
-                metaTheme.setAttribute('content', corParaBarra);
-            }
-        }
-        if (localStorage.getItem('tema') === 'dark') window.alternarTema();
-
-        // --- PEDIDOS (Z-INDEX CORRIGIDO) ---
-        window.abrirMeusPedidos = async function () {
-            if (!user) return window.location.href = 'cliente-login.html';
-            document.getElementById('modal-meus-pedidos').classList.remove('hidden'); document.getElementById('modal-meus-pedidos').classList.add('flex');
-            const l = document.getElementById('lista-pedidos');
-            l.innerHTML = '<div class="text-center mt-10"><i class="fas fa-spinner fa-spin text-orange-500 text-2xl"></i></div>';
-
-            const { data } = await _supabase.from('orders').select('*').eq('loja_id', window.LOJA_ID).eq('user_id', user.id).order('created_at', { ascending: false });
-            l.innerHTML = '';
-
-            if (!data || !data.length) {
-                l.innerHTML = '<div class="text-center py-10 opacity-60"><i class="fas fa-receipt text-4xl text-gray-300 mb-2"></i><p class="text-sm font-bold text-gray-500 mt-2">Nenhum pedido ainda.</p></div>';
-                return;
-            }
-
-            data.forEach(p => {
-                // Define a cor da badge e formata o texto dependendo do status
-                let stClass = 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
-                let stTexto = p.status;
-
-                if (p.status === 'pendente') {
-                    stClass = 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30';
-                } else if (p.status === 'preparo') {
-                    stClass = 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400 border border-sky-200 dark:border-sky-500/30';
-                } else if (p.status === 'saiu_entrega') {
-                    stClass = 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400 border border-violet-200 dark:border-violet-500/30';
-                    stTexto = 'saiu para entrega'; // Remove o underline para ficar mais bonito pro cliente
-                } else if (p.status === 'entregue') {
-                    stClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30';
-                } else if (p.status === 'cancelado') {
-                    stClass = 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30';
-                }
-
-                // Cria o card usando as novas variáveis de cor (stClass) e texto (stTexto)
-                l.innerHTML += `
-                <div onclick="abrirChat('${p.id}', '${p.status}')" class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm mb-4 cursor-pointer hover:border-orange-300 transition active:scale-95 text-gray-800 dark:text-white relative overflow-hidden group">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="font-bold text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">#${p.id.slice(0, 6).toUpperCase()}</span>
-                        <span class="${stClass} text-[9px] font-black px-2.5 py-1 rounded uppercase tracking-wider">${stTexto}</span>
-                    </div>
-                    <div class="flex justify-between items-end">
-                        <span class="text-xs text-gray-400 font-medium"><i class="far fa-calendar-alt mr-1"></i> ${new Date(p.created_at).toLocaleDateString()}</span>
-                        <span class="font-black text-xl text-gray-800 dark:text-white">R$ ${p.total_amount.toFixed(2)}</span>
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end text-xs font-bold text-orange-500 group-hover:text-primary transition">
-                        Ver Detalhes <i class="fas fa-chevron-right ml-1"></i>
-                    </div>
-                </div>`;
-            });
-        }
-
-        async function checkPedidos(uid) {
-            const { count } = await _supabase.from('orders').select('*', { count: 'exact', head: true }).eq('loja_id', window.LOJA_ID).eq('user_id', uid).neq('status', 'entregue').neq('status', 'cancelado');
-            const badge = document.getElementById('badge-pedidos-topo');
-            if (count > 0 && badge) {
-                badge.classList.remove('hidden');
-                badge.innerText = count;
-            }
-        }
-
-        window.faleConosco = function () { window.open('https://wa.me/5584987371966', '_blank'); }
-
-        window.abrirChat = async function (id, status) { chatId = id; document.getElementById('area-chat-pedido').classList.remove('hidden'); document.getElementById('area-chat-pedido').classList.add('flex'); document.getElementById('chat-id').innerText = id.slice(0, 6).toUpperCase(); document.getElementById('chat-status').innerText = status; window.carregarChat(); }
-        window.fecharChat = function () { document.getElementById('area-chat-pedido').classList.add('hidden'); document.getElementById('area-chat-pedido').classList.remove('flex'); chatId = null; }
-        window.carregarChat = async function () {
-            const div = document.getElementById('chat-msgs'); div.innerHTML = '<p class="text-center text-xs text-gray-400 py-4">Carregando...</p>';
-            const { data } = await _supabase.from('order_chats').select('*').eq('order_id', chatId).order('created_at', { ascending: true });
-            div.innerHTML = '';
-            if (data) { data.forEach(m => { const me = m.sender_type === 'client'; const img = m.image_url ? `<img src="${m.image_url}" class="rounded-xl mb-1 max-w-[200px] border border-white/20 shadow-sm cursor-pointer" onclick="window.open(this.src)">` : ''; div.innerHTML += `<div class="w-fit p-3 text-xs font-medium ${me ? 'msg-user' : 'msg-admin'} shadow-sm mb-2 animate-up">${img}${m.message || ''}<span class="text-[8px] opacity-60 block text-right mt-1">${new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>`; }); div.scrollTop = div.scrollHeight; }
-        }
-        window.previewImg = function () { const f = document.getElementById('chat-file').files[0]; if (f) { chatImg = f; const r = new FileReader(); r.onload = e => { document.getElementById('chat-preview-img').src = e.target.result; document.getElementById('chat-preview').classList.remove('hidden'); }; r.readAsDataURL(f); } }
-        window.limparPreview = function () { chatImg = null; document.getElementById('chat-file').value = ''; document.getElementById('chat-preview').classList.add('hidden'); }
-        window.enviarMsg = async function () {
-            const txt = document.getElementById('chat-text').value.trim(); if (!txt && !chatImg) return;
-            let url = null; if (chatImg) { const n = `chat_${Date.now()}`; const { error } = await _supabase.storage.from('imagens').upload(`chat/${n}`, chatImg); if (!error) { const { data } = _supabase.storage.from('imagens').getPublicUrl(`chat/${n}`); url = data.publicUrl; } }
-            await _supabase.from('order_chats').insert([{ order_id: chatId, sender_type: 'client', message: txt, image_url: url }]);
-            document.getElementById('chat-text').value = ''; window.limparPreview(); window.carregarChat();
-        }
-        function selectOption(element, price) {
-            // 1. Remove a seleção visual de todos os irmãos (outras opções)
-            // Supõe que as opções estão dentro do mesmo container pai
-            const siblings = element.parentElement.children;
-            for (let item of siblings) {
-                item.classList.remove('option-selected');
-                // Restaura a borda padrão (se você usar Tailwind classes como border-gray-700)
-                // item.classList.add('border-gray-700'); 
-            }
-
-            // 2. Adiciona a seleção no elemento clicado
-            element.classList.add('option-selected');
-            // element.classList.remove('border-gray-700');
-
-            // 3. Atualiza o preço (Sua lógica existente aqui)
-            // updatePrice(price); 
-            // console.log("Preço selecionado:", price);
-        }
-        init();
-        // Adicione no final do seu arquivo, dentro da tag <script>
-        function selecionarOpcao(elementoClicado) {
-            // 1. Pega o container pai (a div que segura todas as opções desse produto)
-            const containerPai = elementoClicado.parentElement;
-
-            // 2. Busca todas as opções dentro desse mesmo pai
-            const todasAsOpcoes = containerPai.querySelectorAll('.opcao-item');
-
-            // 3. Limpa o destaque de todas as opções
-            todasAsOpcoes.forEach(opcao => {
-                // Tira o laranja
-                opcao.classList.remove('border-orange-500', 'bg-orange-500/10', 'dark:border-orange-500');
-                // Devolve as bordas cinzas originais
-                opcao.classList.add('border-gray-700', 'dark:border-gray-600');
-            });
-
-            // 4. Aplica o destaque SÓ na opção clicada
-            // Tira a borda cinza
-            elementoClicado.classList.remove('border-gray-700', 'dark:border-gray-600');
-            // Adiciona borda laranja e um fundinho laranja bem suave
-            elementoClicado.classList.add('border-orange-500', 'bg-orange-500/10', 'dark:border-orange-500');
-        }
-    </script>
+    <div id="modal-root"></div>
+    <script type="module" src="src/app.js"></script>
 </body>
 
 </html>
