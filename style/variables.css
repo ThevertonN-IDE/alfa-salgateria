@@ -1,25 +1,25 @@
-/* Arquivo: /styles/variables.css */
+/* /src/styles/variables.css */
 
 :root {
-  /* Cores Padrão (Fallback da Alfa) */
-  --primary-color: #ea580c; 
+  /* 🛡️ FALLBACK SYNCHRONOUS: Laranja Alfa */
+  /* Se o themeEngine demorar 200ms para rodar, o Tailwind lerá isso nativamente */
+  --primary-hex: #ea580c;
+  --primary-rgb: 234, 88, 12; 
   --secondary-color: #ffffff;
+  
   --bg-app: #f8fafc;
   --text-main: #1e293b;
 }
 
-/* Quando o usuário ativar a "Lua", as variáveis de fundo e texto mudam sozinhas! */
+/* Reatividade Nativa para o Modo Escuro */
 html.dark {
-  --bg-app: #0f172a; /* slate-900 */
-  --text-main: #f1f5f9; /* slate-100 */
+  --bg-app: #0f172a;
+  --text-main: #f1f5f9;
 }
 
-/* Exemplo de uso em componentes genéricos */
-.btn-primary {
-  background-color: var(--primary-color);
-  color: var(--secondary-color);
-}
-
-.status-bar-mobile {
-  background-color: var(--primary-color);
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  /* Transição de cores exclusiva para o motor de temas, mantendo 60fps */
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
 }
